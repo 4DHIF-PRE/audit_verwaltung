@@ -1,0 +1,52 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+.pnpm-debug.log
+
+# Remix build output and cache
+build/
+public/build/
+.cache/
+.remix/
+
+# TypeScript
+*.tsbuildinfo
+
+# Vercel / Netlify / AWS build output
+.vercel/
+.netlify/
+.netlify/functions/
+.out/
+
+# dotenv environment variable files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs
+*.log
+logs/
+
+# OS and IDE-specific files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# Optional: macOS file
+*.DS_Store
+
+# Tailwind CSS generated file (if used)
+tailwind.config.js
