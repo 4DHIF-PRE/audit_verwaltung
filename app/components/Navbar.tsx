@@ -22,15 +22,6 @@ export default function Navbar() {
         <button onClick={toggleDarkMode} className="text-lg focus:outline-none">
           {darkMode ? <FaSun /> : <FaMoon />}
         </button>
-        <Link to="/add-audit" className="hover:text-red-500 font-light justify-end">
-          Audit Hinzufügen
-        </Link>
-        <Link to="/audits" className="hover:text-red-500 font-light justify-end">
-          Audits
-        </Link>
-        <Link to="/findings" className="hover:text-red-500 font-light justify-end">
-          Findings
-        </Link>
         <Link to="/logout" className="hover:text-red-500 justify-end font-bold">
           Logout
         </Link>
