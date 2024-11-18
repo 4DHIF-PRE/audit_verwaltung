@@ -1,7 +1,17 @@
 export default function Question() {
+  const color = "gray"; // "gray", "green", "red", "yellow"
+
+  let bgColorClass = "bg-gray-100 dark:bg-gray-800";
+  if (color === "green") {
+    bgColorClass = "bg-green-100 dark:bg-green-800";
+  } else if (color === "red") {
+    bgColorClass = "bg-red-100 dark:bg-red-800";
+  } else if (color === "yellow") {
+    bgColorClass = "bg-yellow-100 dark:bg-yellow-800";
+  }
+
   return (
-    //farbe fehlt
-    <div className="p-6 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
+    <div className={`p-6 ${bgColorClass} rounded-lg shadow-md`}>
       <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
         Fragen Titel
       </h2>
