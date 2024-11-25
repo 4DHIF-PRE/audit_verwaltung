@@ -1,8 +1,62 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+//mockdata
+import mockFindings from "../../mockdata/findings.json";
+import mockQuestions from "../../mockdata/questions.json";
+import mockLaws from "../../mockdata/laws.json";
 
 export default function Question() {
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [auditorComment, setAuditorComment] = useState("");
+  const [findingComment, setFindingComment] = useState("");
+  const [law, setLaw] = useState({ law: "", type: "", text: "" });
+  const [loading, setLoading] = useState(true);
 
+  // json laden
+  useEffect(() => {
+    const loadMockData = async () => {
+      setLoading(true);
+
+      const finding = mockFindings[0];
+      const question = mockQuestions.find((q) => q.qu_idx === finding.f_qu_question_idx);
+      const lawDetails = mockLaws.find((l) => l.la_idx === question?.qu_law_idx);
+
+      if(lawDetails)
+      {
+      setLaw({
+        law: lawDetails?.la_law,
+        type: lawDetails?.la_typ,
+        text: lawDetails?.la_text,
+      });
+    }else{
+      setLaw({
+        law: "",
+        type: "",
+        text: "",
+      });
+    }
+      setSelectedStatus(finding.f_level.toString());
+      setAuditorComment(finding.f_auditor_comment);
+      setFindingComment(finding.f_finding_comment);
+
+      setLoading(false);
+    };
+
+    loadMockData();
+  }, []);
+
+  //speichern
+  const handleSave = () => {
+    const updatedFinding = {
+      status: selectedStatus,
+      auditorComment,
+      findingComment,
+    };
+    console.log("Saving Finding:", updatedFinding);
+
+    // await fetch(`/api/findings/${findingId}`, { method: 'PUT', body: JSON.stringify(updatedFinding) })
+  };
+
+  //Hintergrundfarbe
   let bgColorClass = "bg-gray-100 dark:bg-gray-800";
   if (selectedStatus === "1") {
     bgColorClass = "bg-green-100 dark:bg-green-800";
@@ -12,22 +66,24 @@ export default function Question() {
     bgColorClass = "bg-yellow-100 dark:bg-yellow-800";
   }
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className={`p-6 ${bgColorClass} rounded-lg shadow-md`}>
-      <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
-        Fragen Titel
-      </h2>
+      <h1 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">{law.law} #{law.type}</h1>
+      <h5 className="text-m font-semibold mb-4 text-gray-800 dark:text-gray-200">{law.text}</h5>
+
       <form className="max-w-sm mb-4">
-        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-          Status
-        </label>
+        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status</label>
         <select
           id="status"
           onChange={(e) => setSelectedStatus(e.target.value)}
           value={selectedStatus}
           className="border rounded-lg p-2.5 text-gray-700 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
         >
-          <option value="0" selected>Frage bewerten</option>
+          <option value="0">Frage bewerten</option>
           <option value="1">Keine Findings</option>
           <option value="2">Nur dokumentiert</option>
           <option value="3">Kritisches Finding</option>
@@ -35,19 +91,35 @@ export default function Question() {
       </form>
 
       <div className="mb-4">
-        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-          Audior Kommentar
-        </label>
-        <textarea id="message" className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Write your thoughts here..."></textarea>
+        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Auditor Kommentar</label>
+        <textarea
+          id="auditorComment"
+          value={auditorComment}
+          onChange={(e) => setAuditorComment(e.target.value)}
+          className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          placeholder="Write your thoughts here..."
+        ></textarea>
       </div>
-      {selectedStatus === "2" || selectedStatus === "3" ? (
-      <div className="mb-4">
-        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-          Finding Kommentar
-        </label>
-        <textarea id="message" className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Write your thoughts here..."></textarea>
-      </div>
-           ) : null}
+
+      {(selectedStatus === "2" || selectedStatus === "3") && (
+        <div className="mb-4">
+          <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Finding Kommentar</label>
+          <textarea
+            id="findingComment"
+            value={findingComment}
+            onChange={(e) => setFindingComment(e.target.value)}
+            className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="Write your thoughts here..."
+          ></textarea>
+        </div>
+      )}
+
+      <button
+        onClick={handleSave}
+        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+      >
+        Save
+      </button>
     </div>
   );
 }
