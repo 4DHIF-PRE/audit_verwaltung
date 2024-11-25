@@ -1,49 +1,52 @@
 import { useState, useEffect } from "react";
-//mockdata
+// Mock data
 import mockFindings from "../../mockdata/findings.json";
 import mockQuestions from "../../mockdata/questions.json";
 import mockLaws from "../../mockdata/laws.json";
+import { QuestionInt } from "../types/QuestionInt";
 
-export default function Question() {
+export default function Question({ question }: { question: QuestionInt }) {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [auditorComment, setAuditorComment] = useState("");
   const [findingComment, setFindingComment] = useState("");
   const [law, setLaw] = useState({ law: "", type: "", text: "" });
   const [loading, setLoading] = useState(true);
 
- // json laden
- useEffect(() => {
-  const loadMockData = async () => {
-    setLoading(true);
+  // Load mock data based on the passed question
+  useEffect(() => {
+    const loadMockData = async () => {
+      setLoading(true);
 
-    const question = mockQuestions[0];
-    const finding = mockFindings.find((f) => f.f_qu_question_idx === question.qu_idx);
+      const finding = mockFindings.find(
+        (f) => f.f_qu_question_idx === question.qu_idx
+      );
 
-    const lawDetails = mockLaws.find((l) => l.la_idx === question.qu_law_idx);
+      const lawDetails = mockLaws.find((l) => l.la_idx === question.qu_law_idx);
 
+      console.log(question)
       if (lawDetails) {
         setLaw({
           law: lawDetails.la_law,
           type: lawDetails.la_typ,
           text: lawDetails.la_text,
         });
-    if (finding) {
-      setSelectedStatus(finding.f_level.toString());
-      setAuditorComment(finding.f_auditor_comment);
-      setFindingComment(finding.f_finding_comment);
+        if (finding) {
+          setSelectedStatus(finding.f_level.toString());
+          setAuditorComment(finding.f_auditor_comment);
+          setFindingComment(finding.f_finding_comment);
+        }
+      } else {
+        setSelectedStatus("");
+        setAuditorComment("");
+        setFindingComment("");
       }
-    } else {
-      setSelectedStatus("");
-      setAuditorComment("");
-      setFindingComment("");
-    }
-    setLoading(false);
-  };
+      setLoading(false);
+    };
 
-  loadMockData();
-}, []);
+    loadMockData();
+  }, [question]);
 
-  //speichern
+  // Save the finding data
   const handleSave = () => {
     const updatedFinding = {
       status: selectedStatus,
@@ -51,11 +54,10 @@ export default function Question() {
       findingComment,
     };
     console.log("Saving Finding:", updatedFinding);
-
     // await fetch(`/api/findings/${findingId}`, { method: 'PUT', body: JSON.stringify(updatedFinding) })
   };
 
-  //Hintergrundfarbe
+  // Hintergrund
   let bgColorClass = "bg-gray-100 dark:bg-gray-800";
   if (selectedStatus === "1") {
     bgColorClass = "bg-green-100 dark:bg-green-800";
@@ -71,11 +73,17 @@ export default function Question() {
 
   return (
     <div className={`p-6 ${bgColorClass} rounded-lg shadow-md`}>
-      <h1 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">{law.law} #{law.type}</h1>
-      <h5 className="text-m font-semibold mb-4 text-gray-800 dark:text-gray-200">{law.text}</h5>
+      <h1 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+        {law.law} #{law.type}
+      </h1>
+      <h5 className="text-m font-semibold mb-4 text-gray-800 dark:text-gray-200">
+        {law.text}
+      </h5>
 
       <form className="max-w-sm mb-4">
-        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status</label>
+        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+          Status
+        </label>
         <select
           id="status"
           onChange={(e) => setSelectedStatus(e.target.value)}
@@ -90,7 +98,9 @@ export default function Question() {
       </form>
 
       <div className="mb-4">
-        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Auditor Kommentar</label>
+        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+          Auditor Kommentar
+        </label>
         <textarea
           id="auditorComment"
           value={auditorComment}
@@ -102,7 +112,9 @@ export default function Question() {
 
       {(selectedStatus === "2" || selectedStatus === "3") && (
         <div className="mb-4">
-          <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Finding Kommentar</label>
+          <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Finding Kommentar
+          </label>
           <textarea
             id="findingComment"
             value={findingComment}
@@ -112,13 +124,6 @@ export default function Question() {
           ></textarea>
         </div>
       )}
-
-      <button
-        onClick={handleSave}
-        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-      >
-        Save
-      </button>
     </div>
   );
 }
