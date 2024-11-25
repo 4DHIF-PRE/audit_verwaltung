@@ -1,0 +1,410 @@
+{
+	"info": {
+		"_postman_id": "203260fd-3601-433e-8877-451c1ce74ea0",
+		"name": "Gruppe2-Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38499642"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"{{acc1_admin_u_email}}\",\r\n    \"password\": \"{{acc1_admin_password}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}/login",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Invitation",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let jsonData = pm.response.json();\r",
+							"const token = jsonData.registrationToken ?? \"\";\r",
+							"pm.collectionVariables.set(\"__registrationToken\", token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"rp_firstname\": \"{{acc2_register_firstname}}\",\r\n    \"rp_lastname\": \"{{acc2_register_lastname}}\",\r\n    \"rp_email\": \"{{acc2_register_email}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}/registration/createInvitation",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"registration",
+						"createInvitation"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logout",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base-url}}/logout",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.unset(\"__registrationToken\");"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"registrationToken\": \"{{__registrationToken}}\",\r\n    \"password\": \"{{acc2_register_password}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}/registration/register",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"registration",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get user with cookie",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base-url}}/users/querySessionowner",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"users",
+						"querySessionowner"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "All Users (Admin-View)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base-url}}/users/adminView",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"users",
+						"adminView"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete User",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"u_userId\": \"0f14547a858dbddbdc7592752f699dca542efab23e86897e1a75c795fa81a023\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}/users/deleteUser",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"users",
+						"deleteUser"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Restore User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"u_userId\": \"0f14547a858dbddbdc7592752f699dca542efab23e86897e1a75c795fa81a023\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}/users/restoreUser",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"users",
+						"restoreUser"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "View all registration tokens",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base-url}}/registration/viewTokens",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"registration",
+						"viewTokens"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete a registration token",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"deleteToken\":\"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}/registration/deleteToken",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"registration",
+						"deleteToken"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete all registration tokens",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base-url}}/registration/deleteAllTokens",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"registration",
+						"deleteAllTokens"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Is first registration",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base-url}}/registration/IsFirstRegistration",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"registration",
+						"IsFirstRegistration"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register first admin",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"u_firstname\": \"{{acc3_register_firstname}}\",\r\n    \"u_lastname\": \"{{acc3_register_lastname}}\",\r\n    \"u_email\": \"{{acc3_register_email}}\",\r\n    \"password\": \"{{acc3_register_password}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}/registration/FirstRegistration",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"registration",
+						"FirstRegistration"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base-url",
+			"value": "localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "acc1_admin_u_email",
+			"value": "max.maier@gmail.com",
+			"type": "string"
+		},
+		{
+			"key": "acc1_admin_password",
+			"value": "1234",
+			"type": "string"
+		},
+		{
+			"key": "acc2_register_firstname",
+			"value": "Tomek",
+			"type": "string"
+		},
+		{
+			"key": "acc2_register_lastname",
+			"value": "Chernobyl",
+			"type": "string"
+		},
+		{
+			"key": "acc2_register_email",
+			"value": "tomek.chernobyl@gmail.com",
+			"type": "string"
+		},
+		{
+			"key": "acc2_register_password",
+			"value": "ilovecsharp",
+			"type": "string"
+		},
+		{
+			"key": "acc3_register_firstname",
+			"value": "Marko",
+			"type": "string"
+		},
+		{
+			"key": "acc3_register_lastname",
+			"value": "Polovic",
+			"type": "string"
+		},
+		{
+			"key": "acc3_register_email",
+			"value": "marko.polovic@gmail.com",
+			"type": "string"
+		},
+		{
+			"key": "acc3_register_password",
+			"value": "1234",
+			"type": "string"
+		}
+	]
+}
