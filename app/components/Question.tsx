@@ -11,38 +11,37 @@ export default function Question() {
   const [law, setLaw] = useState({ law: "", type: "", text: "" });
   const [loading, setLoading] = useState(true);
 
-  // json laden
-  useEffect(() => {
-    const loadMockData = async () => {
-      setLoading(true);
+ // json laden
+ useEffect(() => {
+  const loadMockData = async () => {
+    setLoading(true);
 
-      const finding = mockFindings[0];
-      const question = mockQuestions.find((q) => q.qu_idx === finding.f_qu_question_idx);
-      const lawDetails = mockLaws.find((l) => l.la_idx === question?.qu_law_idx);
+    const question = mockQuestions[0];
+    const finding = mockFindings.find((f) => f.f_qu_question_idx === question.qu_idx);
 
-      if(lawDetails)
-      {
-      setLaw({
-        law: lawDetails?.la_law,
-        type: lawDetails?.la_typ,
-        text: lawDetails?.la_text,
-      });
-    }else{
-      setLaw({
-        law: "",
-        type: "",
-        text: "",
-      });
-    }
+    const lawDetails = mockLaws.find((l) => l.la_idx === question.qu_law_idx);
+
+      if (lawDetails) {
+        setLaw({
+          law: lawDetails.la_law,
+          type: lawDetails.la_typ,
+          text: lawDetails.la_text,
+        });
+    if (finding) {
       setSelectedStatus(finding.f_level.toString());
       setAuditorComment(finding.f_auditor_comment);
       setFindingComment(finding.f_finding_comment);
+      }
+    } else {
+      setSelectedStatus("");
+      setAuditorComment("");
+      setFindingComment("");
+    }
+    setLoading(false);
+  };
 
-      setLoading(false);
-    };
-
-    loadMockData();
-  }, []);
+  loadMockData();
+}, []);
 
   //speichern
   const handleSave = () => {
