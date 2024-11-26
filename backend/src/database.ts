@@ -286,7 +286,7 @@ export async function DeleteOrRestoreUser(sessionId: string, userId_toDeleteOrRe
     }
 }
 
-export async function CreateRegistrationToken(sessionId: string, firstname:string, lastname:string, email:string): Promise<{ registrationToken: string } | Error> {
+export async function CreateRegistrationToken(sessionId: string, firstname: string, lastname: string, email: string): Promise<{ registrationToken: string } | Error> {
     if (!sessionId) return new Error("SessionId must not be null/undefined/empty");
 
     const errors = {
@@ -349,7 +349,7 @@ export async function CreateRegistrationToken(sessionId: string, firstname:strin
             [email]
         );
 
-        if(resultsEmailExists.length !== 0) {
+        if (resultsEmailExists.length !== 0) {
             connection.release();
             return new Error("A user with the provided email does already exist.");
         }
@@ -480,7 +480,7 @@ export async function DeleteRegistrationTokens(sessionId: string, token: string 
 
 export async function Register(registrationToken: string, inputPassword: string): Promise<{ sessionToken: string, message: string } | Error> {
     if (!registrationToken) return new Error("SessionId must not be null/undefined/empty");
-    
+
 
     const passwordValidationResult = validatePassword(inputPassword);
 
@@ -590,14 +590,14 @@ export async function IsFirstRegistration(): Promise<boolean> {
         );
 
         if (resultQuery1.length === 0) isFirstRegistration = true;
-/*
-        const [resultQuery2, fieldsQuery2]: [any, mysql.FieldPacket[]] = await connection.execute(
-            'SELECT COUNT(u_userId) FROM `u_user`',
-            []
-        );
-
-        console.log(resultQuery2);
-*/
+        /*
+                const [resultQuery2, fieldsQuery2]: [any, mysql.FieldPacket[]] = await connection.execute(
+                    'SELECT COUNT(u_userId) FROM `u_user`',
+                    []
+                );
+        
+                console.log(resultQuery2);
+        */
 
         await connection.commit();
         connection.release();
@@ -610,6 +610,32 @@ export async function IsFirstRegistration(): Promise<boolean> {
     }
 }
 
+export async function GetAllFindings(): Promise<string | Error> {
+
+    const connection = await connectionPool.getConnection();
+
+    try {
+        await connection.beginTransaction();
+
+        const [results]: [any, mysql.FieldPacket[]] = await connection.execute(
+            'SELECT * FROM f_findings'
+        );
+        if (results.length === 0) {
+            connection.release();
+            return new Error("No Findings");
+        }
+        const queryUser: any = results[0];
+
+        await connection.commit();
+        connection.release();
+        return results;
+    } catch (error) {
+        console.log(error);
+        await connection.rollback()
+        connection.release();
+        return error;
+    }
+}
 
 export async function RegisterFirstAdmin(userData: { u_firstname: string, u_lastname: string, u_email: string, inputPassword: string } | null): Promise<{ sessionToken: string, message: string } | Error> {
     if (!userData.u_firstname) return new Error("u_firstname must not be null/undefined/empty");
@@ -620,14 +646,14 @@ export async function RegisterFirstAdmin(userData: { u_firstname: string, u_last
 
     const isFirstAdminResult = await IsFirstRegistration();
 
-    if(!isFirstAdminResult) {
+    if (!isFirstAdminResult) {
         return new Error("An admin already exists");
     }
 
     const connection = await connectionPool.getConnection();
 
     try {
-        
+
         await connection.beginTransaction();
 
         const timeNow = new Date(Date.now());
