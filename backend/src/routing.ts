@@ -1,7 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import { validateEmail, validateName, validatePassword } from './util/validation.util.js';
-import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings } from './database.js';
+import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings,getAuditQuestions,createFinding, updateFinding, deleteFinding, getFindingsByID,uploadAttachment,getFileNameByFindingId,getFilesByFindingId,deleteFileByFindingAttachmentId,getFileByFindingAttachmentId } from './database.js';
 import { sendMailDefault, sendMailInvite } from './mailService.js';
 import cors from 'cors'
 
@@ -311,5 +311,204 @@ expressApp.post('/registration/register', async (req, res) => {
     } else {
         res.status(200).cookie(cookieName, registrationResult.sessionToken, { httpOnly: true }).json({ message: registrationResult.message });
         return;
+    }
+});
+//gruppe 4
+// GET alle questions von einem audit
+expressApp.get('/audit/questions/:id', async (req, res) => { 
+    const auditId = req.params.id;
+
+    try {
+        const results = await getAuditQuestions(auditId);
+
+        if (results instanceof Error) {
+            return res.status(500).json({ error: results.message });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'No questions found for this audit.' });
+        }
+
+        res.status(200).json(results);
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+});
+
+// POST einen neuen Finding zu einem Audit ( Finding erstellen )
+expressApp.post('/audit/finding', async (req, res) => {
+
+    const findingData = req.body;
+    try {
+        const result = await createFinding(findingData);
+        if (result instanceof Error) {
+            return res.status(500).json({ error: result.message });
+        }
+        res.status(201).json({ message: 'Finding created', findingId: result });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+
+});
+
+// PUT eines Findings von einem Audit ( Finding aktualisieren )
+expressApp.put('/audit/finding', async (req, res) => {
+    const updateData = req.body;
+    try {
+        const result = await updateFinding(updateData);
+        if (result instanceof Error) {
+            return res.status(500).json({ error: result.message });
+        }
+        res.json({ message: 'Finding updated successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// DELETE eine Finding
+expressApp.delete('/audit/finding/:id', async (req, res) => {
+   // const findingId:number = parseInt(req.params.id);
+    try {
+        const result = await deleteFinding(req.params.id);
+        if (result instanceof Error) {
+            return res.status(500).json({ error: result.message });
+        }
+        res.json({ message: 'Finding deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// GET Findings
+expressApp.get('/api/audit/findings/:id'), (req, res) => {
+   
+    try {
+        const results = getFindingsByID(req.params.id)
+        if (results instanceof Error) {
+            console.error('Error executing query');
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'No findings found.' });
+        }
+
+        return res.json(results);
+    }catch (error) {
+        console.error('Unexpected error:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+    
+}
+
+// get file name
+expressApp.post('/api/finding/attachments/:id/:fileName', async (req, res) => {
+    try {
+        const findingId = req.params.id;
+        const fileName = req.params.fileName;
+
+        // Check if the request contains data
+        if (!req.headers['content-type']?.startsWith('multipart/form-data')) {
+            return res.status(400).json({ error: 'Invalid content-type. Expected multipart/form-data.' });
+        }
+
+        // Collect the file data
+        let fileData = Buffer.alloc(0);
+        req.on('data', (chunk) => {
+            fileData = Buffer.concat([fileData, chunk]);
+        });
+
+        req.on('end', async () => {
+            if (fileData.length === 0) {
+                return res.status(400).json({ error: 'No file uploaded.' });
+            }
+
+            // Save the file to the database
+            const attachmentId = await uploadAttachment(findingId, fileData, fileName);
+            if (attachmentId instanceof Error) {
+                console.error('Error inserting file:', attachmentId);
+                return res.status(500).json({ error: 'Internal Server Error' });
+            }
+
+            return res.status(201).json({ message: 'File uploaded successfully', attachmentId });
+        });
+    } catch (error) {
+        console.error('Unexpected error:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
+// get Filenamen
+expressApp.get('/api/finding/attachments/:id/filenames', async (req, res) => {
+    const findingId = req.params.id;
+
+    try {
+        const fileName = await getFileNameByFindingId(findingId);
+
+        if (fileName instanceof Error) {
+            return res.status(404).json({ error: fileName.message });
+        }
+
+        return res.json({ fileName });
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+// get Files
+expressApp.get('/api/finding/attachments/:id/files', async (req, res) => {
+    const findingId = req.params.id;
+
+    try {
+        const fileName = await getFilesByFindingId(findingId);
+
+        if (fileName instanceof Error) {
+            return res.status(404).json({ error: fileName.message });
+        }
+
+        return res.json({ fileName });
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+// get File
+expressApp.get('/api/finding/attachments/:id', async (req, res) => {
+    const attachmentId = req.params.id;
+
+    try {
+        const fileName = await getFileByFindingAttachmentId(attachmentId);
+
+        if (fileName instanceof Error) {
+            return res.status(404).json({ error: fileName.message });
+        }
+
+        return res.json({ fileName });
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+// delete file
+expressApp.get('/api/finding/attachments/:id/delete', async (req, res) => {
+    const attachmentId = req.params.id;
+
+    try {
+        const fileName = await deleteFileByFindingAttachmentId(attachmentId);
+
+        if (fileName instanceof Error) {
+            return res.status(404).json({ error: fileName.message });
+        }
+
+        return res.json({ fileName });
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
     }
 });
