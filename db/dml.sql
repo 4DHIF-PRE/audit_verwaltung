@@ -77,8 +77,7 @@ values ('3c1e680a775f7e51a250b387216848624bfd625503d0c0c25ff5f760a0ebf195', 3),
        ('41f188bdee58c923d78223a5e80ee48d7729be33726e97924b36c85d607831f5', 2),
        ('3c1e680a775f7e51a250b387216848624bfd625503d0c0c25ff5f760a0ebf195', 2),
        ('dc75a6d8719fdfea62401c19fa8502eb746f4ae869c0cfb77316a118d1c731bc', 6);
-
-       
+    
 INSERT INTO la_law VALUES
 (1, 'PART.CAMO', 'R', 'CAMO.A.100', 'Lore ipsum …', '2023-01-01', NULL),
 (2, 'PART.CAMO', 'AMC', 'AMC1.CAMO.A.100', 'Lore ipsum …', '2023-01-01', NULL),

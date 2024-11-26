@@ -1,7 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import { validateEmail, validateName, validatePassword } from './util/validation.util.js';
-import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin } from './database.js';
+import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion  } from './database.js';
 import { sendMailDefault, sendMailInvite } from './mailService.js';
 import cors from 'cors'
 
@@ -297,5 +297,210 @@ expressApp.post('/registration/register', async (req, res) => {
     } else {
         res.status(200).cookie(cookieName, registrationResult.sessionToken, { httpOnly: true }).json({ message: registrationResult.message });
         return;
+    }
+});
+
+// Gruppe3
+expressApp.post('/law', async (req, res) => {
+    const { la_law, la_typ, la_description, la_text, la_valid_from, la_valid_until } = req.body;
+    const errors = {
+        la_law: (!la_law || typeof la_law !== 'string') ? "Invalid la_law" : undefined,
+        la_typ: (!la_typ || ['r', 'amc', 'gm', 's'].indexOf(la_typ) === -1) ? "Invalid la_typ" : undefined,
+        la_description: (!la_description || typeof la_description !== 'string') ? "Invalid la_description" : undefined,
+        la_valid_from: (!la_valid_from) ? "Invalid la_valid_from" : undefined,
+        la_valid_until: (!la_valid_until) ? "Invalid la_valid_until" : undefined,
+    };
+    if (Object.values(errors).some(Boolean)) {
+        res.status(400).json(errors);
+        return;
+    }
+    const result = await CreateLaw({ la_law, la_typ, la_description, la_text, la_valid_from, la_valid_until });
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    }
+    else {
+        res.status(201).json(result);
+    }
+});
+expressApp.get('/law', async (req, res) => {
+    const result = await GetAllLaws();
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    }
+    else {
+        res.status(200).json(result);
+    }
+});
+expressApp.get('/law/:id', async (req, res) => {
+    const lawId = req.params.id;
+    const result = await GetLawById(+lawId);
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    }
+    else {
+        res.status(200).json(result);
+    }
+});
+expressApp.put('/law/:id', async (req, res) => {
+    const lawId = req.params.id;
+    const updates = req.body;
+    const result = await UpdateLaw(+lawId, updates);
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    }
+    else {
+        res.status(200).json(result);
+    }
+});
+expressApp.delete('/law/:id', async (req, res) => {
+    const lawId = req.params.id;
+    const result = await DeleteLaw(+lawId);
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    }
+    else {
+        res.status(204).send();
+    }
+});
+// Routes for audit
+expressApp.post('/audit', async (req, res) => {
+    const { au_audit_date, au_number_of_days, au_leadauditor_idx, au_leadauditee_idx, au_auditstatus, au_place, au_theme, au_typ } = req.body;
+    const errors = {
+        au_audit_date: !au_audit_date ? "Invalid au_audit_date" : undefined,
+        au_number_of_days: (!au_number_of_days && au_number_of_days !== 0) ? "Invalid au_number_of_days" : undefined,
+        au_leadauditor_idx: !au_leadauditor_idx ? "Invalid au_leadauditor_idx" : undefined,
+        au_leadauditee_idx: !au_leadauditee_idx ? "Invalid au_leadauditee_idx" : undefined,
+        au_auditstatus: !['geplant', 'bereit', 'begonnen', 'findings_offen', 'fertig'].includes(au_auditstatus) ? "Invalid au_auditstatus" : undefined,
+        au_place: !au_place ? "Invalid au_place" : undefined,
+        au_theme: !au_theme ? "Invalid au_theme" : undefined,
+        au_typ: !['audit', 'inspektion', 'ca', 'extern', 'sonstig'].includes(au_typ) ? "Invalid au_typ" : undefined,
+    };
+    if (Object.values(errors).some(Boolean)) {
+        res.status(400).json(errors);
+        return;
+    }
+    const result = await CreateAudit({
+        au_audit_date,
+        au_number_of_days,
+        au_leadauditor_idx,
+        au_leadauditee_idx,
+        au_auditstatus,
+        au_place,
+        au_theme,
+        au_typ,
+    });
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    }
+    else {
+        res.status(201).json(result);
+    }
+});
+expressApp.get('/audit', async (req, res) => {
+    const result = await GetAllAudits();
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    }
+    else {
+        res.status(200).json(result);
+    }
+});
+expressApp.get('/audit/:id', async (req, res) => {
+    const auditId = req.params.id;
+    const result = await GetAuditById(+auditId);
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    }
+    else {
+        res.status(200).json(result);
+    }
+});
+expressApp.put('/audit/:id', async (req, res) => {
+    const auditId = req.params.id;
+    const updates = req.body;
+    const result = await UpdateAudit(+auditId, updates);
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    }
+    else {
+        res.status(200).json(result);
+    }
+});
+expressApp.delete('/audit/:id', async (req, res) => {
+    const auditId = req.params.id;
+    const result = await DeleteAudit(+auditId);
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    }
+    else {
+        res.status(204).send();
+    }
+});
+// Routes for questions
+expressApp.post('/questions', async (req, res) => {
+    const { qu_audit_idx, qu_law_idx, qu_audited, qu_applicable, qu_finding_level } = req.body;
+    const errors = {
+        qu_audit_idx: !qu_audit_idx ? "Invalid qu_audit_idx" : undefined,
+        qu_law_idx: !qu_law_idx ? "Invalid qu_law_idx" : undefined,
+        qu_audited: typeof qu_audited !== 'boolean' ? "Invalid qu_audited" : undefined,
+        qu_applicable: typeof qu_applicable !== 'boolean' ? "Invalid qu_applicable" : undefined,
+        qu_finding_level: qu_finding_level !== undefined && typeof qu_finding_level !== 'number' ? "Invalid qu_finding_level" : undefined,
+    };
+    if (Object.values(errors).some(Boolean)) {
+        res.status(400).json(errors);
+        return;
+    }
+    const result = await CreateQuestion({
+        qu_audit_idx,
+        qu_law_idx,
+        qu_audited,
+        qu_applicable,
+        qu_finding_level,
+    });
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    }
+    else {
+        res.status(201).json(result);
+    }
+});
+expressApp.get('/questions', async (req, res) => {
+    const result = await GetAllQuestions();
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    }
+    else {
+        res.status(200).json(result);
+    }
+});
+expressApp.get('/questions/:id', async (req, res) => {
+    const questionId = req.params.id;
+    const result = await GetQuestionById(+questionId);
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    }
+    else {
+        res.status(200).json(result);
+    }
+});
+expressApp.put('/questions/:id', async (req, res) => {
+    const questionId = req.params.id;
+    const updates = req.body;
+    const result = await UpdateQuestion(+questionId, updates);
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    }
+    else {
+        res.status(200).json(result);
+    }
+});
+expressApp.delete('/questions/:id', async (req, res) => {
+    const questionId = req.params.id;
+    const result = await DeleteQuestion(+questionId);
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    }
+    else {
+        res.status(204).send();
     }
 });

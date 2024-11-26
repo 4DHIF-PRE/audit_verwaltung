@@ -668,3 +668,218 @@ export async function RegisterFirstAdmin(userData: { u_firstname: string, u_last
         return error;
     }
 }
+// Gruppe3
+// Law functions
+export async function CreateLaw(lawData) {
+    const query = `
+        INSERT INTO la_law (la_law, la_typ, la_description, la_text, la_valid_from, la_valid_until)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    const values = [
+        lawData.la_law,
+        lawData.la_typ,
+        lawData.la_description,
+        lawData.la_text || null,
+        lawData.la_valid_from,
+        lawData.la_valid_until
+    ];
+    const pool = await connectionPool.getConnection();
+    try {
+        const [result] = await pool.execute(query, values);
+        return result;
+    }
+    catch (error) {
+        return new Error(`Failed to create law: ${error.message}`);
+    }
+}
+export async function GetAllLaws() {
+    const query = `SELECT * FROM la_law`;
+    const pool = await connectionPool.getConnection();
+    try {
+        const [rows] = await pool.execute(query);
+        return rows;
+    }
+    catch (error) {
+        return new Error(`Failed to retrieve laws: ${error.message}`);
+    }
+}
+export async function GetLawById(lawId) {
+    const query = `SELECT * FROM la_law WHERE la_idx = ?`;
+    const pool = await connectionPool.getConnection();
+    try {
+        const [rows] = await pool.execute(query, [lawId]);
+        return rows[0] || null;
+    }
+    catch (error) {
+        return new Error(`Failed to retrieve law: ${error.message}`);
+    }
+}
+export async function UpdateLaw(lawId, updates) {
+    const fields = Object.keys(updates).map(key => `${key} = ?`).join(', ');
+    const values = Object.values(updates).concat(lawId.toString()).join(', ');
+    const query = `UPDATE la_law SET ${fields} WHERE la_idx = ?`;
+    const pool = await connectionPool.getConnection();
+    try {
+        const [result] = await pool.execute(query, values);
+        return result;
+    }
+    catch (error) {
+        return new Error(`Failed to update law: ${error.message}`);
+    }
+}
+export async function DeleteLaw(lawId) {
+    const pool = await connectionPool.getConnection();
+    try {
+        const [result]: [mysql.ResultSetHeader, mysql.FieldPacket[]] = await pool.query('DELETE FROM `la_law` WHERE `la_idx` = ?', [lawId]);
+        if (result[0].affectedRows === 0) {
+            return new Error("Law not found or already deleted");
+        }
+    }
+    catch (error) {
+        console.error("Error deleting law:", error);
+        return new Error("Database error occurred while deleting law");
+    }
+}
+// Audit functions
+export async function CreateAudit(auditData) {
+    const pool = await connectionPool.getConnection();
+    const query = `
+        INSERT INTO au_audit (au_audit_date, au_number_of_days, au_leadauditor_idx, au_leadauditee_idx, au_auditstatus, au_place, au_theme, au_typ)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    const values = [
+        auditData.au_audit_date,
+        auditData.au_number_of_days,
+        auditData.au_leadauditor_idx,
+        auditData.au_leadauditee_idx,
+        auditData.au_auditstatus,
+        auditData.au_place,
+        auditData.au_theme,
+        auditData.au_typ
+    ];
+    try {
+        const [result] = await pool.execute(query, values);
+        return result;
+    }
+    catch (error) {
+        return new Error(`Failed to create audit: ${error.message}`);
+    }
+}
+export async function GetAllAudits() {
+    const query = `SELECT * FROM au_audit`;
+    const pool = await connectionPool.getConnection();
+    try {
+        const [rows] = await pool.execute(query);
+        return rows;
+    }
+    catch (error) {
+        return new Error(`Failed to retrieve audits: ${error.message}`);
+    }
+}
+export async function GetAuditById(auditId) {
+    const query = `SELECT * FROM au_audit WHERE au_idx = ?`;
+    const pool = await connectionPool.getConnection();
+    try {
+        const [rows] = await pool.execute(query, [auditId]);
+        return rows[0] || null;
+    }
+    catch (error) {
+        return new Error(`Failed to retrieve audit: ${error.message}`);
+    }
+}
+export async function UpdateAudit(auditId, updates) {
+    const fields = Object.keys(updates).map(key => `${key} = ?`).join(', ');
+    const values = Object.values(updates).concat(auditId);
+    const query = `UPDATE au_audit SET ${fields} WHERE au_idx = ?`;
+    const pool = await connectionPool.getConnection();
+    try {
+        const [result] = await pool.execute(query, values);
+        return result;
+    }
+    catch (error) {
+        return new Error(`Failed to update audit: ${error.message}`);
+    }
+}
+export async function DeleteAudit(auditId) {
+    const pool = await connectionPool.getConnection();
+    try {
+        const result = await pool.execute<mysql.ResultSetHeader>('DELETE FROM `au_audit` WHERE `au_idx` = ?', [auditId]);
+        if (result[0].affectedRows === 0) {
+            return new Error("Audit not found or already deleted");
+        }
+    }
+    catch (error) {
+        console.error("Error deleting audit:", error);
+        return new Error("Database error occurred while deleting audit");
+    }
+}
+// Question functions
+export async function CreateQuestion(questionData) {
+    const query = `
+        INSERT INTO qu_questions (qu_audit_idx, qu_law_idx, qu_audited, qu_applicable, qu_finding_level)
+        VALUES (?, ?, ?, ?, ?)
+    `;
+    const values = [
+        questionData.qu_audit_idx,
+        questionData.qu_law_idx,
+        questionData.qu_audited,
+        questionData.qu_applicable,
+        questionData.qu_finding_level || null
+    ];
+    const pool = await connectionPool.getConnection();
+    try {
+        const [result] = await pool.execute(query, values);
+        return result;
+    }
+    catch (error) {
+        return new Error(`Failed to create question: ${error.message}`);
+    }
+}
+export async function GetAllQuestions() {
+    const query = `SELECT * FROM qu_questions`;
+    const pool = await connectionPool.getConnection();
+    try {
+        const [rows] = await pool.execute(query);
+        return rows;
+    }
+    catch (error) {
+        return new Error(`Failed to retrieve questions: ${error.message}`);
+    }
+}
+export async function GetQuestionById(questionId) {
+    const query = `SELECT * FROM qu_questions WHERE qu_idx = ?`;
+    const pool = await connectionPool.getConnection();
+    try {
+        const [rows] = await pool.execute(query, [questionId]);
+        return rows[0] || null;
+    }
+    catch (error) {
+        return new Error(`Failed to retrieve question: ${error.message}`);
+    }
+}
+export async function UpdateQuestion(questionId, updates) {
+    const fields = Object.keys(updates).map(key => `${key} = ?`).join(', ');
+    const values = Object.values(updates).concat(questionId);
+    const query = `UPDATE qu_questions SET ${fields} WHERE qu_idx = ?`;
+    const pool = await connectionPool.getConnection();
+    try {
+        const [result] = await pool.execute(query, values);
+        return result;
+    }
+    catch (error) {
+        return new Error(`Failed to update question: ${error.message}`);
+    }
+}
+export async function DeleteQuestion(questionId) {
+    const pool = await connectionPool.getConnection();
+    try {
+        const [result] = await pool.execute('DELETE FROM qu_questions WHERE qu_idx = ?', [questionId]);
+        if (result[0].affectedRows === 0) {
+            return new Error("Question not found or already deleted");
+        }
+    }
+    catch (error) {
+        console.error("Error deleting question:", error);
+        return new Error("Database error occurred while deleting question");
+    }
+}
