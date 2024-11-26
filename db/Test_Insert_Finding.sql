@@ -1,0 +1,4 @@
+INSERT INTO audit.au_audit (au_audit_date, au_number_of_days, au_leadauditor_idx, au_leadauditee_idx, au_auditstatus, au_place, au_theme, au_typ) VALUES ("2020-12-12", 21, 0, 0, 'geplant', "Hier", "Theme", 'sonstig');
+INSERT INTO la_law (la_law, la_typ, la_description, la_text, la_valid_from, la_valid_until) VALUES ("Law", 'r', "UGB Gesetz", "Text", "2024-11-11", "2025-1-1");
+INSERT INTO qu_questions (qu_audit_idx, qu_law_idx, qu_audited, qu_applicable) VALUES (12, 1, FALSE, TRUE);
+INSERT INTO f_findings (f_level, f_creation_date, f_timeInDays, f_status, f_au_audit_idx, f_qu_question_idx, f_u_auditor_id) VALUES (1, NOW(), 21, 'offen', 12, 6, "82dc20bc85c3eb7f387b7c611b6e8151feec2fa096c02bc84f137571797368cd");

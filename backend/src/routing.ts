@@ -1,7 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import { validateEmail, validateName, validatePassword } from './util/validation.util.js';
-import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin } from './database.js';
+import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings } from './database.js';
 import { sendMailDefault, sendMailInvite } from './mailService.js';
 import cors from 'cors'
 
@@ -271,6 +271,20 @@ expressApp.delete('/registration/deleteToken', async (req, res) => {
         res.status(200).json(result);
         return;
     }
+});
+
+expressApp.get('/findings/getall', async (req, res) => {
+
+    const result = await GetAllFindings();
+
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+        return;
+    } else {
+        res.status(200).json(result);
+        return;
+    }
+
 });
 
 expressApp.post('/registration/register', async (req, res) => {
