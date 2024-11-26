@@ -77,4 +77,35 @@ values ('3c1e680a775f7e51a250b387216848624bfd625503d0c0c25ff5f760a0ebf195', 3),
        ('41f188bdee58c923d78223a5e80ee48d7729be33726e97924b36c85d607831f5', 2),
        ('3c1e680a775f7e51a250b387216848624bfd625503d0c0c25ff5f760a0ebf195', 2),
        ('dc75a6d8719fdfea62401c19fa8502eb746f4ae869c0cfb77316a118d1c731bc', 6);
+
+       
+INSERT INTO la_law VALUES
+(1, 'PART.CAMO', 'R', 'CAMO.A.100', 'Lore ipsum …', '2023-01-01', NULL),
+(2, 'PART.CAMO', 'AMC', 'AMC1.CAMO.A.100', 'Lore ipsum …', '2023-01-01', NULL),
+(3, 'PART.CAMO', 'GM', 'GM1.CAMO.A.100', 'Lore ipsum …', '2023-01-01', NULL),
+(4, 'PART.CAMO', 'R', 'CAMO.A.101', 'Lore ipsum …', '2023-01-01', NULL),
+(5, 'PART.CAMO', 'AMC', 'AMC1.CAMO.A.101', 'Lore ipsum …', '2023-01-01', NULL),
+(6, 'PART.CAMO', 'GM', 'GM1.CAMO.A.101', 'Lore ipsum …', '2023-01-01', NULL),
+(7, 'PART.CAMO', 'R', 'CAMO.A.102', 'Lore ipsum …', '2023-01-01', NULL),
+(8, 'PART.CAMO', 'AMC', 'AMC1.CAMO.A.102', 'Lore ipsum …', '2023-01-01', NULL),
+(9, 'PART.CAMO', 'GM', 'GM1.CAMO.A.102', 'Lore ipsum …', '2023-01-01', NULL),
+(10, 'PART.CAMO', 'R', 'CAMO.A.103', 'Lore ipsum …', '2023-01-01', NULL),
+(11, 'PART.CAMO', 'AMC', 'AMC1.CAMO.A.103', 'Lore ipsum …', '2023-01-01', NULL),
+(12, 'PART.CAMO', 'GM', 'GM1.CAMO.A.103', 'Lore ipsum …', '2023-01-01', NULL),
+(13, 'PART.CAMO', 'R', 'CAMO.A.104', 'Lore ipsum …', '2023-01-01', NULL),
+(14, 'PART.CAMO', 'AMC', 'AMC1.CAMO.A.104', 'Lore ipsum …', '2023-01-01', NULL),
+(15, 'PART.CAMO', 'GM', 'GM1.CAMO.A.104', 'Lore ipsum …', '2023-01-01', NULL),
+(16, 'PART.CAMO', 'R', 'CAMO.A.105', 'Lore ipsum …', '2023-01-01', NULL),
+(17, 'PART.CAMO', 'AMC', 'AMC1.CAMO.A.105', 'Lore ipsum …', '2023-01-01', NULL),
+(18, 'PART.CAMO', 'GM', 'GM1.CAMO.A.105', 'Lore ipsum …', '2023-01-01', NULL),
+(19, 'PART.CAMO', 'R', 'CAMO.A.106', 'Lore ipsum …', '2023-01-01', NULL),
+(20, 'PART.CAMO', 'AMC', 'AMC1.CAMO.A.106', 'Lore ipsum …', '2023-01-01', NULL),
+(21, 'PART.CAMO', 'GM', 'GM1.CAMO.A.106', 'Lore ipsum …', '2023-01-01', NULL),
+(22, 'PART.CAMO', 'R', 'CAMO.A.107', 'Lore ipsum …', '2023-01-01', NULL),
+(23, 'PART.CAMO', 'AMC', 'AMC1.CAMO.A.107', 'Lore ipsum …', '2023-01-01', NULL),
+(24, 'PART.CAMO', 'GM', 'GM1.CAMO.A.107', 'Lore ipsum …', '2023-01-01', NULL),
+(25, 'PART.CAMO', 'R', 'CAMO.A.108', 'Lore ipsum …', '2023-01-01', NULL),
+(26, 'PART.CAMO', 'AMC', 'AMC1.CAMO.A.108', 'Lore ipsum …', '2023-01-01', NULL),
+(27, 'PART.CAMO', 'GM', 'GM1.CAMO.A.108', 'Lore ipsum …', '2023-01-01', NULL);
+
 commit;
