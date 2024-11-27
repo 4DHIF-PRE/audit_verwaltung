@@ -11,7 +11,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="flex fixed w-full items-center justify-between px-6 py-3 bg-white text-gray-900 dark:bg-black dark:text-gray-100 shadow-md">
+    <nav className="flex fixed w-full items-center justify-between px-6 py-3 mb-10 bg-white text-gray-900 dark:bg-black dark:text-gray-100 shadow-md">
       <div className="flex items-center space-x-3">
         <img src="/spengergasselogo.png" alt="Logo" className="h-12 w-auto" />
         <h1 className="text-lg font-light">Fragen filtern</h1>
