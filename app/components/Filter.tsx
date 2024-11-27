@@ -10,7 +10,7 @@ export default function AuditFilter() {
 
   return (
     <div className="flex justify-center items-center h-250 w-150">
-      <div className="px-10 py-10 pt-6 pb-6 max-width-sm m-0 bg-gray-100 rounded-lg shadow-md flex space-x-4 dark:bg-gray-900">
+      <div className="pt-6 pb-6 px-6 py-6 mx-10 my-10 bg-gray-100 rounded-lg shadow-md flex flex-1 space-x-4 dark:bg-gray-900">
         <div className="flex-1">
           <label
             htmlFor="auditNumber"
