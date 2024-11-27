@@ -92,4 +92,45 @@ alter table h_history
 alter table rp_registration_process
     add foreign key (rp_u_userId) references u_user (u_userId) on delete cascade on update restrict;
 
+-- Group 3 (Sigmas) tables 
+#tb_law 
+create table la_law (
+    la_idx         int                         auto_increment,
+    la_law      varchar(64)                    not null,
+    la_typ         enum('r', 'amc', 'gm', 's') not null,
+    la_description varchar(64)                 not null,
+    la_text        text,
+    la_valid_from  date                        not null,
+    la_valid_until date,
+    primary key(la_idx)
+);
+
+#tb_audit
+create table au_audit (
+    au_idx             int                                                               auto_increment,
+    au_audit_date    date                                                                not null,
+    au_number_of_days      int                                                           not null,
+    au_leadauditor_idx int                                                               not null,
+    au_leadauditee_idx int                                                               not null,
+    au_auditstatus     enum('geplant', 'bereit', 'begonnen', 'findings_offen', 'fertig') not null,
+    au_place             varchar(64)                                                     not null,
+    au_theme           varchar(64)                                                       not null,
+    au_typ             enum('audit', 'inspektion', 'ca', 'extern', 'sonstig')            not null,
+    primary key(au_idx)
+);
+
+#tb_questions
+create table qu_questions (
+    qu_idx           int     auto_increment,
+    qu_audit_idx     int     not null,
+    qu_law_idx       int     not null,
+    qu_audited       boolean not null,
+    qu_applicable    boolean not null,
+    qu_finding_level int,
+    primary key (qu_idx)
+);
+
+alter table qu_questions
+add constraint fk_audit_idx1 foreign key (qu_audit_idx) references au_audit(au_idx),
+add constraint fk_law_idx foreign key (qu_law_idx) references la_law(la_idx);
 commit;
