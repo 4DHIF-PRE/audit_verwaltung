@@ -694,6 +694,254 @@ export async function RegisterFirstAdmin(userData: { u_firstname: string, u_last
         return error;
     }
 }
+
+//gruppe 4
+
+export async function getAuditQuestions(auditId: Number): Promise<any[] | Error> { 
+    if (!auditId) return new Error("Audit ID must not be null or empty");
+
+    const connection = await connectionPool.getConnection();
+    try {
+        const [results, fields]: [any[], mysql.FieldPacket[]] = await connection.execute(
+            'SELECT * FROM qu_questions WHERE qu_audit_idx = ?',
+            [auditId]
+        );
+
+        connection.release();
+        return results;
+    } catch (error) {
+        connection.release();
+        return new Error("Error executing query");
+    }
+}
+
+export async function createFinding(findingData: {
+    f_level: Number,
+    f_auditor_comment: string,
+    f_finding_comment: string,
+    f_creation_date: Date,
+    f_timeInDays: number,
+    f_status: string,
+    f_au_audit_idx: number,
+    f_qu_question_idx: number,
+    f_u_auditor_id: number
+}): Promise<number | Error> {
+
+    const connection = await connectionPool.getConnection();
+    try {
+        const [result]: any = await connection.execute(
+            `INSERT INTO f_findings (f_level, f_auditor_comment, f_finding_comment, f_creation_date, f_timeInDays, f_status, f_au_audit_idx, f_qu_question_idx, f_u_auditor_id)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                findingData.f_level, 
+                findingData.f_auditor_comment, 
+                findingData.f_finding_comment, 
+                findingData.f_creation_date, 
+                findingData.f_timeInDays, 
+                findingData.f_status, 
+                findingData.f_au_audit_idx, 
+                findingData.f_qu_question_idx, 
+                findingData.f_u_auditor_id
+            ]
+        );
+        connection.release();
+        return result.insertId;
+    } catch (error) {
+        connection.release();
+        return new Error('Error inserting finding');
+    }
+}
+
+export async function updateFinding( updateData: {
+    findingId: number
+    f_level: Number,
+    f_auditor_comment: string,
+    f_finding_comment: string,
+    f_creation_date: Date,
+    f_timeInDays: number,
+    f_status: string
+}): Promise<void | Error> {
+    const connection = await connectionPool.getConnection();
+    try {
+        const results = await connection.execute(
+            `UPDATE f_findings
+             SET f_level = ?, f_auditor_comment = ?, f_finding_comment = ?, f_creation_date = ?, f_timeInDays = ?, f_status = ?
+             WHERE tb_idx = ?`,
+            [
+                updateData.f_level, 
+                updateData.f_auditor_comment, 
+                updateData.f_finding_comment, 
+                updateData.f_creation_date, 
+                updateData.f_timeInDays, 
+                updateData.f_status, 
+                updateData.findingId
+            ]
+        );
+        connection.release();
+    } catch (error) {
+        connection.release();
+        return new Error('Error updating finding');
+    }
+}
+
+export async function deleteFinding(findingId: number): Promise<void | Error> {
+    const connection = await connectionPool.getConnection();
+    try {
+        const results = await connection.execute(
+            `DELETE FROM f_findings WHERE tb_idx = ?`,
+            [findingId]
+        );
+        console.log(results,findingId)
+        connection.release();
+    } catch (error) {
+        connection.release();
+        return new Error('Error deleting finding');
+    }
+}
+
+export async function getFindingsByID(auditId:any): Promise<any | Error>  {
+    const connection = await connectionPool.getConnection();
+    try {
+       
+
+        const [result]: any = await connection.execute(
+            `SELECT *
+            FROM f_findings
+            WHERE tb_idx = ?`
+            [auditId]
+            );
+
+        connection.release();
+        return result;
+    } catch (error) {
+        connection.release();
+        return new Error("Error deleting audit");
+    }
+}
+
+export async function uploadAttachment(findingId: any, file: Buffer, fileName: string): Promise<any | Error> {
+    const connection = await connectionPool.getConnection();
+    try {
+        const [result]: any = await connection.execute(
+            `INSERT INTO fa_findingattachments (fa_fid, fa_file, fa_filename)
+             VALUES (?, ?, ?)`,
+            [findingId, file, fileName]
+        );
+
+        connection.release();
+        return result.insertId;
+    } catch (error) {
+        console.error('Error inserting attachment:', error);
+        connection.release();
+        return new Error("Error uploading attachment");
+    }
+}
+
+// get FILENAME by findinID
+export async function getFileNameByFindingId(findingId) {
+    if (!findingId) {
+        return new Error("Finding ID must not be null or undefined.");
+    }
+
+    const connection = await connectionPool.getConnection();
+    try {
+        const [rows] = await connection.execute(
+            'SELECT fa_filename, fa_id FROM fa_findingattachments WHERE fa_fid = ?',
+            [findingId]
+        );
+
+        connection.release();
+
+        if (rows.length === 0) {
+            return new Error("File not found for the given Finding ID.");
+        }
+
+        return rows;
+    } catch (error) {
+        connection.release();
+        console.error("Error retrieving filename:", error);
+        return new Error("Error retrieving filename.");
+    }
+}
+
+//get Files
+export async function getFilesByFindingId(findingId) {
+    if (!findingId) {
+        return new Error("Finding ID must not be null or undefined.");
+    }
+
+    const connection = await connectionPool.getConnection();
+    try {
+        const [rows] = await connection.execute(
+            'SELECT fa_file, fa_filename, fa_id FROM fa_findingattachments WHERE fa_fid = ?',
+            [findingId]
+        );
+
+        connection.release();
+
+        if (rows.length === 0) {
+            return new Error("File not found for the given Finding ID.");
+        }
+
+        return rows;
+    } catch (error) {
+        connection.release();
+        console.error("Error retrieving filename:", error);
+        return new Error("Error retrieving filename.");
+    }
+}
+
+//delete File
+export async function deleteFileByFindingAttachmentId(findingAttachmentId) {
+    if (!findingAttachmentId) {
+        return new Error("Finding ID must not be null or undefined.");
+    }
+
+    const connection = await connectionPool.getConnection();
+    try {
+        const [rows] = await connection.execute(
+            'DELETE from fa_findingattachments WHERE audit.fa_findingattachments.fa_id = ?',
+            [findingAttachmentId]
+        );
+
+        connection.release();
+
+        if (rows.length === 0) {
+            return new Error("File not found for the given Finding ID.");
+        }
+
+        return rows;
+    } catch (error) {
+        connection.release();
+        console.error("Error retrieving filename:", error);
+        return new Error("Error retrieving filename.");
+    }
+}
+
+//get File
+export async function getFileByFindingAttachmentId(attachmentId) {
+    if (!attachmentId) {
+        return new Error("Finding ID must not be null or undefined.");
+    }
+
+    const connection = await connectionPool.getConnection();
+    try {
+        const [rows] = await connection.execute(
+            'SELECT fa_file, fa_filename FROM fa_findingattachments WHERE fa_id = ?',
+            [attachmentId]
+        );
+
+        connection.release();
+
+        if (rows.length === 0) {
+            return new Error("File not found for the given Finding ID.");
+        }
+
+        return rows;
+    } catch (error) {
+        connection.release();
+        console.error("Error retrieving filename:", error);
+        return new Error("Error retrieving filename.");
 // Gruppe3
 // Law functions
 export async function CreateLaw(lawData) {
