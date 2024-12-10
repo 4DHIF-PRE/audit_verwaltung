@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import Navbar from "app/components/Navbar";
+import {Navbar} from "app/components/Navbar";
 import AuditFilter from "app/components/Filter";
 import Question from "app/components/Question";
 import { QuestionInt } from "../types/QuestionInt";
