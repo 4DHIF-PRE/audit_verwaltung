@@ -13,7 +13,7 @@ import {Form, Link} from "@remix-run/react";
 import {ActionFunctionArgs, createCookie, redirect} from "@remix-run/node";
 import { createCookieSessionStorage } from "@remix-run/node";
 
-const sessionSecret = process.env.SESSION_SECRET;
+const sessionSecret = "supersecretvalue";
 
 if (!sessionSecret) {
     throw new Error("SESSION_SECRET is not defined in the environment variables."+ sessionSecret);

@@ -25,7 +25,7 @@ export function Navbar() {
         <nav className="bg-white border-gray-200 dark:bg-gray-900">
             <div className="mx-auto flex flex-wrap justify-between p-4">
                 <a
-                    href="*"
+                    href=""
                     className="flex items-center space-x-3 rtl:space-x-reverse"
                 >
                     <img
