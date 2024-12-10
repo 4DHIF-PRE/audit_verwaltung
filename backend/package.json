@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@types/nodemailer": "^6.4.16",
-    "cookie-parser": "^1.4.6",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
