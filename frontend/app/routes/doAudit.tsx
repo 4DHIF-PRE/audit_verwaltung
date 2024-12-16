@@ -1,13 +1,32 @@
 import { useState, useEffect } from "react";
-import Navbar from "app/components/Navbar";
-import AuditFilter from "app/components/Filter";
-import Question from "app/components/Question";
-import { QuestionInt } from "../types/QuestionInt";
-import { AuditInt } from "../types/AuditInt";
+import { Navbar } from "../components/Navbar";
+import AuditFilter from "../components/g4/Filter";
+import Question from "../components/g4/Question";
+
+//Interfaces
+export interface QuestionInt {
+  qu_idx: number;
+  qu_audit_idx: number;
+  qu_law_idx: number;
+  qu_audited: boolean;
+  qu_applicable: boolean;
+  qu_finding_level: number;
+}
+export interface AuditInt {
+  au_idx: number;
+  au_audit_date: string;
+  au_number_of_days: number;
+  au_leadauditor_idx: number;
+  au_leadauditee_idx: number;
+  au_auditstatus: string;
+  au_place: string;
+  au_theme: string;
+  au_typ: string;
+}
 
 // Mock data
-import mockAudits from "../../mockdata/audit.json";
-import mockQuestions from "../../mockdata/questions.json";
+import mockAudits from "../../testdata/g4/audit.json";
+import mockQuestions from "../../testdata/g4/questions.json";
 
 export default function App() {
   const [audit, setAudit] = useState<AuditInt>();
