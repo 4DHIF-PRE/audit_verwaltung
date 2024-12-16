@@ -3,9 +3,12 @@ import {Navbar} from "~/components/Navbar";
 import AuditVorschau from "~/components/ui/AuditVorschau";
 import Searchbar from "../components/Searchbar";
 import { AuditDetails } from "../types/AuditDetails";
+import QuestionVorschau from "../components/ui/QuestionVorschau";
+import { QuestionInt } from "../types/QuestionInt";
 
 export default function AuditPage() {
   const [audits, setAudits] = useState<AuditDetails[]>([]); // Anfangs leeres Array
+  const [questions, setQuestions] = useState<QuestionInt[]>([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedAudit, setSelectedAudit] = useState<number>(0);
@@ -14,7 +17,7 @@ export default function AuditPage() {
   const totalPages = Math.ceil(audits.length / auditsPerPage);
 
 
-  // Fetch-Daten beim Mounten der Komponente laden
+  // Fetch-Daten beim Mounten der Komponente laden (Audits)
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -33,6 +36,32 @@ export default function AuditPage() {
 
     fetchData();
   }, []); // Läuft nur einmal nach dem Initial-Render
+
+
+  // Fetch-Daten beim Mounten der Komponente laden (Questions)
+  useEffect(() => {
+    if (selectedAudit === 0) {
+      setQuestions([]);
+      return;
+    }
+
+    const fetchQuestions = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/questions?auditId=${selectedAudit}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+        if (!response.ok) throw new Error("Network response was not ok");
+
+        const data: QuestionInt[] = await response.json();
+        setQuestions(data);
+      } catch (error) {
+        console.error("Error fetching questions:", error);
+      }
+    };
+
+    fetchQuestions();
+  }, [selectedAudit]);
 
   const filteredAudits = audits.filter((audit) =>
     audit.au_theme.toLowerCase().includes(search.toLowerCase())
@@ -107,10 +136,16 @@ export default function AuditPage() {
               </div>
             </div>
 
-            {/* Right Section */}
-            <AuditVorschau audit={selectedAudit} allAudits={audits}/>
+     
+            <div className="w-full h-full flex flex-col items-center justify-center p-6">
+  <div className="w-3/4 max-w-screen-lg h-3/4 bg-gray-200 p-6 rounded-md flex flex-col items-center justify-start">
+    <AuditVorschau audit={selectedAudit} allAudits={audits} />
+    <QuestionVorschau auditId={selectedAudit} questions={questions} />
+  </div>
+</div>
+</div>
           </div>
         </div>
-      </div>
+    
   );
 }

@@ -18,7 +18,7 @@ interface Props {
     }, [audit, allAudits]);
 
     return (
-        <div className="flex-1 ml-6 bg-gray-200 p-4 rounded-md center" style={{ backgroundColor: "#dcdcdc" }}>
+        <div className="flex-1 ml-6 bg-gray-200 p-4 rounded-md center">
         {selectedAuditDetails ? (
           <div>
             <h2 className="text-2xl font-bold mb-4">{selectedAuditDetails.au_idx} - {selectedAuditDetails.au_theme}</h2>
@@ -37,6 +37,12 @@ interface Props {
             Select Audit
           </span>
         )}
+
+        
+
+
+
       </div>
+      
     );
 }
