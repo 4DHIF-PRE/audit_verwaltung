@@ -624,7 +624,6 @@ export async function GetAllFindings(): Promise<string | Error> {
             connection.release();
             return new Error("No Findings");
         }
-        const queryUser: any = results[0];
 
         await connection.commit();
         connection.release();
