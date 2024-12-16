@@ -2,10 +2,10 @@ import {useEffect, useState} from "react";
 import {Navbar} from "~/components/Navbar";
 import AuditVorschau from "~/components/ui/AuditVorschau";
 import Searchbar from "../components/Searchbar";
-
+import { AuditDetails } from "../types/AuditDetails";
 
 export default function AuditPage() {
-  const [audits, setAudits] = useState<string[]>([]); // Anfangs leeres Array
+  const [audits, setAudits] = useState<AuditDetails[]>([]); // Anfangs leeres Array
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedAudit, setSelectedAudit] = useState<number>(0);
@@ -24,9 +24,8 @@ export default function AuditPage() {
         });
         if (!response.ok) throw new Error("Network response was not ok");
 
-        const data = await response.json();
-        const formattedAudits = data.map((a, i) => `${a.au_idx}`); // Formatierung
-        setAudits(formattedAudits); // Setzt Daten in den State
+        const data: AuditDetails[] = await response.json();
+        setAudits(data);
       } catch (error) {
         console.error("Error fetching audits:", error);
       }
@@ -36,7 +35,7 @@ export default function AuditPage() {
   }, []); // Läuft nur einmal nach dem Initial-Render
 
   const filteredAudits = audits.filter((audit) =>
-      audit.toLowerCase().includes(search.toLowerCase())
+    audit.au_theme.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleNextPage = () => {
@@ -75,13 +74,13 @@ export default function AuditPage() {
                 <div className="flex-1 overflow-auto border border-gray-300 rounded-md mb-4">
                   {displayedAudits.map((audit, index) => (
                       <div
-                          key={index}
+                          key={audit.au_idx}
                           className="p-4 border-b border-gray-200 hover:bg-gray-100 cursor-pointer"
                           style={{ backgroundColor: "#fff", color: "#333" }}
 
-                          onClick={()=>setSelectedAudit(+audit)}
+                          onClick={()=>setSelectedAudit(audit.au_idx)}
                       >
-                        Audit {audit}
+                        Audit {audit.au_idx} - {audit.au_theme}
                       </div>
                   ))}
                 </div>
@@ -109,7 +108,7 @@ export default function AuditPage() {
             </div>
 
             {/* Right Section */}
-            <AuditVorschau audit={selectedAudit}/>
+            <AuditVorschau audit={selectedAudit} allAudits={audits}/>
           </div>
         </div>
       </div>

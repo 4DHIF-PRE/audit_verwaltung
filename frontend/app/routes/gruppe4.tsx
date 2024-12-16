@@ -3,7 +3,7 @@ import {Navbar} from "~/components/Navbar";
 import AuditFilter from "~/components/Filter";
 import Question from "~/components/Question";
 import { QuestionInt } from "../types/QuestionInt";
-import { AuditInt } from "../types/AuditInt";
+import { AuditInt } from "../types/AuditDetails";
 
 // Mock data
 import mockAudits from "../../mockdata/audit.json";

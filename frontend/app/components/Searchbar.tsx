@@ -9,7 +9,7 @@ const Searchbar: React.FC<SearchbarProps> = ({ value, onChange }:SearchbarProps)
         <div className="flex items-center space-x-2 mb-4">
             <input
                 type="text"
-                placeholder="ID eines Audits"
+                placeholder="ID/Name eines Audits"
                 value={value}
                 onChange={(e) => onChange(e.target.value)} // Richtiges Event-Binding
                 className="flex-1 p-2 border border-gray-300 rounded-md"
