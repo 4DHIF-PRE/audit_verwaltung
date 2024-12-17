@@ -9,12 +9,13 @@ import { Navbar } from "~/components/Navbar";
 
 export default function Setup() {
   const [findings, setFindings] = useState([]);
-  const [selectedFinding, setSelectedFinding] = useState(null); 
+  const [audits, setAudits] = useState([]);
+  const [selectedFinding, setSelectedFinding] = useState(null);
 
   useEffect(() => {
     async function fetchFindings() {
       const response = await showAllFindings();
-      if (response.status == 404) {
+      if (response.status === 404) {
         console.log("404 - Not Found");
       } else {
         const data = await response.json();
@@ -24,15 +25,37 @@ export default function Setup() {
     fetchFindings();
   }, []);
 
+
+  useEffect(() => {
+    async function fetchAudits() {
+      if (findings.length > 0) {
+        console.log('Lade Audits fÃ¼r Findings:', findings);
+        const auditPromises = findings.map(async (element) => {
+          const response = await getAudit(element.f_au_audit_idx);
+          const data = await response.json();
+          console.log('Audit geladen:', data);
+          return data;
+        });
+
+        const auditData = await Promise.all(auditPromises);
+        console.log('Alle Audits:', auditData);
+        setAudits(auditData);
+      }
+    }
+    fetchAudits();
+  }, [findings]);
+
   const handleSelectFinding = (finding) => {
     if (selectedFinding && selectedFinding.f_id === finding.f_id) {
-      
       setSelectedFinding(null);
     } else {
-      
       setSelectedFinding(finding);
     }
   };
+
+  const selectedAudit = selectedFinding
+    ? audits.find((audit) => Number(audit.au_idx) == Number(selectedFinding.f_au_audit_idx))
+    : null;
 
   return (
     <div>
@@ -64,24 +87,37 @@ export default function Setup() {
             )}
           </ul>
         </div>
-          
+
         <div className="flex-1 ml-10">
-          <br/>
-          <br/>
+          <br />
+          <br />
           {selectedFinding && (
             <Card className="p-6 rounded-lg shadow-md w-full h-auto">
               <h2 className="text-3xl font-bold mb-4">Details zu Finding ID: {selectedFinding.f_id}</h2>
               <p className="text-lg mb-2"><strong>Erstelldatum:</strong> {selectedFinding.f_creation_date}</p>
               <p className="text-lg mb-2"><strong>Status:</strong> {selectedFinding.f_status}</p>
               <p className="text-lg mb-2"><strong>Level:</strong> {selectedFinding.f_level}</p>
-              <p className="text-lg mb-2"><strong>Audit:</strong> {selectedFinding.f_au_audit_idx}</p>
+              <div className="text-lg mb-2">
+                <strong>Audit:</strong>
+                <div>
+                  {selectedAudit ? (
+                    <div>
+                      <p><strong>Thema: </strong> {selectedAudit.au_theme}</p>
+                      <p><strong>Datum: </strong> {selectedAudit.au_audit_date}</p>
+                      <p><strong>Status: </strong> {selectedAudit.au_auditstatus}</p>
+                    </div>
+                  ) : (
+                    <p>Kein Audit mit der ID {selectedFinding.f_au_audit_idx} gefunden.</p>
+                  )}
+                </div>
+              </div>
               <p className="text-lg mb-2"><strong>Frage:</strong> {selectedFinding.f_qu_question_idx}</p>
               <p className="text-lg mb-2"><strong>Kommentar:</strong> {selectedFinding.f_comment}</p>
             </Card>
           )}
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }
 
@@ -95,6 +131,18 @@ export async function showAllFindings() {
 
   return response;
 }
+
+export async function getAudit(id: number) {
+  const response = await fetch(`http://localhost:3000/audit/${id}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  return response;
+}
+
 
 
 /*
