@@ -25,11 +25,10 @@ export default function Setup() {
     fetchFindings();
   }, []);
 
-
   useEffect(() => {
     async function fetchAudits() {
       if (findings.length > 0) {
-        console.log('Lade Audits fÃ¼r Findings:', findings);
+        console.log('Lade Audits für Findings:', findings);
         const auditPromises = findings.map(async (element) => {
           const response = await getAudit(element.f_au_audit_idx);
           const data = await response.json();
@@ -57,6 +56,38 @@ export default function Setup() {
     ? audits.find((audit) => Number(audit.au_idx) == Number(selectedFinding.f_au_audit_idx))
     : null;
 
+ 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'offen':
+        return 'bg-gray-200';  
+      case 'dokumentiert':
+        return 'bg-yellow-200';  
+      case 'richtig':
+        return 'bg-green-200';  
+      case 'kritisch':
+        return 'bg-red-200';  
+      default:
+        return 'bg-gray-100';  
+    }
+  };
+
+  
+  const getBorderColor = (status) => {
+    switch (status) {
+      case 'offen':
+        return 'border-gray-400';  
+      case 'dokumentiert':
+        return 'border-yellow-400';  
+      case 'richtig':
+        return 'border-green-400';  
+      case 'kritisch':
+        return 'border-red-400';  
+      default:
+        return 'border-gray-300';  
+    }
+  };
+
   return (
     <div>
       <Navbar />
@@ -67,7 +98,7 @@ export default function Setup() {
             {findings.length > 0 ? (
               findings.map((finding) => (
                 <Card
-                  className="w-[350px] mb-4 cursor-pointer"
+                  className={`w-[350px] mb-4 cursor-pointer border-l-8 ${getStatusColor(finding.f_status)}`}
                   key={finding.f_id}
                   onClick={() => handleSelectFinding(finding)}
                 >
@@ -92,7 +123,7 @@ export default function Setup() {
           <br />
           <br />
           {selectedFinding && (
-            <Card className="p-6 rounded-lg shadow-md w-full h-auto">
+            <Card className={`p-6 rounded-lg shadow-md w-full h-auto border-4 ${getBorderColor(selectedFinding.f_status)}`}>
               <h2 className="text-3xl font-bold mb-4">Details zu Finding ID: {selectedFinding.f_id}</h2>
               <p className="text-lg mb-2"><strong>Erstelldatum:</strong> {selectedFinding.f_creation_date}</p>
               <p className="text-lg mb-2"><strong>Status:</strong> {selectedFinding.f_status}</p>
@@ -111,7 +142,6 @@ export default function Setup() {
                   )}
                 </div>
               </div>
-              <p className="text-lg mb-2"><strong>Frage:</strong> {selectedFinding.f_qu_question_idx}</p>
               <p className="text-lg mb-2"><strong>Kommentar:</strong> {selectedFinding.f_comment}</p>
             </Card>
           )}
@@ -142,9 +172,6 @@ export async function getAudit(id: number) {
 
   return response;
 }
-
-
-
 /*
 {questions.length > 0 ? (
             questions.map((question) => (
