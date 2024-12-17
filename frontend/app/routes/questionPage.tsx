@@ -53,13 +53,11 @@ export default function AuditPage() {
   }, []);
 
   const filteredLaws = laws.filter((law) => {
-    const lawText = (law.la_law + " " + law.la_description + " " + law.la_text).toLowerCase(); // Kombinierter Text
-    const searchTextLower = searchText.toLowerCase(); // Bereinigter und kleiner Suchtext
+    const lawText = (law.la_text).toLowerCase(); 
+    const searchTextLower = searchText.toLowerCase().trim(); 
   
-    // Prüfen, ob der Suchtext im kombinierten Text vorkommt
     const matchesSearch = lawText.includes(searchTextLower); 
     
-    // Filtern nach Typ (falls vorhanden)
     const matchesType = selectedType === "" || law.la_typ === selectedType;
   
     return matchesSearch && matchesType;
