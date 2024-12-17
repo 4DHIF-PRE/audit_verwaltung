@@ -121,7 +121,6 @@ expressApp.post('/registration/FirstRegistration', async (req, res) => {
 
 expressApp.get('/users/adminView', async (req, res) => {
     const sessionId = req.cookies[cookieName];
-
     if (!sessionId) {
         res.status(401).json({ message: "Invalid sessionId" });
         return;

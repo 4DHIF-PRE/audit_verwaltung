@@ -26,6 +26,8 @@ export const loader = async ({
                                  request,
                              }: LoaderFunctionArgs) => {
     const cookie = request.headers.get("cookie");
+    const cookieName = cookie.split("=")[1];
+    console.log(cookieName);
 
     const response = await fetch('http://localhost:3000/users/adminView', {
         method: 'GET',
@@ -35,37 +37,18 @@ export const loader = async ({
         },
         credentials: 'include',
     });
-    console.log(await response.json());
-
-    const users: User[] = [
-        {
-            u_userId: 'testuser1',
-            u_firstname: 'Maier',
-            u_lastname: 'Max',
-            u_email: 'maier.max@gmail.com',
-        },
-        {
-            u_userId: 'testuser2',
-            u_firstname: 'John',
-            u_lastname: 'Doe',
-            u_email: 'john.doe@gmail.com',
-        },
-        {
-            u_userId: 'testuser3',
-            u_firstname: 'Jane',
-            u_lastname: 'Smith',
-            u_email: 'jane.smith@gmail.com',
-        },
-    ];
-
-     return json({ users });
+    const users = await response.json();
+    console.log(users);
+    return json({ users });
 };
 
 export default function Users() {
     const { users: initialUsers } = useLoaderData<typeof loader>();
+    console.log('Initial Users:', initialUsers);
     const [users, setUsers] = useState<User[]>(initialUsers);
 
     const handleDelete = (userId: string) => {
+        console.log(document.cookie);
         setUsers(prevUsers => prevUsers.filter(user => user.u_userId !== userId));
     };
 
