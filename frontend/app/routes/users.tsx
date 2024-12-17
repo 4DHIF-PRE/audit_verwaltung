@@ -25,7 +25,7 @@ interface User {
 export const loader = async ({
                                  request,
                              }: LoaderFunctionArgs) => {
-    /*const cookie = request.headers.get("cookie");
+    const cookie = request.headers.get("cookie");
 
     const response = await fetch('http://localhost:3000/users/adminView', {
         method: 'GET',
@@ -36,7 +36,6 @@ export const loader = async ({
         credentials: 'include',
     });
     console.log(await response.json());
-    return response.status;*/
 
     const users: User[] = [
         {
@@ -59,7 +58,7 @@ export const loader = async ({
         },
     ];
 
-    return json({ users });
+     return json({ users });
 };
 
 export default function Users() {

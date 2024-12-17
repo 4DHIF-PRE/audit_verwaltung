@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "@remix-run/react";
+import {BaseLayout} from "~/layout";
 
 export default function AuditPage() {
   const [audits, setAudits] = useState<string[]>(Array(50).fill("").map((_, i) => `Audit ${i + 1}`)); // Beispiel: 50 Audits
@@ -28,33 +29,8 @@ export default function AuditPage() {
   );
 
   return (
-    <div className="flex flex-col w-full h-screen p-4 bg-white">
+    <BaseLayout>
 
-      <div className="flex-1 bg-white">
-      <header className="flex items-center justify-between pb-4 border-b border-gray-200">
-        <div className="flex items-center space-x-4">
-          <img src="/img/images.png" alt="Logo" className="w-10 h-10" />
-          <nav className="flex space-x-4">
-            <Link to="/audit-hinzufuegen" className="text-lg font-semibold" style={{ color: "#333" }}>
-              Audit Hinzufügen
-            </Link>
-            <Link to="/audit" className="text-lg font-semibold" style={{ color: "#333" }}>
-              Audit
-            </Link>
-            <Link to="/findings" className="text-lg font-semibold" style={{ color: "#333" }}>
-              Findings
-            </Link>
-          </nav>
-        </div>
-        <div className="flex space-x-4">
-          <Link to="/signup" className="text-lg font-semibold" style={{ color: "#333" }}>
-            Sign up
-          </Link>
-          <Link to="/login" className="text-lg font-semibold" style={{ color: "#333" }}>
-            Login
-          </Link>
-        </div>
-      </header>
 
       <div className="flex flex-row flex-1 mt-6">
         {/* Left Section with Container */}
@@ -122,8 +98,7 @@ export default function AuditPage() {
           <span className="text-xl" style={{ color: "#666" }}>Audit Design</span>
         </div>
       </div>
-      </div>
       
-    </div>
+    </BaseLayout>
   );
 }

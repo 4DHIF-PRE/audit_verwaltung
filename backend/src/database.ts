@@ -141,7 +141,7 @@ export async function GetAllUsersAdminView(sessionId: string): Promise<UserDataA
         await connection.beginTransaction();
 
         const [results, fields]: [any, mysql.FieldPacket[]] = await connection.execute(
-            'SELECT `u_userId`, `u_deletedAt`, `us_expiresAt` FROM `view_u_user_frontend` inner join `us_usersession` on us_u_userId = u_userId WHERE `us_sessionId` = ?',
+            'SELECT `u_userId`, `u_deletedAt`, `us_expiresAt` FROM `view_u_user_frontend` inner join `us_usersession` on us_u_userId = u_userId WHERE `us_sessionId` != ?',
             [sessionId]
         );
         if (results.length === 0) {
