@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import mockFindings from "../../../testdata/g4/findings.json";
 //import mockQuestions from "../../../testdata/g4/questions.json"; //Not Used
 import mockLaws from "../../../testdata/g4/laws.json";
+// import { GetQuestionById, CreateQuestion, UpdateQuestion} from "../../../../backend/src/database";
 
 //Interfaces
 export interface QuestionInt {
@@ -32,7 +33,7 @@ export default function Question({ question }: { question: QuestionInt }) {
 
       const lawDetails = mockLaws.find((l) => l.la_idx === question.qu_law_idx);
 
-      console.log(question)
+      console.log(question);
       if (lawDetails) {
         setLaw({
           law: lawDetails.la_law,
@@ -133,6 +134,17 @@ export default function Question({ question }: { question: QuestionInt }) {
           ></textarea>
         </div>
       )}
+
+      <button
+        id="saveQuestion"
+        type="button"
+      
+        className="bg-red-500 hover:bg-red-600 text-white font-medium rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 pt-2 pb-2 pl-5 pr-5"
+        >
+        Speichern
+      </button>
     </div>
   );
+
+  
 }
