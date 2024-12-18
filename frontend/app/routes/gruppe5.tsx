@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -11,6 +11,7 @@ export default function Setup() {
   const [findings, setFindings] = useState([]);
   const [audits, setAudits] = useState([]);
   const [selectedFinding, setSelectedFinding] = useState(null);
+  const [showMore, setShowMore] = useState(false); 
 
   useEffect(() => {
     async function fetchFindings() {
@@ -23,27 +24,22 @@ export default function Setup() {
       }
     }
     fetchFindings();
-    // console.log("FINISHED 2");
   }, []);
 
   useEffect(() => {
     async function fetchAudits() {
       if (findings.length > 0) {
-        console.log('Lade Audits für Findings:', findings);
         const auditPromises = findings.map(async (element) => {
           const response = await getAudit(element.f_au_audit_idx);
           const data = await response.json();
-          console.log('Audit geladen:', data);
           return data;
         });
 
         const auditData = await Promise.all(auditPromises);
-        console.log('Alle Audits:', auditData);
         setAudits(auditData);
       }
     }
     fetchAudits();
-    // console.log("FINISHED 1");
   }, [findings]);
 
   const handleSelectFinding = (finding) => {
@@ -51,6 +47,7 @@ export default function Setup() {
       setSelectedFinding(null);
     } else {
       setSelectedFinding(finding);
+      setShowMore(false); 
     }
   };
 
@@ -58,7 +55,6 @@ export default function Setup() {
     ? audits.find((audit) => Number(audit.au_idx) == Number(selectedFinding.f_au_audit_idx))
     : null;
 
- 
   const getStatusColor = (status) => {
     switch (status) {
       case 'offen':
@@ -74,7 +70,6 @@ export default function Setup() {
     }
   };
 
-  
   const getBorderColor = (status) => {
     switch (status) {
       case 'offen':
@@ -97,6 +92,7 @@ export default function Setup() {
         <div className="max-w-[350px]">
           <h1 className="text-2xl font-bold mb-4">Findings</h1>
           <ul>
+            
             {findings.length > 0 ? (
               findings.map((finding) => (
                 <Card
@@ -122,34 +118,54 @@ export default function Setup() {
         </div>
 
         <div className="flex-1 ml-10">
-          <br />
-          <br />
           {selectedFinding && (
             <Card className={`p-6 rounded-lg shadow-md w-full h-auto border-4 ${getBorderColor(selectedFinding.f_status)}`}>
               <h2 className="text-3xl font-bold mb-4">Details zu Finding ID: {selectedFinding.f_id}</h2>
-              <p className="text-lg mb-2"><strong>Erstelldatum:</strong> {selectedFinding.f_creation_date}</p>
-              <p className="text-lg mb-2"><strong>Status:</strong> {selectedFinding.f_status}</p>
-              <p className="text-lg mb-2"><strong>Level:</strong> {selectedFinding.f_level}</p>
-              <div className="text-lg mb-2">
-                <strong>Audit:</strong>
+              
+              
+              <p className="text-lg mb-2"><strong>Kommentar:</strong> 
+                {selectedFinding.f_comment && selectedFinding.f_comment.length > 0 ? (
+                  selectedFinding.f_comment
+                ) : (
+                  <span>Kein Kommentar vorhanden.</span>
+                )}
+              </p>
+
+              
+              {showMore && (
                 <div>
-                  {selectedAudit ? (
+                  <p className="text-lg mb-2"><strong>Erstelldatum:</strong> {selectedFinding.f_creation_date}</p>
+                  <p className="text-lg mb-2"><strong>Status:</strong> {selectedFinding.f_status}</p>
+                  <p className="text-lg mb-2"><strong>Level:</strong> {selectedFinding.f_level}</p>
+                  <div className="text-lg mb-2">
+                    <strong>Audit:</strong>
                     <div>
-                      <p><strong>Thema: </strong> {selectedAudit.au_theme}</p>
-                      <p><strong>Datum: </strong> {selectedAudit.au_audit_date}</p>
-                      <p><strong>Status: </strong> {selectedAudit.au_auditstatus}</p>
+                      {selectedAudit ? (
+                        <div>
+                          <p><strong>Thema: </strong> {selectedAudit.au_theme}</p>
+                          <p><strong>Datum: </strong> {selectedAudit.au_audit_date}</p>
+                          <p><strong>Status: </strong> {selectedAudit.au_auditstatus}</p>
+                        </div>
+                      ) : (
+                        <p>Kein Audit mit der ID {selectedFinding.f_au_audit_idx} gefunden.</p>
+                      )}
                     </div>
-                  ) : (
-                    <p>Kein Audit mit der ID {selectedFinding.f_au_audit_idx} gefunden.</p>
-                  )}
+                  </div>
                 </div>
-              </div>
-              <p className="text-lg mb-2"><strong>Kommentar:</strong> {selectedFinding.f_comment}</p>
+              )}
+
+             
+              <button
+                onClick={() => setShowMore(!showMore)}
+                className="text-blue-500 hover:text-blue-700 mt-4 py-2 px-4 rounded bg-transparent border border-blue-500"
+              >
+                {showMore ? 'Weniger anzeigen' : 'Mehr anzeigen'}
+              </button>
             </Card>
           )}
         </div>
-      </div >
-    </div >
+      </div>
+    </div>
   );
 }
 
@@ -160,7 +176,6 @@ export async function showAllFindings() {
       'Content-Type': 'application/json',
     },
   });
-
   return response;
 }
 
@@ -171,6 +186,5 @@ export async function getAudit(id: number) {
       'Content-Type': 'application/json',
     },
   });
-
   return response;
 }
