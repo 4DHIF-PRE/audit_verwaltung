@@ -23,6 +23,7 @@ export default function Setup() {
       }
     }
     fetchFindings();
+    // console.log("FINISHED 2");
   }, []);
 
   useEffect(() => {
@@ -42,6 +43,7 @@ export default function Setup() {
       }
     }
     fetchAudits();
+    // console.log("FINISHED 1");
   }, [findings]);
 
   const handleSelectFinding = (finding) => {
@@ -172,14 +174,3 @@ export async function getAudit(id: number) {
 
   return response;
 }
-/*
-{questions.length > 0 ? (
-            questions.map((question) => (
-              <div className="mt-3" key={question.qu_idx}>
-                <Question question={question} />
-              </div>
-            ))
-          ) : (
-            <div>No questions found for this audit.</div>
-          )}
-*/
