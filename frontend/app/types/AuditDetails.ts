@@ -1,4 +1,4 @@
-export interface AuditInt {
+export interface AuditDetails {
     au_idx: number;
     au_audit_date: string;
     au_number_of_days: number;

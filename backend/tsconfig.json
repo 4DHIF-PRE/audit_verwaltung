@@ -4,7 +4,8 @@
         "moduleResolution": "NodeNext",
         "target": "ES2022",
         "sourceMap": true,
-        "outDir": "dist"
+        "outDir": "dist",
+        "typeRoots": ["./node_modules/@types"]
     },
     "include": ["src/**/*"]
 }
