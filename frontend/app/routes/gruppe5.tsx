@@ -127,7 +127,7 @@ export default function Setup() {
                 {selectedFinding.f_comment && selectedFinding.f_comment.length > 0 ? (
                   selectedFinding.f_comment
                 ) : (
-                  <span>Kein Kommentar vorhanden.</span>
+                  <span> Kein Kommentar vorhanden.</span>
                 )}
               </p>
 
@@ -141,10 +141,10 @@ export default function Setup() {
                     <strong>Audit:</strong>
                     <div>
                       {selectedAudit ? (
-                        <div>
-                          <p><strong>Thema: </strong> {selectedAudit.au_theme}</p>
-                          <p><strong>Datum: </strong> {selectedAudit.au_audit_date}</p>
-                          <p><strong>Status: </strong> {selectedAudit.au_auditstatus}</p>
+                        <div className="mt-2">
+                          <p className="text-sm"><strong>Thema: </strong> {selectedAudit.au_theme}</p>
+                          <p className="text-sm"><strong>Datum: </strong> {selectedAudit.au_audit_date}</p>
+                          <p className="text-sm"><strong>Status: </strong> {selectedAudit.au_auditstatus}</p>
                         </div>
                       ) : (
                         <p>Kein Audit mit der ID {selectedFinding.f_au_audit_idx} gefunden.</p>
