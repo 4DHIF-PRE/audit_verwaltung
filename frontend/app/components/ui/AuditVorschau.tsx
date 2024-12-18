@@ -24,8 +24,6 @@ interface Props {
             <h2 className="text-2xl font-bold mb-4">{selectedAuditDetails.au_idx} - {selectedAuditDetails.au_theme}</h2>
             <p><strong>ID:</strong> {selectedAuditDetails.au_idx}</p>
             <p><strong>Datum:</strong> {selectedAuditDetails.au_audit_date}</p>
-            <p><strong>Anzahl Tage:</strong> {selectedAuditDetails.au_number_of_days}</p>
-            <p><strong>Leadauditor ID:</strong> {selectedAuditDetails.au_leadauditor_idx}</p>
             <p><strong>Leadauditee ID:</strong> {selectedAuditDetails.au_leadauditee_idx}</p>
             <p><strong>Status:</strong> {selectedAuditDetails.au_auditstatus}</p>
             <p><strong>Ort:</strong> {selectedAuditDetails.au_place}</p>

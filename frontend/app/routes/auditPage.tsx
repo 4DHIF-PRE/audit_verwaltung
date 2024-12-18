@@ -138,13 +138,13 @@ export default function AuditPage() {
               {/* Buttons unter dem grauen Fenster */}
               <div className="flex justify-center space-x-4 mt-4">
                 <button
-                  onClick={() => window.location.href = `/auditpage.${selectedAudit}`}
+                  onClick={() => window.location.href = `/questionPage`}
                   className="px-4 py-2 text-white bg-purple-500 rounded-md"
                 >
                   Neuer Audit
                 </button>
                 <button
-                  onClick={() => window.location.href = `/auditpage.${selectedAudit}`}
+                  onClick={() => window.location.href = `/auditbearbeiten/${selectedAudit}`}
                   className="px-4 py-2 text-white bg-blue-500 rounded-md"
                 >
                   Bearbeiten
