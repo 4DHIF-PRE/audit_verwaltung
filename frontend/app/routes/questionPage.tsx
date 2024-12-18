@@ -116,7 +116,7 @@ export default function AuditPage() {
             >
               {/* Anzeige von Gesetz, Typ, Beschreibung und Text */}
               <div className="font-bold text-gray-700 dark:text-white">
-                {law.la_law} {law.la_typ} {law.la_text}
+                {law.la_text}
               </div>
 
               {/* Checkbox */}
