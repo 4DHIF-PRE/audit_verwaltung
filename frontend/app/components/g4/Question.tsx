@@ -82,28 +82,30 @@ export default function Question({ question }: { question: QuestionInt }) {
   return (
     <div className={`p-6 ${bgColorClass} rounded-lg shadow-md`}>
       {/* Gesetz und Typ (immer sichtbar) */}
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
-          {law.law} #{law.type}
-        </h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          {law.text}
-        </p>
-      </div>
+      <div className="mb-4 flex justify-between items-center">
+        <div>
+          <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+            {law.law} #{law.type}
+          </h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {law.text}
+          </p>
+        </div>
 
-      {/* Toggle Button mit Icon */}
-      <button
-        onClick={toggleCollapse}
-        className="flex items-center space-x-2 bg-white text-black font-medium rounded-md shadow focus:outline-none pt-2 pb-2 pl-4 pr-4 mb-4"
-      >
-        <img
-          src="assets/klappicon.png"
-          alt="Collapse Icon"
-          className={`w-5 h-5 transition-transform ${
-            isCollapsed ? "rotate-0" : "rotate-180"
-          }`}
-        />
-      </button>
+        {/* Toggle Button mit Icon */}
+        <button
+          onClick={toggleCollapse}
+          className="flex items-center space-x-2 bg-white text-black font-medium rounded-md shadow focus:outline-none pt-2 pb-2 pl-4 pr-4"
+        >
+          <img
+            src="assets/klappicon.png"
+            alt="Collapse Icon"
+            className={`w-5 h-5 transition-transform ${
+              isCollapsed ? "rotate-0" : "rotate-180"
+            }`}
+          />
+        </button>
+      </div>
 
       {/* Collapsible Content */}
       {!isCollapsed && (
