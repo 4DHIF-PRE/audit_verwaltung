@@ -1,5 +1,5 @@
-import {useEffect, useState} from "react";
-import {Navbar} from "~/components/Navbar";
+import { useEffect, useState } from "react";
+import { Navbar } from "~/components/Navbar";
 import AuditVorschau from "~/components/ui/AuditVorschau";
 import Searchbar from "../components/Searchbar";
 import { AuditDetails } from "../types/AuditDetails";
@@ -17,22 +17,29 @@ export default function AuditPage() {
   const totalPages = Math.ceil(audits.length / auditsPerPage);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchData = async () => {
       try {
         const response = await fetch("http://localhost:3000/audit", {
           method: "GET",
           headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
         });
         if (!response.ok) throw new Error("Network response was not ok");
 
         const data: AuditDetails[] = await response.json();
         setAudits(data);
       } catch (error) {
-        console.error("Error fetching audits:", error);
+        // @ts-ignore
+        if (error.name !== "AbortError") {
+          console.error("Error fetching audits:", error);
+        }
       }
     };
 
     fetchData();
+    return () => controller.abort();
   }, []);
 
   useEffect(() => {
@@ -41,25 +48,34 @@ export default function AuditPage() {
       return;
     }
 
+    const controller = new AbortController();
+
     const fetchQuestions = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/questions?auditId=${selectedAudit}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
+        const response = await fetch(
+          `http://localhost:3000/questions?auditId=${selectedAudit}`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+            signal: controller.signal,
+          }
+        );
         if (!response.ok) throw new Error("Network response was not ok");
 
         const data: QuestionInt[] = await response.json();
         setQuestions(data);
       } catch (error) {
-        console.error("Error fetching questions:", error);
+        // @ts-ignore
+        if (error.name !== "AbortError") {
+          console.error("Error fetching questions:", error);
+        }
       }
     };
 
     fetchQuestions();
+    return () => controller.abort();
   }, [selectedAudit]);
 
-  // Filter für ID und Thema
   const filteredAudits = audits.filter(
     (audit) =>
       audit.au_theme.toLowerCase().includes(search.toLowerCase()) ||
@@ -138,19 +154,19 @@ export default function AuditPage() {
               {/* Buttons unter dem grauen Fenster */}
               <div className="flex justify-center space-x-4 mt-4">
                 <button
-                  onClick={() => window.location.href = `/questionPage`}
+                  onClick={() => (window.location.href = `/questionPage`)}
                   className="px-4 py-2 text-white bg-purple-500 rounded-md"
                 >
                   Neue Question
                 </button>
                 <button
-                  onClick={() => window.location.href = `/auditbearbeiten/${selectedAudit}`}
+                  onClick={() => (window.location.href = `/auditbearbeiten/${selectedAudit}`)}
                   className="px-4 py-2 text-white bg-blue-500 rounded-md"
                 >
                   Bearbeiten
                 </button>
                 <button
-                  onClick={() => window.location.href = `/doaudit`}
+                  onClick={() => (window.location.href = `/doaudit`)}
                   className="px-4 py-2 text-white bg-green-500 rounded-md"
                 >
                   Durchführen
