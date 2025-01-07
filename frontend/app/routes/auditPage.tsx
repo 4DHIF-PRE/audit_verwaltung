@@ -141,7 +141,7 @@ export default function AuditPage() {
                   onClick={() => window.location.href = `/questionPage`}
                   className="px-4 py-2 text-white bg-purple-500 rounded-md"
                 >
-                  Neuer Audit
+                  Neue Question
                 </button>
                 <button
                   onClick={() => window.location.href = `/auditbearbeiten/${selectedAudit}`}
