@@ -74,13 +74,15 @@ export default function Question({ question }: { question: QuestionInt }) {
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
+    const { files } = event.target;
+    if (files) {
       setFiles((prevFiles) => [
         ...prevFiles,
-        ...Array.from(event.target.files),
+        ...Array.from(files),
       ]);
     }
   };
+  
 
   const handleRemoveFile = (fileToRemove: File) => {
     setFiles(files.filter((file) => file !== fileToRemove));
