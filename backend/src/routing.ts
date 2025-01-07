@@ -40,10 +40,10 @@ expressApp.post('/login', async (req, res) => {
     if (loginResult instanceof Error) {
         res.status(400).json({ message: loginResult.message });
         return;
-    } else if (typeof loginResult === 'string') {
+    } else if (typeof loginResult === 'object') {
         //removed for testing
         //sendMailDefault(body.email, Date()) // send the login notification
-        res.status(200).cookie(cookieName, loginResult, { httpOnly: true }).json({ message: "Login was successful" });
+        res.status(200).cookie(cookieName, loginResult.sessionId, { httpOnly: true }).json({ message: "Login was successful",loginResult: loginResult });
         return;
     }
 });

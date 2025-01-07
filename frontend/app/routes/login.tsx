@@ -25,7 +25,6 @@ export const { getSession, commitSession, destroySession } = createCookieSession
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7,
         secrets:  [sessionSecret]
     },
 });
@@ -36,7 +35,6 @@ export async function action({
     const body = await request.formData();
     const email = body.get("email");
     const password = body.get("password");
-
     const response = await fetch('http://localhost:3000/login', {
         method: 'POST',
         headers: {
@@ -46,14 +44,16 @@ export async function action({
     });
 
     if (response.ok) {
-        const setCookieHeader = response.headers.get("set-cookie");
-        if (setCookieHeader) {
-            return redirect("/", {
-                headers: {
-                    "Set-Cookie": setCookieHeader
-                },
-            });
-        }
+        const data = await response.json();
+        const session = await getSession();
+        session.set("user", { email });
+        return redirect("/", {
+            headers: {
+                "Set-Cookie": await commitSession(session, {
+                    expires: new Date(data.loginResult.expiresAt)
+                })
+            },
+        });
     }
 
     return response.json();
