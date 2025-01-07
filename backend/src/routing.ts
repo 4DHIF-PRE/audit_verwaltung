@@ -43,7 +43,7 @@ expressApp.post('/login', async (req, res) => {
     } else if (typeof loginResult === 'object') {
         //removed for testing
         //sendMailDefault(body.email, Date()) // send the login notification
-        res.status(200).cookie(cookieName, loginResult.sessionId, { httpOnly: true }).json({ message: "Login was successful",loginResult: loginResult });
+        res.status(200).cookie(cookieName, loginResult.sessionId, { httpOnly: true, expires: loginResult.expiresAt }).json({ message: "Login was successful"});
         return;
     }
 });

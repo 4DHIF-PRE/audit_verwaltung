@@ -19,15 +19,6 @@ if (!sessionSecret) {
     throw new Error("SESSION_SECRET is not defined in the environment variables."+ sessionSecret);
 }
 
-export const { getSession, commitSession, destroySession } = createCookieSessionStorage({
-    cookie: {
-        name: "gruppe2session",
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        secrets:  [sessionSecret]
-    },
-});
 
 export async function action({
                                  request,
@@ -44,16 +35,14 @@ export async function action({
     });
 
     if (response.ok) {
-        const data = await response.json();
-        const session = await getSession();
-        session.set("user", { email });
-        return redirect("/", {
-            headers: {
-                "Set-Cookie": await commitSession(session, {
-                    expires: new Date(data.loginResult.expiresAt)
-                })
-            },
-        });
+        const setCookieHeader = response.headers.get("set-cookie");
+        if (setCookieHeader) {
+            return redirect("/", {
+                headers: {
+                    "Set-Cookie": setCookieHeader
+                },
+            });
+        }
     }
 
     return response.json();
