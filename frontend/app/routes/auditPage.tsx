@@ -11,14 +11,15 @@ export default function AuditPage() {
   const [questions, setQuestions] = useState<QuestionInt[]>([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedAudit, setSelectedAudit] = useState<number>(0);
+  const [selectedAudit, setSelectedAudit] = useState<number>(0); // Standardwert auf 0 setzen
 
   const auditsPerPage = 5;
   const totalPages = Math.ceil(audits.length / auditsPerPage);
 
   useEffect(() => {
     const controller = new AbortController();
-
+    console.log("Fetching audits...");
+  
     const fetchData = async () => {
       try {
         const response = await fetch("http://localhost:3000/audit", {
@@ -27,19 +28,25 @@ export default function AuditPage() {
           signal: controller.signal,
         });
         if (!response.ok) throw new Error("Network response was not ok");
-
+  
         const data: AuditDetails[] = await response.json();
         setAudits(data);
       } catch (error) {
         // @ts-ignore
-        if (error.name !== "AbortError") {
+        if (error.name === "AbortError") {
+          console.log("Fetch aborted");
+        } else {
           console.error("Error fetching audits:", error);
         }
       }
     };
-
+  
     fetchData();
-    return () => controller.abort();
+  
+    return () => {
+      console.log("Aborting fetch...");
+      controller.abort();
+    };
   }, []);
 
   useEffect(() => {
@@ -90,6 +97,10 @@ export default function AuditPage() {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
 
+  const handleAuditClick = (auditId: number) => {
+    setSelectedAudit((prev) => (prev === auditId ? 0 : auditId)); // 0 bedeutet "kein Audit ausgewählt"
+  };
+
   const displayedAudits = filteredAudits.slice(
     (currentPage - 1) * auditsPerPage,
     currentPage * auditsPerPage
@@ -110,9 +121,11 @@ export default function AuditPage() {
                 {displayedAudits.map((audit) => (
                   <div
                     key={audit.au_idx}
-                    className="p-4 border-b border-gray-200 hover:bg-gray-100 cursor-pointer"
+                    className={`p-4 border-b border-gray-200 hover:bg-gray-100 cursor-pointer ${
+                      selectedAudit === audit.au_idx ? "bg-gray-300" : ""
+                    }`}
                     style={{ backgroundColor: "#fff", color: "#333" }}
-                    onClick={() => setSelectedAudit(audit.au_idx)}
+                    onClick={() => handleAuditClick(audit.au_idx)}
                   >
                     Audit {audit.au_idx} - {audit.au_theme}
                   </div>
@@ -154,14 +167,26 @@ export default function AuditPage() {
               {/* Buttons unter dem grauen Fenster */}
               <div className="flex justify-center space-x-4 mt-4">
                 <button
-                  onClick={() => (window.location.href = `/questionPage`)}
-                  className="px-4 py-2 text-white bg-purple-500 rounded-md"
+                  onClick={() =>
+                    selectedAudit &&
+                    (window.location.href = `/questionPage/${selectedAudit}`)
+                  }
+                  disabled={selectedAudit === 0}
+                  className={`px-4 py-2 rounded-md text-white ${
+                    selectedAudit === 0 ? "bg-gray-300" : "bg-purple-500"
+                  }`}
                 >
                   Neue Question
                 </button>
                 <button
-                  onClick={() => (window.location.href = `/auditbearbeiten/${selectedAudit}`)}
-                  className="px-4 py-2 text-white bg-blue-500 rounded-md"
+                  onClick={() =>
+                    selectedAudit &&
+                    (window.location.href = `/auditbearbeiten/${selectedAudit}`)
+                  }
+                  disabled={selectedAudit === 0}
+                  className={`px-4 py-2 rounded-md text-white ${
+                    selectedAudit === 0 ? "bg-gray-300" : "bg-blue-500"
+                  }`}
                 >
                   Bearbeiten
                 </button>

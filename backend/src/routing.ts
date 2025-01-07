@@ -646,33 +646,37 @@ expressApp.get('/api/finding/attachments/:id/delete', async (req, res) => {
                 res.status(204).send();
             }
         });
-// Routes for questions
+
+        // Routes for questions
         expressApp.post('/questions', async (req, res) => {
-            const {qu_audit_idx, qu_law_idx, qu_audited, qu_applicable, qu_finding_level} = req.body;
+            const { qu_audit_idx, qu_law_idx, qu_audited, qu_applicable, qu_finding_level } = req.body;
             const errors = {
-                qu_audit_idx: !qu_audit_idx ? "Invalid qu_audit_idx" : undefined,
-                qu_law_idx: !qu_law_idx ? "Invalid qu_law_idx" : undefined,
-                qu_audited: typeof qu_audited !== 'boolean' ? "Invalid qu_audited" : undefined,
-                qu_applicable: typeof qu_applicable !== 'boolean' ? "Invalid qu_applicable" : undefined,
-                qu_finding_level: qu_finding_level !== undefined && typeof qu_finding_level !== 'number' ? "Invalid qu_finding_level" : undefined,
+              qu_audit_idx: !qu_audit_idx ? "Invalid qu_audit_idx" : undefined,
+              qu_law_idx: !qu_law_idx ? "Invalid qu_law_idx" : undefined,
+              qu_audited: typeof qu_audited !== 'boolean' ? "Invalid qu_audited" : undefined,
+              qu_applicable: typeof qu_applicable !== 'boolean' ? "Invalid qu_applicable" : undefined,
+              qu_finding_level: qu_finding_level !== undefined && typeof qu_finding_level !== 'number' ? "Invalid qu_finding_level" : undefined,
             };
             if (Object.values(errors).some(Boolean)) {
-                res.status(400).json(errors);
-                return;
+              res.status(400).json(errors);
+              return;
             }
+          
             const result = await CreateQuestion({
-                qu_audit_idx,
-                qu_law_idx,
-                qu_audited,
-                qu_applicable,
-                qu_finding_level,
+              qu_audit_idx,
+              qu_law_idx,
+              qu_audited,
+              qu_applicable,
+              qu_finding_level,
             });
+          
             if (result instanceof Error) {
-                res.status(400).json({message: result.message});
+              res.status(400).json({ message: result.message });
             } else {
-                res.status(201).json(result);
+              res.status(201).json(result);
             }
-        });
+          });
+
         expressApp.get('/questions', async (req, res) => {
             const result = await GetAllQuestions();
             if (result instanceof Error) {
@@ -681,6 +685,7 @@ expressApp.get('/api/finding/attachments/:id/delete', async (req, res) => {
                 res.status(200).json(result);
             }
         });
+
         expressApp.get('/questions/:id', async (req, res) => {
             const questionId = req.params.id;
             const result = await GetQuestionById(+questionId);
@@ -690,6 +695,7 @@ expressApp.get('/api/finding/attachments/:id/delete', async (req, res) => {
                 res.status(200).json(result);
             }
         });
+
         expressApp.put('/questions/:id', async (req, res) => {
             const questionId = req.params.id;
             const updates = req.body;
@@ -700,11 +706,12 @@ expressApp.get('/api/finding/attachments/:id/delete', async (req, res) => {
                 res.status(200).json(result);
             }
         });
+
         expressApp.delete('/questions/:id', async (req, res) => {
             const questionId = req.params.id;
             const result = await DeleteQuestion(+questionId);
             if (result instanceof Error) {
-                res.status(400).json({message: result.message});
+                res.status(400).json({ message: result.message });
             } else {
                 res.status(204).send();
             }

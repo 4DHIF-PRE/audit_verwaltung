@@ -1,6 +1,6 @@
 import { json, LoaderFunction } from "@remix-run/node";
 import { useLoaderData, useParams } from "@remix-run/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navbar } from "../components/Navbar";
 
 interface Law {
@@ -13,20 +13,40 @@ interface Law {
   la_valid_until: string;
 }
 
-// Loader-Funktion
+interface Question {
+  qu_idx: number;
+}
+
 export const loader: LoaderFunction = async ({ params }) => {
-  const { id } = params; // `id` aus URL-Parametern
+  const { id } = params;
   const response = await fetch("http://localhost:3000/law");
   if (!response.ok) {
     throw new Response("Failed to load laws", { status: 500 });
   }
   const laws: Law[] = await response.json();
 
-  return json({ auditId: id, laws });
+  const questionsResponse = await fetch("http://localhost:3000/questions");
+  if (!questionsResponse.ok) {
+    throw new Response("Failed to load questions", { status: 500 });
+  }
+  const questions: Question[] = await questionsResponse.json();
+
+  // Berechne die nächste freie Question ID
+  const usedIds = new Set(questions.map((question) => question.qu_idx));
+  let nextId = 0;
+  while (usedIds.has(nextId)) {
+    nextId++;
+  }
+
+  return json({ auditId: id, laws, nextQuestionId: nextId });
 };
 
 export default function AuditPage() {
-  const { auditId, laws } = useLoaderData<{ auditId: string; laws: Law[] }>(); // Loader-Daten verwenden
+  const { auditId, laws, nextQuestionId } = useLoaderData<{
+    auditId: string;
+    laws: Law[];
+    nextQuestionId: number;
+  }>();
   const [searchText, setSearchText] = useState("");
   const [selectedLaw, setSelectedLaw] = useState<string | null>(null);
   const [fields, setFields] = useState({
@@ -37,7 +57,7 @@ export default function AuditPage() {
   const [selectedType, setSelectedType] = useState<string>("");
 
   const filteredLaws = laws.filter((law) => {
-    const lawText = (law.la_text).toLowerCase();
+    const lawText = law.la_text.toLowerCase();
     const searchTextLower = searchText.toLowerCase().trim();
 
     const matchesSearch = lawText.includes(searchTextLower);
@@ -48,6 +68,40 @@ export default function AuditPage() {
 
   const handleFieldChange = (field: string, value: string | boolean) => {
     setFields((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = async () => {
+    if (!selectedLaw) {
+      alert("Please select a law.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/questions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          qu_audit_idx: auditId,
+          qu_law_idx: selectedLaw,
+          qu_audited: fields.audited,
+          qu_applicable: fields.applicable,
+          qu_finding_level: 0, // Default value
+          qu_idx: nextQuestionId, // Use the next available QuestionID
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error saving question");
+      }
+
+      alert("Question saved successfully!");
+    } catch (error) {
+      // @ts-ignore
+      alert(error.message);
+    }
   };
 
   return (
@@ -132,13 +186,10 @@ export default function AuditPage() {
         <button
           className="px-6 py-2 text-white font-bold rounded-md"
           style={{ backgroundColor: "#9166cc" }}
-          onClick={() =>
-            alert(
-              `Saved Data: \nSelected Law: ${selectedLaw}\nAudited: ${fields.audited}\nApplicable: ${fields.applicable}\nAudit ID: ${auditId}`
-            )
-          }
+          onClick={handleSave}
+          disabled={!selectedLaw}
         >
-          Save button
+          Save
         </button>
       </div>
     </div>
