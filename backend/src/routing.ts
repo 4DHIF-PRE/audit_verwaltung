@@ -9,7 +9,13 @@ const cookieName = 'gruppe2session';
 
 export const expressApp = express();
 
-expressApp.use(cors());
+
+expressApp.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Cookie']
+}));
 expressApp.use(express.json());
 expressApp.use(cookieParser());
 
@@ -34,10 +40,10 @@ expressApp.post('/login', async (req, res) => {
     if (loginResult instanceof Error) {
         res.status(400).json({ message: loginResult.message });
         return;
-    } else if (typeof loginResult === 'string') {
+    } else if (typeof loginResult === 'object') {
         //removed for testing
         //sendMailDefault(body.email, Date()) // send the login notification
-        res.status(200).cookie(cookieName, loginResult, { httpOnly: true }).json({ message: "Login was successful" });
+        res.status(200).cookie(cookieName, loginResult.sessionId, { httpOnly: true, expires: loginResult.expiresAt }).json({ message: "Login was successful"});
         return;
     }
 });
@@ -121,7 +127,6 @@ expressApp.post('/registration/FirstRegistration', async (req, res) => {
 
 expressApp.get('/users/adminView', async (req, res) => {
     const sessionId = req.cookies[cookieName];
-
     if (!sessionId) {
         res.status(401).json({ message: "Invalid sessionId" });
         return;

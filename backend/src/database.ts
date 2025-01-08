@@ -17,7 +17,7 @@ const connectionPool = mysql.createPool(access);
 
 
 
-export async function login(email: string, password: string): Promise<string | Error> {
+export async function login(email: string, password: string): Promise<{ sessionId: string, expiresAt: Date } | Error> {
     if (!email) return new Error("Email must not be null/undefined/empty");
     if (!password) return new Error("Password must not be null/undefined/empty");
 
@@ -67,7 +67,10 @@ export async function login(email: string, password: string): Promise<string | E
 
         await connection.commit();
         connection.release();
-        return sessionId;
+        return {
+            sessionId,
+            expiresAt: timeNow
+        };
     } catch (error) {
         console.log(error);
         await connection.rollback()
@@ -146,7 +149,7 @@ export async function GetAllUsersAdminView(sessionId: string): Promise<UserDataA
         );
         if (results.length === 0) {
             connection.release();
-            return new Error("User with the provided sessionId was not found");
+            return new Error("User with the provided sessionId was not found"+sessionId);
         }
         const queryUser: any = results[0];
 
@@ -542,7 +545,7 @@ export async function Register(registrationToken: string, inputPassword: string)
         }
 
         connection.release();
-        return { sessionToken: loginResult, message: "Registration was successful" };
+        return { sessionToken: loginResult.sessionId, message: "Registration was successful" };
     } catch (error) {
         console.log(error);
         await connection.rollback()
@@ -685,7 +688,7 @@ export async function RegisterFirstAdmin(userData: { u_firstname: string, u_last
         }
 
         connection.release();
-        return { sessionToken: loginResult, message: "Registration of the first admin was successful" };
+        return { sessionToken: loginResult.sessionId, message: "Registration of the first admin was successful" };
     } catch (error) {
         console.log(error);
         await connection.rollback()
