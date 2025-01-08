@@ -798,23 +798,42 @@ export async function deleteFinding(findingId: number): Promise<void | Error> {
     }
 }
 
-export async function getFindingsByID(auditId: any): Promise<any | Error> {
+export async function getFindingsByID(auditId: number): Promise<any | Error> {
     const connection = await connectionPool.getConnection();
     try {
-
-
-        const [result]: any = await connection.execute(
+        const [result] = await connection.execute(
             `SELECT *
-            FROM f_findings
-            WHERE tb_idx = ?`
-            [auditId]
+             FROM f_findings
+             WHERE f_id = ?`,
+            [auditId] // Correctly pass auditId as an array
         );
 
-        connection.release();
         return result;
     } catch (error) {
-        connection.release();
-        return new Error("Error deleting audit");
+        console.error('Error executing query:', error);
+        return new Error('Error fetching findings');
+    } finally {
+        connection.release(); // Ensure connection is released
+    }
+}
+
+//get all findings of ONE question
+export async function getFindingsByQuestionID(questionId: number): Promise<any | Error> {
+    const connection = await connectionPool.getConnection();
+    try {
+        const [results] = await connection.execute(
+            `SELECT *
+             FROM f_findings
+             WHERE f_qu_question_idx = ?`,
+            [questionId] // Bind the questionId
+        );
+
+        return results;
+    } catch (error) {
+        console.error('Error fetching findings:', error);
+        return new Error('Error fetching findings');
+    } finally {
+        connection.release(); // Ensure the connection is released
     }
 }
 

@@ -1,7 +1,4 @@
 import { useState, useEffect } from "react";
-// Mock data
-import mockFindings from "../../../testdata/g4/findings.json";
-import mockLaws from "../../../testdata/g4/laws.json";
 
 // Interfaces
 export interface QuestionInt {
@@ -21,37 +18,56 @@ export default function Question({ question }: { question: QuestionInt }) {
   const [loading, setLoading] = useState(true);
   const [files, setFiles] = useState<File[]>([]);
 
-  // Load mock data based on the passed question
+  // Load data from API
   useEffect(() => {
-    const loadMockData = async () => {
+    const loadData = async () => {
       setLoading(true);
 
-      const finding = mockFindings.find(
-        (f) => f.f_qu_question_idx === question.qu_idx
-      );
+      try {
+        // Fetch the findings data from the API
+        const findingResponse = await fetch(`http://localhost:3000/api/audit/findings/${question.qu_idx}`);//${question.qu_idx}
+        const findings = await findingResponse.json();
 
-      const lawDetails = mockLaws.find((l) => l.la_idx === question.qu_law_idx);
+        // Log the findings to inspect the data structure
+        console.log(findings);
 
-      if (lawDetails) {
-        setLaw({
-          law: lawDetails.la_law,
-          type: lawDetails.la_typ,
-          text: lawDetails.la_text,
-        });
-        if (finding) {
-          setSelectedStatus(finding.f_level.toString());
-          setAuditorComment(finding.f_auditor_comment);
-          setFindingComment(finding.f_finding_comment);
+        if (findings && findings.length > 0) {
+          const finding = findings[0]; // Get the first finding
+
+          // Fetch the laws data from the API
+          const lawResponse = await fetch(`http://localhost:3000/law/${question.qu_law_idx}`); //${question.qu_law_idx}
+          const lawDetails = await lawResponse.json();
+
+          // Update state with fetched data
+          if (lawDetails) {
+            setLaw({
+              law: lawDetails.la_law,
+              type: lawDetails.la_typ,
+              text: lawDetails.la_text,
+            });
+          }
+
+          // Set finding details (with additional null/undefined checks)
+          if (finding.f_level !== undefined) {
+            setSelectedStatus(finding.f_level.toString());
+          }
+          setAuditorComment(finding.f_comment || ""); // Use nullish coalescing to handle null values
+          setFindingComment(finding.f_finding_comment || "");
+        } else {
+          console.log("No findings available.");
+          // Handle case when no findings are returned
+          setSelectedStatus("");
+          setAuditorComment("");
+          setFindingComment("");
         }
-      } else {
-        setSelectedStatus("");
-        setAuditorComment("");
-        setFindingComment("");
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
-    loadMockData();
+    loadData();
   }, [question]);
 
   const handleSave = () => {
@@ -82,7 +98,6 @@ export default function Question({ question }: { question: QuestionInt }) {
       ]);
     }
   };
-  
 
   const handleRemoveFile = (fileToRemove: File) => {
     setFiles(files.filter((file) => file !== fileToRemove));
