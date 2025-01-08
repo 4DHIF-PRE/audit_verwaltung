@@ -24,16 +24,14 @@ export default function Question({ question }: { question: QuestionInt }) {
       setLoading(true);
 
       try {
-        // Fetch the findings data from the API
-        const findingResponse = await fetch(`http://localhost:3000/api/audit/findings/${question.qu_idx}`);//${question.qu_idx}
-        const findings = await findingResponse.json();
+        // Fetch the findings data from the API (assuming only one finding is returned)
+        const findingResponse = await fetch(`http://localhost:3000/api/questions/${question.qu_idx}/finding`); //${question.qu_idx}
+        const finding = await findingResponse.json(); // Expecting a single finding object
 
         // Log the findings to inspect the data structure
-        console.log(findings);
+        console.log(finding);
 
-        if (findings && findings.length > 0) {
-          const finding = findings[0]; // Get the first finding
-
+        if (finding) {
           // Fetch the laws data from the API
           const lawResponse = await fetch(`http://localhost:3000/law/${question.qu_law_idx}`); //${question.qu_law_idx}
           const lawDetails = await lawResponse.json();
@@ -47,15 +45,15 @@ export default function Question({ question }: { question: QuestionInt }) {
             });
           }
 
-          // Set finding details (with additional null/undefined checks)
+          // Set finding details
           if (finding.f_level !== undefined) {
             setSelectedStatus(finding.f_level.toString());
           }
           setAuditorComment(finding.f_comment || ""); // Use nullish coalescing to handle null values
           setFindingComment(finding.f_finding_comment || "");
         } else {
-          console.log("No findings available.");
-          // Handle case when no findings are returned
+          console.log("No finding available.");
+          // Handle case when no finding is returned
           setSelectedStatus("");
           setAuditorComment("");
           setFindingComment("");

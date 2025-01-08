@@ -817,25 +817,27 @@ export async function getFindingsByID(auditId: number): Promise<any | Error> {
     }
 }
 
-//get all findings of ONE question
-export async function getFindingsByQuestionID(questionId: number): Promise<any | Error> {
+//get findings by id
+export async function getFindingByQuestionID(questionId: number): Promise<any | Error> {
     const connection = await connectionPool.getConnection();
     try {
         const [results] = await connection.execute(
             `SELECT *
              FROM f_findings
-             WHERE f_qu_question_idx = ?`,
+             WHERE f_qu_question_idx = ?
+             LIMIT 1`, // Ensure it only fetches one result
             [questionId] // Bind the questionId
         );
 
-        return results;
+        return results[0] || null; // Return the first (and only) result, or null if no result
     } catch (error) {
-        console.error('Error fetching findings:', error);
-        return new Error('Error fetching findings');
+        console.error('Error fetching finding:', error);
+        return new Error('Error fetching finding');
     } finally {
         connection.release(); // Ensure the connection is released
     }
 }
+
 
 export async function uploadAttachment(findingId: any, file: Buffer, fileName: string): Promise<any | Error> {
     const connection = await connectionPool.getConnection();

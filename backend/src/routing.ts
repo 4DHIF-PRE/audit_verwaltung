@@ -1,7 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import { validateEmail, validateName, validatePassword } from './util/validation.util.js';
-import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings,getFindingsByQuestionID,getAuditQuestions,createFinding, updateFinding, deleteFinding, getFindingsByID,uploadAttachment,getFileNameByFindingId,getFilesByFindingId,deleteFileByFindingAttachmentId,getFileByFindingAttachmentId, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion } from './database.js';
+import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings,getFindingByQuestionID,getAuditQuestions,createFinding, updateFinding, deleteFinding, getFindingsByID,uploadAttachment,getFileNameByFindingId,getFilesByFindingId,deleteFileByFindingAttachmentId,getFileByFindingAttachmentId, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion } from './database.js';
 import { sendMailDefault, sendMailInvite } from './mailService.js';
 import cors from 'cors'
 
@@ -406,26 +406,27 @@ expressApp.get('/api/audit/findings/:id', async (req, res) => {
     }
 });
 
-//Get all findings of ONE question
-expressApp.get('/api/questions/:id/findings', async (req, res) => {
+//get findings by id
+expressApp.get('/api/questions/:id/finding', async (req, res) => {
     try {
         const questionId = parseInt(req.params.id, 10); // Parse the ID from the request URL
         if (isNaN(questionId)) {
             return res.status(400).json({ error: 'Invalid question ID' });
         }
 
-        const findings = await getFindingsByQuestionID(questionId); // Await the async function
-        if (findings instanceof Error) {
-            console.error('Error fetching findings:', findings.message);
+        const finding = await getFindingByQuestionID(questionId); // Fetch one finding instead of multiple
+        if (finding instanceof Error) {
+            console.error('Error fetching finding:', finding.message);
             return res.status(500).json({ error: 'Internal Server Error' });
         }
 
-        return res.json(findings); // Send the findings as JSON
+        return res.json(finding); // Send the single finding as JSON
     } catch (error) {
         console.error('Unexpected error:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
 
 
 // upload file name
