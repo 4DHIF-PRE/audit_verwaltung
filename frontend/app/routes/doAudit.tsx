@@ -3,7 +3,7 @@ import { Navbar } from "../components/Navbar";
 import AuditFilter from "../components/g4/Filter";
 import Question from "../components/g4/Question";
 
-//Interfaces
+// Interfaces
 export interface QuestionInt {
   qu_idx: number;
   qu_audit_idx: number;
@@ -24,10 +24,6 @@ export interface AuditInt {
   au_typ: string;
 }
 
-// Mock data
-import mockAudits from "../../testdata/g4/audit.json";
-import mockQuestions from "../../testdata/g4/questions.json";
-
 export default function App() {
   const [audit, setAudit] = useState<AuditInt>();
   const [questions, setQuestions] = useState<QuestionInt[]>([]);
@@ -38,15 +34,21 @@ export default function App() {
     const loadAuditData = async () => {
       setLoading(true);
 
-      const currentAudit = mockAudits.find((audit) => audit.au_idx === 101);
-      setAudit(currentAudit);
+      try {
+        // Fetch audit data from the API (replace URL with your API endpoint)
+        const auditResponse = await fetch("http://localhost:3000/audit/15");
+        const currentAudit = await auditResponse.json();
+        setAudit(currentAudit);
 
-      const auditQuestions = mockQuestions.filter(
-        (question) => question.qu_audit_idx === currentAudit?.au_idx
-      );
-      setQuestions(auditQuestions);
-
-      setLoading(false);
+        // Fetch corresponding questions for the audit (replace URL with your API endpoint)
+        const questionsResponse = await fetch(`http://localhost:3000/audit/questions/15`);//${currentAudit?.au_idx}
+        const auditQuestions = await questionsResponse.json();
+        setQuestions(auditQuestions);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadAuditData();
@@ -75,18 +77,14 @@ export default function App() {
         </div>
       </main>
 
-          <button
-          
-            id= "saveAudit"
-            type="button"
-            onClick={() => window.location.href = `/gruppe5`}
-            className="bg-red-500 hover:bg-red-600 text-white font-medium rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 pt-2 pb-2 pl-5 pr-5"
-          >
-            Audit speichern
-          </button>
+      <button
+        id="saveAudit"
+        type="button"
+        onClick={() => window.location.href = `/gruppe5`}
+        className="bg-red-500 hover:bg-red-600 text-white font-medium rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 pt-2 pb-2 pl-5 pr-5"
+      >
+        Audit speichern
+      </button>
     </div>
-
-    
   );
-  
 }

@@ -1,7 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import { validateEmail, validateName, validatePassword } from './util/validation.util.js';
-import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings,getAuditQuestions,createFinding, updateFinding, deleteFinding, getFindingsByID,uploadAttachment,getFileNameByFindingId,getFilesByFindingId,deleteFileByFindingAttachmentId,getFileByFindingAttachmentId, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion } from './database.js';
+import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings,getFindingByQuestionID,getAuditQuestions,createFinding, updateFinding, deleteFinding, getFindingsByID,uploadAttachment,getFileNameByFindingId,getFilesByFindingId,deleteFileByFindingAttachmentId,getFileByFindingAttachmentId, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion } from './database.js';
 import { sendMailDefault, sendMailInvite } from './mailService.js';
 import cors from 'cors'
 
@@ -385,24 +385,51 @@ expressApp.delete('/audit/finding/:id', async (req, res) => {
 });
 
 // GET Findings
-expressApp.get('/api/audit/findings/:id'), (req, res) => {
-   
+
+expressApp.get('/api/audit/findings/:id', async (req, res) => {
     try {
-        const results = getFindingsByID(req.params.id)
+        const auditId = parseInt(req.params.id, 10);
+        if (isNaN(auditId)) {
+            return res.status(400).json({ error: 'Invalid audit ID' });
+        }
+
+        const results = await getFindingsByID(auditId);
         if (results instanceof Error) {
-            console.error('Error executing query');
+            console.error('Error fetching findings:', results.message);
             return res.status(500).json({ error: 'Internal Server Error' });
         }
 
         return res.json(results);
-    }catch (error) {
+    } catch (error) {
         console.error('Unexpected error:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
-    
-}
+});
 
-// get file name
+//get findings by id
+expressApp.get('/api/questions/:id/finding', async (req, res) => {
+    try {
+        const questionId = parseInt(req.params.id, 10); // Parse the ID from the request URL
+        if (isNaN(questionId)) {
+            return res.status(400).json({ error: 'Invalid question ID' });
+        }
+
+        const finding = await getFindingByQuestionID(questionId); // Fetch one finding instead of multiple
+        if (finding instanceof Error) {
+            console.error('Error fetching finding:', finding.message);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+
+        return res.json(finding); // Send the single finding as JSON
+    } catch (error) {
+        console.error('Unexpected error:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
+
+// upload file name
 expressApp.post('/api/finding/attachments/:id/:fileName', async (req, res) => {
     try {
         const findingId = req.params.id;

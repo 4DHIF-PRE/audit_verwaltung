@@ -798,25 +798,46 @@ export async function deleteFinding(findingId: number): Promise<void | Error> {
     }
 }
 
-export async function getFindingsByID(auditId: any): Promise<any | Error> {
+export async function getFindingsByID(auditId: number): Promise<any | Error> {
     const connection = await connectionPool.getConnection();
     try {
-
-
-        const [result]: any = await connection.execute(
+        const [result] = await connection.execute(
             `SELECT *
-            FROM f_findings
-            WHERE tb_idx = ?`
-            [auditId]
+             FROM f_findings
+             WHERE f_id = ?`,
+            [auditId] // Correctly pass auditId as an array
         );
 
-        connection.release();
         return result;
     } catch (error) {
-        connection.release();
-        return new Error("Error deleting audit");
+        console.error('Error executing query:', error);
+        return new Error('Error fetching findings');
+    } finally {
+        connection.release(); // Ensure connection is released
     }
 }
+
+//get findings by id
+export async function getFindingByQuestionID(questionId: number): Promise<any | Error> {
+    const connection = await connectionPool.getConnection();
+    try {
+        const [results] = await connection.execute(
+            `SELECT *
+             FROM f_findings
+             WHERE f_qu_question_idx = ?
+             LIMIT 1`, // Ensure it only fetches one result
+            [questionId] // Bind the questionId
+        );
+
+        return results[0] || null; // Return the first (and only) result, or null if no result
+    } catch (error) {
+        console.error('Error fetching finding:', error);
+        return new Error('Error fetching finding');
+    } finally {
+        connection.release(); // Ensure the connection is released
+    }
+}
+
 
 export async function uploadAttachment(findingId: any, file: Buffer, fileName: string): Promise<any | Error> {
     const connection = await connectionPool.getConnection();
