@@ -53,7 +53,7 @@ export const sendMailInvite = async (to: string, fullName: string, adminName: st
         <p>Hello ${fullName},</p>
         <p>You have been invited to join our Platform.</p>
         <p>Click the following link if you want to create an account immediately:</p>
-        <a href="https://yourplatform.com/register/?q=${registrationToken}" style="
+        <a href="http://localhost:5173/sign-up/?q=${registrationToken}" style="
             display: inline-block;
             padding: 10px 20px;
             font-size: 16px;
