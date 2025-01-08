@@ -77,7 +77,18 @@ export default function AuditPage() {
     }
 
     try {
-      const response = await fetch("/questions", {
+      // Log the data to check
+      console.log({
+        qu_audit_idx: auditId,
+        qu_law_idx: selectedLaw,
+        qu_audited: fields.audited,
+        qu_applicable: fields.applicable,
+        qu_finding_level: 0, // Default value
+        qu_idx: nextQuestionId, // Use the next available QuestionID
+      });
+
+      // Fetch request to backend
+      const response = await fetch("http://localhost:3000/questions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -94,12 +105,15 @@ export default function AuditPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error("Error saving question:", errorData);
         throw new Error(errorData.message || "Error saving question");
       }
 
       alert("Question saved successfully!");
     } catch (error) {
       // @ts-ignore
+      console.error("Save question failed:", error.message);
+      //@ts-ignore
       alert(error.message);
     }
   };
