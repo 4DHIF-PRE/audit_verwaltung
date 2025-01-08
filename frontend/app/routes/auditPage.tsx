@@ -11,15 +11,14 @@ export default function AuditPage() {
   const [questions, setQuestions] = useState<QuestionInt[]>([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedAudit, setSelectedAudit] = useState<number>(0); // Standardwert auf 0 setzen
+  const [selectedAudit, setSelectedAudit] = useState<number>(0);
 
   const auditsPerPage = 5;
   const totalPages = Math.ceil(audits.length / auditsPerPage);
 
   useEffect(() => {
     const controller = new AbortController();
-    console.log("Fetching audits...");
-  
+
     const fetchData = async () => {
       try {
         const response = await fetch("http://localhost:3000/audit", {
@@ -28,7 +27,7 @@ export default function AuditPage() {
           signal: controller.signal,
         });
         if (!response.ok) throw new Error("Network response was not ok");
-  
+
         const data: AuditDetails[] = await response.json();
         setAudits(data);
       } catch (error) {
@@ -40,13 +39,10 @@ export default function AuditPage() {
         }
       }
     };
-  
+
     fetchData();
-  
-    return () => {
-      console.log("Aborting fetch...");
-      controller.abort();
-    };
+
+    return () => controller.abort();
   }, []);
 
   useEffect(() => {
@@ -83,6 +79,31 @@ export default function AuditPage() {
     return () => controller.abort();
   }, [selectedAudit]);
 
+  const handleDeleteAudit = async (auditId: number) => {
+    if (!window.confirm(`Möchten Sie Audit ${auditId} wirklich löschen?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3000/audit/${auditId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) throw new Error("Fehler beim Löschen des Audits");
+
+      // Audit aus der lokalen Liste entfernen
+      setAudits((prevAudits) =>
+        prevAudits.filter((audit) => audit.au_idx !== auditId)
+      );
+
+      alert(`Audit ${auditId} erfolgreich gelöscht`);
+    } catch (error) {
+      console.error("Error deleting audit:", error);
+      alert(`Audit ${auditId} konnte nicht gelöscht werden.`);
+    }
+  };
+
   const filteredAudits = audits.filter(
     (audit) =>
       audit.au_theme.toLowerCase().includes(search.toLowerCase()) ||
@@ -98,7 +119,7 @@ export default function AuditPage() {
   };
 
   const handleAuditClick = (auditId: number) => {
-    setSelectedAudit((prev) => (prev === auditId ? 0 : auditId)); // 0 bedeutet "kein Audit ausgewählt"
+    setSelectedAudit((prev) => (prev === auditId ? 0 : auditId));
   };
 
   const displayedAudits = filteredAudits.slice(
@@ -125,9 +146,21 @@ export default function AuditPage() {
                       selectedAudit === audit.au_idx ? "bg-gray-300" : ""
                     }`}
                     style={{ backgroundColor: "#fff", color: "#333" }}
-                    onClick={() => handleAuditClick(audit.au_idx)}
                   >
-                    Audit {audit.au_idx} - {audit.au_theme}
+                    <div className="flex justify-between items-center">
+                      <div onClick={() => handleAuditClick(audit.au_idx)}>
+                        Audit {audit.au_idx} - {audit.au_theme}
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteAudit(audit.au_idx);
+                        }}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        ❌
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

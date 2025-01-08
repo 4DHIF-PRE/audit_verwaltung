@@ -1059,7 +1059,7 @@ export async function UpdateAudit(auditId, updates) {
     } catch (error) {
       return new Error(`Failed to update audit: ${error.message}`);
     }
-  }
+}
 
 export async function DeleteAudit(auditId) {
     const pool = await connectionPool.getConnection();
