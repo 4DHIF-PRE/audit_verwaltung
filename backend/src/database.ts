@@ -1134,12 +1134,26 @@ export async function UpdateQuestion(questionId, updates) {
 export async function DeleteQuestion(questionId) {
     const pool = await connectionPool.getConnection();
     try {
+        await pool.beginTransaction();
+
+        // Delete all findings related to the question
+        await pool.execute('DELETE FROM f_findings WHERE f_qu_question_idx = ?', [questionId]);
+
+        // Delete the question
         const [result] = await pool.execute('DELETE FROM qu_questions WHERE qu_idx = ?', [questionId]);
-        if (result[0].affectedRows === 0) {
+
+        // @ts-ignore
+        if (result.affectedRows === 0) {
+            await pool.rollback();
             return new Error("Question not found or already deleted");
         }
+
+        await pool.commit();
     } catch (error) {
-        console.error("Error deleting question:", error);
+        await pool.rollback();
+        console.error("Error deleting question and findings:", error);
         return new Error("Database error occurred while deleting question");
+    } finally {
+        pool.release();
     }
 }

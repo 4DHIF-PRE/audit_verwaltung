@@ -708,11 +708,18 @@ expressApp.get('/api/finding/attachments/:id/delete', async (req, res) => {
         });
 
         expressApp.delete('/questions/:id', async (req, res) => {
-            const questionId = req.params.id;
-            const result = await DeleteQuestion(+questionId);
-            if (result instanceof Error) {
-                res.status(400).json({ message: result.message });
-            } else {
+            const questionId = parseInt(req.params.id, 10);
+            if (isNaN(questionId)) {
+                return res.status(400).json({ message: "Invalid question ID" });
+            }
+        
+            try {
+                const result = await DeleteQuestion(questionId);
+                if (result instanceof Error) {
+                    return res.status(400).json({ message: result.message });
+                }
                 res.status(204).send();
+            } catch (error) {
+                res.status(500).json({ error: 'Internal Server Error' });
             }
         });
