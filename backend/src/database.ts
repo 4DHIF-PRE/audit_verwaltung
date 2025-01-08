@@ -1049,17 +1049,17 @@ export async function GetAuditById(auditId) {
 }
 
 export async function UpdateAudit(auditId, updates) {
-    const fields = Object.keys(updates).map(key => `${key} = ?`).join(', ');
+    const fields = Object.keys(updates).map((key) => `${key} = ?`).join(", ");
     const values = Object.values(updates).concat(auditId);
     const query = `UPDATE au_audit SET ${fields} WHERE au_idx = ?`;
     const pool = await connectionPool.getConnection();
     try {
-        const [result] = await pool.execute(query, values);
-        return result;
+      const [result] = await pool.execute(query, values);
+      return result;
     } catch (error) {
-        return new Error(`Failed to update audit: ${error.message}`);
+      return new Error(`Failed to update audit: ${error.message}`);
     }
-}
+  }
 
 export async function DeleteAudit(auditId) {
     const pool = await connectionPool.getConnection();

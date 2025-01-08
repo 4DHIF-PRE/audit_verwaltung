@@ -637,6 +637,7 @@ expressApp.get('/api/finding/attachments/:id/delete', async (req, res) => {
                 res.status(200).json(result);
             }
         });
+        
         expressApp.delete('/audit/:id', async (req, res) => {
             const auditId = req.params.id;
             const result = await DeleteAudit(+auditId);
