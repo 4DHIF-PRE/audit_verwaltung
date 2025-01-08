@@ -16,7 +16,7 @@ export default function Question({ question }: { question: QuestionInt }) {
   const [findingComment, setFindingComment] = useState("");
   const [law, setLaw] = useState({ law: "", type: "", text: "" });
   const [loading, setLoading] = useState(true);
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<string[]>([]); // Store filenames as strings
 
   // Load data from API
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function Question({ question }: { question: QuestionInt }) {
 
       try {
         // Fetch the findings data from the API (assuming only one finding is returned)
-        const findingResponse = await fetch(`http://localhost:3000/api/questions/${question.qu_idx}/finding`); //${question.qu_idx}
+        const findingResponse = await fetch(`http://localhost:3000/api/questions/${question.qu_idx}/finding`);
         const finding = await findingResponse.json(); // Expecting a single finding object
 
         // Log the findings to inspect the data structure
@@ -33,7 +33,7 @@ export default function Question({ question }: { question: QuestionInt }) {
 
         if (finding) {
           // Fetch the laws data from the API
-          const lawResponse = await fetch(`http://localhost:3000/law/${question.qu_law_idx}`); //${question.qu_law_idx}
+          const lawResponse = await fetch(`http://localhost:3000/law/${question.qu_law_idx}`);
           const lawDetails = await lawResponse.json();
 
           // Update state with fetched data
@@ -58,6 +58,14 @@ export default function Question({ question }: { question: QuestionInt }) {
           setAuditorComment("");
           setFindingComment("");
         }
+
+        // Fetch the attachments/files data
+        const attachmentsResponse = await fetch(`http://localhost:3000/api/finding/attachments/10/files`);
+        const attachments = await attachmentsResponse.json();
+
+        // Extract filenames from the API response
+        const filenames = attachments.fileName.map((file: { fa_filename: string }) => file.fa_filename);
+        setFiles(filenames);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -81,23 +89,29 @@ export default function Question({ question }: { question: QuestionInt }) {
   const handleDrop = (event: React.DragEvent) => {
     event.preventDefault();
     const droppedFiles = event.dataTransfer.files;
+  
+    // Extract filenames from the dropped files and update state with strings
+    const filenames = Array.from(droppedFiles).map(file => file.name);
     setFiles((prevFiles) => [
       ...prevFiles,
-      ...Array.from(droppedFiles),
+      ...filenames,
     ]);
   };
-
+  
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { files } = event.target;
     if (files) {
+      // Extract filenames from the selected files and update state with strings
+      const filenames = Array.from(files).map(file => file.name);
       setFiles((prevFiles) => [
         ...prevFiles,
-        ...Array.from(files),
+        ...filenames,
       ]);
     }
   };
+  
 
-  const handleRemoveFile = (fileToRemove: File) => {
+  const handleRemoveFile = (fileToRemove: string) => {
     setFiles(files.filter((file) => file !== fileToRemove));
   };
 
@@ -215,7 +229,7 @@ export default function Question({ question }: { question: QuestionInt }) {
       <div className="space-y-4">
         {files.map((file, index) => (
           <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-md">
-            <span className="text-gray-900 dark:text-white">{file.name}</span>
+            <span className="text-gray-900 dark:text-white">{file}</span>
             <button
               onClick={() => handleRemoveFile(file)}
               className="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded-md focus:outline-none"
