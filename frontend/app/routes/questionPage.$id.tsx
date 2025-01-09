@@ -1,7 +1,8 @@
 import { json, LoaderFunction } from "@remix-run/node";
-import { useLoaderData, useParams } from "@remix-run/react";
-import { useState, useEffect } from "react";
+import { useLoaderData } from "@remix-run/react";
+import { useState } from "react";
 import { Navbar } from "../components/Navbar";
+import { useNavigate } from "react-router-dom";
 
 interface Law {
   la_idx: number;
@@ -31,7 +32,6 @@ export const loader: LoaderFunction = async ({ params }) => {
   }
   const questions: Question[] = await questionsResponse.json();
 
-  // Berechne die nächste freie Question ID
   const usedIds = new Set(questions.map((question) => question.qu_idx));
   let nextId = 0;
   while (usedIds.has(nextId)) {
@@ -55,6 +55,7 @@ export default function AuditPage() {
   });
 
   const [selectedType, setSelectedType] = useState<string>("");
+  const navigate = useNavigate();
 
   const filteredLaws = laws.filter((law) => {
     const lawText = law.la_text.toLowerCase();
@@ -77,14 +78,13 @@ export default function AuditPage() {
     }
 
     try {
-      // Log the data to check
       console.log({
         qu_audit_idx: auditId,
         qu_law_idx: selectedLaw,
         qu_audited: fields.audited,
         qu_applicable: fields.applicable,
-        qu_finding_level: 0, // Default value
-        qu_idx: nextQuestionId, // Use the next available QuestionID
+        qu_finding_level: 0,
+        qu_idx: nextQuestionId,
       });
 
       // Fetch request to backend
@@ -98,8 +98,8 @@ export default function AuditPage() {
           qu_law_idx: selectedLaw,
           qu_audited: fields.audited,
           qu_applicable: fields.applicable,
-          qu_finding_level: 0, // Default value
-          qu_idx: nextQuestionId, // Use the next available QuestionID
+          qu_finding_level: 0,
+          qu_idx: nextQuestionId,
         }),
       });
 
@@ -109,7 +109,7 @@ export default function AuditPage() {
         throw new Error(errorData.message || "Error saving question");
       }
 
-      alert("Question saved successfully!");
+      navigate(`/auditpage`);
     } catch (error) {
       // @ts-ignore
       console.error("Save question failed:", error.message);
@@ -153,7 +153,7 @@ export default function AuditPage() {
         </select>
       </div>
 
-      {/* Gesetze anzeigen */}
+      {/* Show Law */}
       <div className="border border-gray-400 rounded-md w-full max-h-64 overflow-y-auto dark:border-gray-600">
         {filteredLaws.map((law) => (
           <div
@@ -171,28 +171,6 @@ export default function AuditPage() {
             />
           </div>
         ))}
-      </div>
-
-      {/* Checkboxes für Audited und Applicable */}
-      <div className="flex justify-center space-x-6">
-        <div className="flex flex-col">
-          <label className="font-bold text-gray-600 mb-1 dark:text-gray-300">Audited</label>
-          <input
-            type="checkbox"
-            checked={fields.audited}
-            onChange={(e) => handleFieldChange("audited", e.target.checked)}
-            className="w-5 h-5"
-          />
-        </div>
-        <div className="flex flex-col">
-          <label className="font-bold text-gray-600 mb-1 dark:text-gray-300">Applicable</label>
-          <input
-            type="checkbox"
-            checked={fields.applicable}
-            onChange={(e) => handleFieldChange("applicable", e.target.checked)}
-            className="w-5 h-5"
-          />
-        </div>
       </div>
 
       {/* Save Button */}

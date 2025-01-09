@@ -1,7 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import { validateEmail, validateName, validatePassword } from './util/validation.util.js';
-import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings,getAuditQuestions,createFinding, updateFinding, deleteFinding, getFindingsByID,uploadAttachment,getFileNameByFindingId,getFilesByFindingId,deleteFileByFindingAttachmentId,getFileByFindingAttachmentId, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion } from './database.js';
+import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings, getAuditQuestions, createFinding, updateFinding, deleteFinding, getFindingsByID, uploadAttachment, getFileNameByFindingId, getFilesByFindingId, deleteFileByFindingAttachmentId, getFileByFindingAttachmentId, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion } from './database.js';
 import { sendMailDefault, sendMailInvite } from './mailService.js';
 import cors from 'cors'
 
@@ -316,13 +316,13 @@ expressApp.post('/registration/register', async (req, res) => {
 
 //gruppe 4
 // GET alle questions von einem audit
-expressApp.get('/audit/questions/:id', async (req, res) => { 
+expressApp.get('/audit/questions/:id', async (req, res) => {
     const auditId = req.params.id;
 
     // AuditId must be number
 
     try {
-        const results = await getAuditQuestions( parseInt(auditId) );
+        const results = await getAuditQuestions(parseInt(auditId));
 
         if (results instanceof Error) {
             return res.status(500).json({ error: results.message });
@@ -372,9 +372,9 @@ expressApp.put('/audit/finding', async (req, res) => {
 
 // DELETE eine Finding
 expressApp.delete('/audit/finding/:id', async (req, res) => {
-   // const findingId:number = parseInt(req.params.id);
+    // const findingId:number = parseInt(req.params.id);
     try {
-        const result = await deleteFinding( parseInt(req.params.id));
+        const result = await deleteFinding(parseInt(req.params.id));
         if (result instanceof Error) {
             return res.status(500).json({ error: result.message });
         }
@@ -386,7 +386,7 @@ expressApp.delete('/audit/finding/:id', async (req, res) => {
 
 // GET Findings
 expressApp.get('/api/audit/findings/:id'), (req, res) => {
-   
+
     try {
         const results = getFindingsByID(req.params.id)
         if (results instanceof Error) {
@@ -395,11 +395,11 @@ expressApp.get('/api/audit/findings/:id'), (req, res) => {
         }
 
         return res.json(results);
-    }catch (error) {
+    } catch (error) {
         console.error('Unexpected error:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
-    
+
 }
 
 // get file name
@@ -502,225 +502,225 @@ expressApp.get('/api/finding/attachments/:id/delete', async (req, res) => {
         const fileName = await deleteFileByFindingAttachmentId(attachmentId);
 
         if (fileName instanceof Error) {
-            return res.status(404).json({error: fileName.message});
+            return res.status(404).json({ error: fileName.message });
         }
 
-        return res.json({fileName});
+        return res.json({ fileName });
     } catch (error) {
         console.error("Unexpected error:", error);
-        return res.status(500).json({error: "Internal Server Error"});
+        return res.status(500).json({ error: "Internal Server Error" });
     }
 });
 // Gruppe3
-        expressApp.post('/law', async (req, res) => {
-            const {la_law, la_typ, la_description, la_text, la_valid_from, la_valid_until} = req.body;
-            const errors = {
-                la_law: (!la_law || typeof la_law !== 'string') ? "Invalid la_law" : undefined,
-                la_typ: (!la_typ || ['r', 'amc', 'gm', 's'].indexOf(la_typ) === -1) ? "Invalid la_typ" : undefined,
-                la_description: (!la_description || typeof la_description !== 'string') ? "Invalid la_description" : undefined,
-                la_valid_from: (!la_valid_from) ? "Invalid la_valid_from" : undefined,
-                la_valid_until: (!la_valid_until) ? "Invalid la_valid_until" : undefined,
-            };
-            if (Object.values(errors).some(Boolean)) {
-                res.status(400).json(errors);
-                return;
-            }
-            const result = await CreateLaw({la_law, la_typ, la_description, la_text, la_valid_from, la_valid_until});
-            if (result instanceof Error) {
-                res.status(400).json({message: result.message});
-            } else {
-                res.status(201).json(result);
-            }
-        });
-        expressApp.get('/law', async (req, res) => {
-            const result = await GetAllLaws();
-            if (result instanceof Error) {
-                res.status(400).json({message: result.message});
-            } else {
-                res.status(200).json(result);
-            }
-        });
-        expressApp.get('/law/:id', async (req, res) => {
-            const lawId = req.params.id;
-            const result = await GetLawById(+lawId);
-            if (result instanceof Error) {
-                res.status(400).json({message: result.message});
-            } else {
-                res.status(200).json(result);
-            }
-        });
-        expressApp.put('/law/:id', async (req, res) => {
-            const lawId = req.params.id;
-            const updates = req.body;
-            const result = await UpdateLaw(+lawId, updates);
-            if (result instanceof Error) {
-                res.status(400).json({message: result.message});
-            } else {
-                res.status(200).json(result);
-            }
-        });
-        expressApp.delete('/law/:id', async (req, res) => {
-            const lawId = req.params.id;
-            const result = await DeleteLaw(+lawId);
-            if (result instanceof Error) {
-                res.status(400).json({message: result.message});
-            } else {
-                res.status(204).send();
-            }
-        });
+expressApp.post('/law', async (req, res) => {
+    const { la_law, la_typ, la_description, la_text, la_valid_from, la_valid_until } = req.body;
+    const errors = {
+        la_law: (!la_law || typeof la_law !== 'string') ? "Invalid la_law" : undefined,
+        la_typ: (!la_typ || ['r', 'amc', 'gm', 's'].indexOf(la_typ) === -1) ? "Invalid la_typ" : undefined,
+        la_description: (!la_description || typeof la_description !== 'string') ? "Invalid la_description" : undefined,
+        la_valid_from: (!la_valid_from) ? "Invalid la_valid_from" : undefined,
+        la_valid_until: (!la_valid_until) ? "Invalid la_valid_until" : undefined,
+    };
+    if (Object.values(errors).some(Boolean)) {
+        res.status(400).json(errors);
+        return;
+    }
+    const result = await CreateLaw({ la_law, la_typ, la_description, la_text, la_valid_from, la_valid_until });
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    } else {
+        res.status(201).json(result);
+    }
+});
+expressApp.get('/law', async (req, res) => {
+    const result = await GetAllLaws();
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    } else {
+        res.status(200).json(result);
+    }
+});
+expressApp.get('/law/:id', async (req, res) => {
+    const lawId = req.params.id;
+    const result = await GetLawById(+lawId);
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    } else {
+        res.status(200).json(result);
+    }
+});
+expressApp.put('/law/:id', async (req, res) => {
+    const lawId = req.params.id;
+    const updates = req.body;
+    const result = await UpdateLaw(+lawId, updates);
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    } else {
+        res.status(200).json(result);
+    }
+});
+expressApp.delete('/law/:id', async (req, res) => {
+    const lawId = req.params.id;
+    const result = await DeleteLaw(+lawId);
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    } else {
+        res.status(204).send();
+    }
+});
 // Routes for audit
-        expressApp.post('/audit', async (req, res) => {
-            const {
-                au_audit_date,
-                au_number_of_days,
-                au_leadauditor_idx,
-                au_leadauditee_idx,
-                au_auditstatus,
-                au_place,
-                au_theme,
-                au_typ
-            } = req.body;
-            const errors = {
-                au_audit_date: !au_audit_date ? "Invalid au_audit_date" : undefined,
-                au_number_of_days: (!au_number_of_days && au_number_of_days !== 0) ? "Invalid au_number_of_days" : undefined,
-                au_leadauditor_idx: !au_leadauditor_idx ? "Invalid au_leadauditor_idx" : undefined,
-                au_leadauditee_idx: !au_leadauditee_idx ? "Invalid au_leadauditee_idx" : undefined,
-                au_auditstatus: !['geplant', 'bereit', 'begonnen', 'findings_offen', 'fertig'].includes(au_auditstatus) ? "Invalid au_auditstatus" : undefined,
-                au_place: !au_place ? "Invalid au_place" : undefined,
-                au_theme: !au_theme ? "Invalid au_theme" : undefined,
-                au_typ: !['audit', 'inspektion', 'ca', 'extern', 'sonstig'].includes(au_typ) ? "Invalid au_typ" : undefined,
-            };
-            if (Object.values(errors).some(Boolean)) {
-                res.status(400).json(errors);
-                return;
-            }
-            const result = await CreateAudit({
-                au_audit_date,
-                au_number_of_days,
-                au_leadauditor_idx,
-                au_leadauditee_idx,
-                au_auditstatus,
-                au_place,
-                au_theme,
-                au_typ,
-            });
-            if (result instanceof Error) {
-                res.status(400).json({message: result.message});
-            } else {
-                res.status(201).json(result);
-            }
-        });
-        expressApp.get('/audit', async (req, res) => {
-            const result = await GetAllAudits();
-            if (result instanceof Error) {
-                res.status(400).json({message: result.message});
-            } else {
-                res.status(200).json(result);
-            }
-        });
-        expressApp.get('/audit/:id', async (req, res) => {
-            const auditId = req.params.id;
-            const result = await GetAuditById(+auditId);
-            if (result instanceof Error) {
-                res.status(400).json({message: result.message});
-            } else {
-                res.status(200).json(result);
-            }
-        });
-        expressApp.put('/audit/:id', async (req, res) => {
-            const auditId = req.params.id;
-            const updates = req.body;
-            const result = await UpdateAudit(+auditId, updates);
-            if (result instanceof Error) {
-                res.status(400).json({message: result.message});
-            } else {
-                res.status(200).json(result);
-            }
-        });
-        
-        expressApp.delete('/audit/:id', async (req, res) => {
-            const auditId = req.params.id;
-            const result = await DeleteAudit(+auditId);
-            if (result instanceof Error) {
-                res.status(400).json({message: result.message});
-            } else {
-                res.status(204).send();
-            }
-        });
+expressApp.post('/audit', async (req, res) => {
+    const {
+        au_audit_date,
+        au_number_of_days,
+        au_leadauditor_idx,
+        au_leadauditee_idx,
+        au_auditstatus,
+        au_place,
+        au_theme,
+        au_typ
+    } = req.body;
+    const errors = {
+        au_audit_date: !au_audit_date ? "Invalid au_audit_date" : undefined,
+        au_number_of_days: (!au_number_of_days && au_number_of_days !== 0) ? "Invalid au_number_of_days" : undefined,
+        au_leadauditor_idx: !au_leadauditor_idx ? "Invalid au_leadauditor_idx" : undefined,
+        au_leadauditee_idx: !au_leadauditee_idx ? "Invalid au_leadauditee_idx" : undefined,
+        au_auditstatus: !['geplant', 'bereit', 'begonnen', 'findings_offen', 'fertig'].includes(au_auditstatus) ? "Invalid au_auditstatus" : undefined,
+        au_place: !au_place ? "Invalid au_place" : undefined,
+        au_theme: !au_theme ? "Invalid au_theme" : undefined,
+        au_typ: !['audit', 'inspektion', 'ca', 'extern', 'sonstig'].includes(au_typ) ? "Invalid au_typ" : undefined,
+    };
+    if (Object.values(errors).some(Boolean)) {
+        res.status(400).json(errors);
+        return;
+    }
+    const result = await CreateAudit({
+        au_audit_date,
+        au_number_of_days,
+        au_leadauditor_idx,
+        au_leadauditee_idx,
+        au_auditstatus,
+        au_place,
+        au_theme,
+        au_typ,
+    });
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    } else {
+        res.status(201).json(result);
+    }
+});
+expressApp.get('/audit', async (req, res) => {
+    const result = await GetAllAudits();
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    } else {
+        res.status(200).json(result);
+    }
+});
+expressApp.get('/audit/:id', async (req, res) => {
+    const auditId = req.params.id;
+    const result = await GetAuditById(+auditId);
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    } else {
+        res.status(200).json(result);
+    }
+});
+expressApp.put('/audit/:id', async (req, res) => {
+    const auditId = req.params.id;
+    const updates = req.body;
+    const result = await UpdateAudit(+auditId, updates);
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    } else {
+        res.status(200).json(result);
+    }
+});
 
-        // Routes for questions
-        expressApp.post('/questions', async (req, res) => {
-            const { qu_audit_idx, qu_law_idx, qu_audited, qu_applicable, qu_finding_level } = req.body;
-            const errors = {
-              qu_audit_idx: !qu_audit_idx ? "Invalid qu_audit_idx" : undefined,
-              qu_law_idx: !qu_law_idx ? "Invalid qu_law_idx" : undefined,
-              qu_audited: typeof qu_audited !== 'boolean' ? "Invalid qu_audited" : undefined,
-              qu_applicable: typeof qu_applicable !== 'boolean' ? "Invalid qu_applicable" : undefined,
-              qu_finding_level: qu_finding_level !== undefined && typeof qu_finding_level !== 'number' ? "Invalid qu_finding_level" : undefined,
-            };
-            if (Object.values(errors).some(Boolean)) {
-              res.status(400).json(errors);
-              return;
-            }
-          
-            const result = await CreateQuestion({
-              qu_audit_idx,
-              qu_law_idx,
-              qu_audited,
-              qu_applicable,
-              qu_finding_level,
-            });
-          
-            if (result instanceof Error) {
-              res.status(400).json({ message: result.message });
-            } else {
-              res.status(201).json(result);
-            }
-          });
+expressApp.delete('/audit/:id', async (req, res) => {
+    const auditId = req.params.id;
+    const result = await DeleteAudit(+auditId);
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    } else {
+        res.status(204).send();
+    }
+});
 
-        expressApp.get('/questions', async (req, res) => {
-            const result = await GetAllQuestions();
-            if (result instanceof Error) {
-                res.status(400).json({message: result.message});
-            } else {
-                res.status(200).json(result);
-            }
-        });
+// Routes for questions
+expressApp.post('/questions', async (req, res) => {
+    const { qu_audit_idx, qu_law_idx, qu_audited, qu_applicable, qu_finding_level } = req.body;
+    const errors = {
+        qu_audit_idx: !qu_audit_idx ? "Invalid qu_audit_idx" : undefined,
+        qu_law_idx: !qu_law_idx ? "Invalid qu_law_idx" : undefined,
+        qu_audited: typeof qu_audited !== 'boolean' ? "Invalid qu_audited" : undefined,
+        qu_applicable: typeof qu_applicable !== 'boolean' ? "Invalid qu_applicable" : undefined,
+        qu_finding_level: qu_finding_level !== undefined && typeof qu_finding_level !== 'number' ? "Invalid qu_finding_level" : undefined,
+    };
+    if (Object.values(errors).some(Boolean)) {
+        res.status(400).json(errors);
+        return;
+    }
 
-        expressApp.get('/questions/:id', async (req, res) => {
-            const questionId = req.params.id;
-            const result = await GetQuestionById(+questionId);
-            if (result instanceof Error) {
-                res.status(400).json({message: result.message});
-            } else {
-                res.status(200).json(result);
-            }
-        });
+    const result = await CreateQuestion({
+        qu_audit_idx,
+        qu_law_idx,
+        qu_audited,
+        qu_applicable,
+        qu_finding_level,
+    });
 
-        expressApp.put('/questions/:id', async (req, res) => {
-            const questionId = req.params.id;
-            const updates = req.body;
-            const result = await UpdateQuestion(+questionId, updates);
-            if (result instanceof Error) {
-                res.status(400).json({message: result.message});
-            } else {
-                res.status(200).json(result);
-            }
-        });
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    } else {
+        res.status(201).json(result);
+    }
+});
 
-        expressApp.delete('/questions/:id', async (req, res) => {
-            const questionId = parseInt(req.params.id, 10);
-            if (isNaN(questionId)) {
-                return res.status(400).json({ message: "Invalid question ID" });
-            }
-        
-            try {
-                const result = await DeleteQuestion(questionId);
-                if (result instanceof Error) {
-                    return res.status(400).json({ message: result.message });
-                }
-                res.status(204).send();
-            } catch (error) {
-                res.status(500).json({ error: 'Internal Server Error' });
-            }
-        });
+expressApp.get('/questions', async (req, res) => {
+    const result = await GetAllQuestions();
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    } else {
+        res.status(200).json(result);
+    }
+});
+
+expressApp.get('/questions/:id', async (req, res) => {
+    const questionId = req.params.id;
+    const result = await GetQuestionById(+questionId);
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    } else {
+        res.status(200).json(result);
+    }
+});
+
+expressApp.put('/questions/:id', async (req, res) => {
+    const questionId = req.params.id;
+    const updates = req.body;
+    const result = await UpdateQuestion(+questionId, updates);
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    } else {
+        res.status(200).json(result);
+    }
+});
+
+expressApp.delete('/questions/:id', async (req, res) => {
+    const questionId = parseInt(req.params.id, 10);
+    if (isNaN(questionId)) {
+        return res.status(400).json({ message: "Invalid question ID" });
+    }
+
+    try {
+        const result = await DeleteQuestion(questionId);
+        if (result instanceof Error) {
+            return res.status(400).json({ message: result.message });
+        }
+        res.status(204).send();
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});

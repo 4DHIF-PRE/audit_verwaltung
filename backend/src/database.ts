@@ -1054,10 +1054,10 @@ export async function UpdateAudit(auditId, updates) {
     const query = `UPDATE au_audit SET ${fields} WHERE au_idx = ?`;
     const pool = await connectionPool.getConnection();
     try {
-      const [result] = await pool.execute(query, values);
-      return result;
+        const [result] = await pool.execute(query, values);
+        return result;
     } catch (error) {
-      return new Error(`Failed to update audit: ${error.message}`);
+        return new Error(`Failed to update audit: ${error.message}`);
     }
 }
 
