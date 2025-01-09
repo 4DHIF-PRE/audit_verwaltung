@@ -54,12 +54,12 @@ export default function QuestionVorschau({ auditId, questions }: Props) {
   }, [questions]);
 
   return (
-    <div className="flex-1 ml-6 bg-gray-200 p-4 rounded-md">
+    <div className="flex-1 ml-6 p-4 rounded-md">
       {auditId === 0 ? (
         <p>Wähle ein Audit aus, um Fragen zu sehen.</p>
       ) : filteredQuestions.length > 0 ? (
-        <table className="table-auto w-full">
-          <thead>
+        <table className="table-fixed w-full">
+          <thead className="text-left">
             <tr>
               <th>ID</th>
               <th>Law ID</th>

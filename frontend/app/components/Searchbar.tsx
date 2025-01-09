@@ -12,10 +12,9 @@ const Searchbar: React.FC<SearchbarProps> = ({ value, onChange }:SearchbarProps)
                 placeholder="ID/Name eines Audits"
                 value={value}
                 onChange={(e) => onChange(e.target.value)} // Richtiges Event-Binding
-                className="flex-1 p-2 border border-gray-300 rounded-md"
-                style={{ backgroundColor: "#fafafa", borderColor: "#ccc", color: "#333" }}
+                className="flex-1 p-2 border border-gray-300 dark:bg-gray-900 rounded-md"
             />
-            <button className="p-2 bg-gray-100 rounded-md" onClick={() => onChange(value)}>
+            <button className="p-2 bg-gray-100 dark:bg-gray-900 rounded-md" onClick={() => onChange(value)}>
           <span role="img" aria-label="search">
             🔍
           </span>

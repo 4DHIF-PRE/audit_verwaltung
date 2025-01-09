@@ -138,14 +138,13 @@ export default function AuditPage() {
               {/* Suchleiste */}
               <Searchbar value={search} onChange={(value) => setSearch(value)} />
 
-              <div className="flex-1 overflow-auto border border-gray-300 rounded-md mb-4">
+              <div className="flex-1 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4">
                 {displayedAudits.map((audit) => (
                   <div
                     key={audit.au_idx}
-                    className={`p-4 border-b border-gray-200 hover:bg-gray-100 cursor-pointer ${
-                      selectedAudit === audit.au_idx ? "bg-gray-300" : ""
+                    className={`p-4 border-b border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer ${
+                      selectedAudit === audit.au_idx ? "bg-gray-300 dark:bg-gray-900" : ""
                     }`}
-                    style={{ backgroundColor: "#fff", color: "#333" }}
                   >
                     <div className="flex justify-between items-center">
                       <div onClick={() => handleAuditClick(audit.au_idx)}>
@@ -156,7 +155,6 @@ export default function AuditPage() {
                           e.stopPropagation();
                           handleDeleteAudit(audit.au_idx);
                         }}
-                        className="text-red-500 hover:text-red-700"
                       >
                         ❌
                       </button>
@@ -172,7 +170,7 @@ export default function AuditPage() {
                     onClick={handlePreviousPage}
                     disabled={currentPage === 1}
                     className={`px-4 py-2 rounded-md ${
-                      currentPage === 1 ? "bg-gray-300" : "bg-gray-200"
+                      currentPage === 1 ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
                     }`}
                   >
                     Zurück
@@ -181,7 +179,7 @@ export default function AuditPage() {
                     onClick={handleNextPage}
                     disabled={currentPage >= totalPages}
                     className={`px-4 py-2 rounded-md ${
-                      currentPage >= totalPages ? "bg-gray-300" : "bg-gray-200"
+                      currentPage >= totalPages ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
                     }`}
                   >
                     Weiter
@@ -193,7 +191,7 @@ export default function AuditPage() {
 
           {/* Right Section */}
           <div className="w-full h-full flex flex-col items-center justify-center p-6">
-            <div className="w-3/4 max-w-screen-lg h-3/4 bg-gray-200 p-6 rounded-md flex flex-col items-center justify-start">
+            <div className="w-3/4 max-w-screen-lg h-3/4 bg-gray-200 dark:bg-gray-900 p-6 rounded-md flex flex-col items-center justify-start">
               <AuditVorschau audit={selectedAudit} allAudits={audits} />
               <QuestionVorschau auditId={selectedAudit} questions={questions} />
 
