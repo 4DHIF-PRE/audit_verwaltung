@@ -4,12 +4,12 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Link } from "@remix-run/react";
 import * as React from "react";
-import { LoaderFunctionArgs, redirect } from "@remix-run/node";
+import {LoaderFunctionArgs, redirect} from "@remix-run/node";
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({params}: LoaderFunctionArgs) {
     const temp = params.registerToken;
 
-    if (temp === "1") {
+    if(temp==="1") {
         return null;
     }
     return redirect("/");

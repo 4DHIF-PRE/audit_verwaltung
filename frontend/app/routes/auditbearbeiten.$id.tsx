@@ -3,11 +3,11 @@ import { useState, useEffect } from "react";
 import { Navbar } from "../components/Navbar";
 
 export default function AuditBearbeiten() {
-  const { id } = useParams();
+  const { id } = useParams(); // Die Audit-ID aus der URL
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    au_idx: id,
+    au_idx: id, // Audit-ID
     au_audit_date: "",
     au_number_of_days: 0,
     au_leadauditor_idx: "",
@@ -51,41 +51,32 @@ export default function AuditBearbeiten() {
     try {
       const updatedFormData = {
         ...formData,
-        au_audit_date: formData.au_audit_date.split("T")[0],
+        au_audit_date: formData.au_audit_date.split("T")[0], 
       };
-
+  
       const response = await fetch(`http://localhost:3000/audit/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedFormData),
       });
-
+  
       if (!response.ok) throw new Error("Failed to save audit");
-
-      // Fehlernachricht zurücksetzen
-      setError(null);
-
-      // Weiterleitung zur Audit-Seite
+  
+      alert("Audit erfolgreich gespeichert!");
       navigate("/auditpage");
     } catch (error: any) {
       setError(error.message);
     }
   };
+  
 
   return (
-    <div className="flex flex-col w-full h-screen p-4 bg-white space-y-6 dark:bg-gray-900">
+    <div className="flex flex-col w-full h-screen p-4 bg-white space-y-6 dark:bg-gray-900 dark:text-white">
       <Navbar />
       <h1 className="text-2xl font-bold text-center">Audit bearbeiten - ID {id}</h1>
       <h1>
         <strong>{formData.au_theme}</strong>
       </h1>
-
-      {/* Fehlernachricht */}
-      {error && (
-        <div className="bg-red-500 text-white p-2 rounded mb-4">
-          {error}
-        </div>
-      )}
 
       {/* Formularfelder */}
       <div className="space-y-4">
@@ -97,7 +88,7 @@ export default function AuditBearbeiten() {
               type="date"
               value={formData.au_audit_date ? formData.au_audit_date.split("T")[0] : ""}
               onChange={(e) => handleInputChange("au_audit_date", e.target.value)}
-              className="w-full border p-2 rounded text-black"
+              className="w-full border p-2 rounded"
             />
           </div>
           <div className="flex-1">
@@ -106,7 +97,7 @@ export default function AuditBearbeiten() {
               type="number"
               value={formData.au_number_of_days}
               onChange={(e) => handleInputChange("au_number_of_days", e.target.value)}
-              className="w-full border p-2 rounded text-black"
+              className="w-full border p-2 rounded"
             />
           </div>
         </div>
@@ -119,7 +110,7 @@ export default function AuditBearbeiten() {
               type="text"
               value={formData.au_leadauditor_idx}
               onChange={(e) => handleInputChange("au_leadauditor_idx", e.target.value)}
-              className="w-full border p-2 rounded text-black"
+              className="w-full border p-2 rounded"
             />
           </div>
           <div className="flex-1">
@@ -128,7 +119,7 @@ export default function AuditBearbeiten() {
               type="text"
               value={formData.au_leadauditee_idx}
               onChange={(e) => handleInputChange("au_leadauditee_idx", e.target.value)}
-              className="w-full border p-2 rounded text-black"
+              className="w-full border p-2 rounded"
             />
           </div>
         </div>
@@ -141,7 +132,7 @@ export default function AuditBearbeiten() {
               type="text"
               value={formData.au_place}
               onChange={(e) => handleInputChange("au_place", e.target.value)}
-              className="w-full border p-2 rounded text-black"
+              className="w-full border p-2 rounded"
             />
           </div>
           <div className="flex-1">
@@ -150,7 +141,7 @@ export default function AuditBearbeiten() {
               type="text"
               value={formData.au_theme}
               onChange={(e) => handleInputChange("au_theme", e.target.value)}
-              className="w-full border p-2 rounded text-black"
+              className="w-full border p-2 rounded"
             />
           </div>
           <div className="flex-1">
@@ -159,7 +150,7 @@ export default function AuditBearbeiten() {
               type="text"
               value={formData.au_type}
               onChange={(e) => handleInputChange("au_type", e.target.value)}
-              className="w-full border p-2 rounded text-black"
+              className="w-full border p-2 rounded"
             />
           </div>
           <div className="flex-1">
@@ -168,7 +159,7 @@ export default function AuditBearbeiten() {
               type="text"
               value={formData.au_auditstatus}
               onChange={(e) => handleInputChange("au_auditstatus", e.target.value)}
-              className="w-full border p-2 rounded text-black"
+              className="w-full border p-2 rounded"
             />
           </div>
         </div>

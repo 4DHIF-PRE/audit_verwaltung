@@ -9,14 +9,14 @@ import {
 } from "~/components/ui/card"
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
-import { Form, Link } from "@remix-run/react";
-import { ActionFunctionArgs, createCookie, redirect } from "@remix-run/node";
+import {Form, Link} from "@remix-run/react";
+import {ActionFunctionArgs, createCookie, redirect} from "@remix-run/node";
 import { createCookieSessionStorage } from "@remix-run/node";
 
 const sessionSecret = process.env.SESSION_SECRET;
 
 if (!sessionSecret) {
-    throw new Error("SESSION_SECRET is not defined in the environment variables." + sessionSecret);
+    throw new Error("SESSION_SECRET is not defined in the environment variables."+ sessionSecret);
 }
 
 export const { getSession, commitSession, destroySession } = createCookieSessionStorage({
@@ -26,13 +26,13 @@ export const { getSession, commitSession, destroySession } = createCookieSession
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 7,
-        secrets: [sessionSecret]
+        secrets:  [sessionSecret]
     },
 });
 
 export async function action({
-    request,
-}: ActionFunctionArgs) {
+                                 request,
+                             }: ActionFunctionArgs) {
     const body = await request.formData();
     const email = body.get("email");
     const password = body.get("password");
@@ -74,7 +74,7 @@ export default function Login() {
                                 <Label htmlFor="email">Email</Label>
                                 <Input name="email" autoComplete="email" id="email" placeholder="Enter your email address" />
                                 <Label htmlFor="password">Password</Label>
-                                <Input name="password" autoComplete="current-password" id="password" placeholder="Enter your password" type="password" />
+                                <Input name="password" autoComplete="current-password" id="password" placeholder="Enter your password" type="password"/>
                                 <div className="flex flex-col">
                                     <Button className="mr-2" variant="link">Forgot password?</Button>
                                     <Button type="submit">Login</Button>

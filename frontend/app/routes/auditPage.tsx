@@ -142,8 +142,9 @@ export default function AuditPage() {
                 {displayedAudits.map((audit) => (
                   <div
                     key={audit.au_idx}
-                    className={`p-4 border-b border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer ${selectedAudit === audit.au_idx ? "bg-gray-300 dark:bg-gray-900" : ""
-                      }`}
+                    className={`p-4 border-b border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer ${
+                      selectedAudit === audit.au_idx ? "bg-gray-300 dark:bg-gray-900" : ""
+                    }`}
                   >
                     <div className="flex justify-between items-center">
                       <div onClick={() => handleAuditClick(audit.au_idx)}>
@@ -168,16 +169,18 @@ export default function AuditPage() {
                   <button
                     onClick={handlePreviousPage}
                     disabled={currentPage === 1}
-                    className={`px-4 py-2 rounded-md ${currentPage === 1 ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
-                      }`}
+                    className={`px-4 py-2 rounded-md ${
+                      currentPage === 1 ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
+                    }`}
                   >
                     Zurück
                   </button>
                   <button
                     onClick={handleNextPage}
                     disabled={currentPage >= totalPages}
-                    className={`px-4 py-2 rounded-md ${currentPage >= totalPages ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
-                      }`}
+                    className={`px-4 py-2 rounded-md ${
+                      currentPage >= totalPages ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
+                    }`}
                   >
                     Weiter
                   </button>
@@ -200,8 +203,9 @@ export default function AuditPage() {
                     (window.location.href = `/questionPage/${selectedAudit}`)
                   }
                   disabled={selectedAudit === 0}
-                  className={`px-4 py-2 rounded-md text-white ${selectedAudit === 0 ? "bg-gray-300" : "bg-purple-500"
-                    }`}
+                  className={`px-4 py-2 rounded-md text-white ${
+                    selectedAudit === 0 ? "bg-gray-300" : "bg-purple-500"
+                  }`}
                 >
                   Neue Question
                 </button>
@@ -211,16 +215,15 @@ export default function AuditPage() {
                     (window.location.href = `/auditbearbeiten/${selectedAudit}`)
                   }
                   disabled={selectedAudit === 0}
-                  className={`px-4 py-2 rounded-md text-white ${selectedAudit === 0 ? "bg-gray-300" : "bg-blue-500"
-                    }`}
+                  className={`px-4 py-2 rounded-md text-white ${
+                    selectedAudit === 0 ? "bg-gray-300" : "bg-blue-500"
+                  }`}
                 >
                   Bearbeiten
                 </button>
                 <button
-                  onClick={() => selectedAudit && (window.location.href = `/doaudit`)}
-                  disabled={selectedAudit === 0}
-                  className={`px-4 py-2 rounded-md text-white ${selectedAudit === 0 ? "bg-gray-300" : "bg-green-500"
-                    }`}
+                  onClick={() => (window.location.href = `/doaudit`)}
+                  className="px-4 py-2 text-white bg-green-500 rounded-md"
                 >
                   Durchführen
                 </button>

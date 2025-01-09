@@ -13,28 +13,28 @@ export default function QuestionVorschau({ auditId, questions }: Props) {
 
   const deleteQuestion = async (questionId: number) => {
     const controller = new AbortController();
-
+  
     try {
       const response = await fetch(`http://localhost:3000/questions/${questionId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         signal: controller.signal,
       });
-
+  
       if (!response.ok) {
         const contentType = response.headers.get("content-type");
         let errorMessage = "An error occurred while deleting the question.";
-
+  
         if (contentType && contentType.includes("application/json")) {
           const data = await response.json();
           errorMessage = data.message || errorMessage;
         } else {
           errorMessage = await response.text();
         }
-
+  
         throw new Error(errorMessage);
       }
-
+  
       setUpdatedQuestions((prevQuestions) =>
         prevQuestions.filter((q) => q.qu_idx !== questionId)
       );
