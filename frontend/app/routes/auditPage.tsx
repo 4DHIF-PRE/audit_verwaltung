@@ -159,12 +159,15 @@ export default function AuditPage() {
                 {displayedAudits.map((audit) => (
                   <div
                     key={audit.au_idx}
-                    className={`flex border-b mt-4 border-gray-200 mx-3 justify-between items-center p-4 rounded-md ${audit.au_auditstatus === "geplant" ? "bg-blue-100 dark:bg-blue-600 hover:bg-blue-300 dark:hover:bg-blue-700" :
+                    className={`flex border-b mt-4 border-gray-200 mx-3 justify-between items-center p-4 rounded-md 
+                      ${audit.au_auditstatus === "geplant" ? "bg-blue-100 dark:bg-blue-600 hover:bg-blue-300 dark:hover:bg-blue-700" :
                         audit.au_auditstatus === "bereit" ? "bg-green-100 hover:bg-green-300 dark:bg-green-600 dark:hover:bg-green-700" :
-                          audit.au_auditstatus === "begonnen" ? "bg-yellow-100 dark:bg-yellow-600 hover:bg-yellow-200 dark:hover:bg-yellow-700" :
-                            audit.au_auditstatus === "findings_offen" ? "bg-red-200 dark:bg-red-600 hover:bg-red-300 dark:hover:bg-red-700" :
-                              audit.au_auditstatus === "fertig" ? "bg-gray-100 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-700" : ""
-                      } mb-4`}>
+                        audit.au_auditstatus === "begonnen" ? "bg-yellow-100 dark:bg-yellow-600 hover:bg-yellow-200 dark:hover:bg-yellow-700" :
+                        audit.au_auditstatus === "findings_offen" ? "bg-red-200 dark:bg-red-600 hover:bg-red-300 dark:hover:bg-red-700" :
+                        audit.au_auditstatus === "fertig" ? "bg-gray-100 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-700" : ""
+                      } 
+                      ${selectedAudit === audit.au_idx ? "text-gray-400 dark:text-gray-900" : ""}
+                      mb-4 `}>
                     <div onClick={() => handleAuditClick(audit.au_idx)}>
                       Audit {audit.au_idx} - {audit.au_theme}
                     </div>
@@ -218,7 +221,7 @@ export default function AuditPage() {
                     (window.location.href = `/questionPage/${selectedAudit}`)
                   }
                   disabled={selectedAudit === 0}
-                  className={`px-4 py-2 rounded-md text-white ${selectedAudit === 0 ? "bg-gray-300" : "bg-purple-500"
+                  className={`px-4 py-2 rounded-md text-white ${selectedAudit === 0 ? "bg-gray-300 dark:bg-gray-800" : "bg-purple-500"
                     }`}
                 >
                   Neue Question
@@ -229,7 +232,7 @@ export default function AuditPage() {
                     (window.location.href = `/auditbearbeiten/${selectedAudit}`)
                   }
                   disabled={selectedAudit === 0}
-                  className={`px-4 py-2 rounded-md text-white ${selectedAudit === 0 ? "bg-gray-300" : "bg-blue-500"
+                  className={`px-4 py-2 rounded-md text-white ${selectedAudit === 0 ? "bg-gray-300 dark:bg-gray-800" : "bg-blue-500"
                     }`}
                 >
                   Bearbeiten
@@ -237,7 +240,7 @@ export default function AuditPage() {
                 <button
                   onClick={() => (window.location.href = `/doaudit`)}
                   disabled={selectedAudit === 0}
-                  className={`px-4 py-2 rounded-md text-white ${selectedAudit === 0 ? "bg-gray-300" : "bg-green-500"
+                  className={`px-4 py-2 rounded-md text-white ${selectedAudit === 0 ? "bg-gray-300 dark:bg-gray-800" : "bg-green-500"
                     }`}
                 >
                   Durchführen

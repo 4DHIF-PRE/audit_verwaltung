@@ -55,7 +55,7 @@ export default function AuditVorschau({ audit, allAudits }: Props) {
           </p>
         </div>
       ) : (
-        <span className="text-xl" style={{ color: "#666" }}>
+        <span className="text-xl text-gray-500 dark:text-white">
           Select Audit
         </span>
       )}
