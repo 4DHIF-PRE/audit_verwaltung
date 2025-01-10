@@ -5,6 +5,7 @@ import Searchbar from "../components/Searchbar";
 import { AuditDetails } from "../types/AuditDetails";
 import QuestionVorschau from "../components/ui/QuestionVorschau";
 import { QuestionInt } from "../types/QuestionInt";
+import { getAudit } from "./gruppe5";
 
 export default function AuditPage() {
   const [audits, setAudits] = useState<AuditDetails[]>([]);
@@ -121,6 +122,45 @@ export default function AuditPage() {
     currentPage * auditsPerPage
   );
 
+  const changeStatus = async (auditId: number) => {
+    const audit = audits.find(a => a.au_idx === auditId);
+  
+    if (!audit) {
+      console.error("Audit not found");
+      return;
+    }
+  
+    if (audit.au_auditstatus === "bereit") {
+      try {
+        const response = await fetch(`http://localhost:3000/audit/${auditId}/status`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ au_auditstatus: "begonnen" })
+        });
+  
+        if (!response.ok) {
+          throw new Error("Failed to update audit status");
+        }
+  
+        setAudits(prevAudits =>
+          prevAudits.map(a =>
+            a.au_idx === auditId ? { ...a, au_auditstatus: "begonnen" } : a
+          )
+        );
+  
+        window.location.href = `/doAudit/${auditId}`;
+  
+      } catch (error) {
+        console.error("Error changing audit status:", error);
+        alert("Fehler beim Ändern des Audit-Status.");
+      }
+    } else {
+      console.log("Audit status is not 'bereit', no update needed.");
+    }
+  };
+
   return (
     <div className="flex flex-col w-full h-screen bg-white">
       <Navbar />
@@ -139,15 +179,15 @@ export default function AuditPage() {
                     className={`flex border-b mt-4 border-gray-200 mx-3 justify-between items-center p-4 rounded-md 
                       ${audit.au_auditstatus === "geplant" ? "bg-blue-100 dark:bg-blue-600 hover:bg-blue-300 dark:hover:bg-blue-700" :
                         audit.au_auditstatus === "bereit" ? "bg-green-100 hover:bg-green-300 dark:bg-green-600 dark:hover:bg-green-700" :
-                        audit.au_auditstatus === "begonnen" ? "bg-yellow-100 dark:bg-yellow-600 hover:bg-yellow-200 dark:hover:bg-yellow-700" :
-                        audit.au_auditstatus === "findings_offen" ? "bg-red-200 dark:bg-red-600 hover:bg-red-300 dark:hover:bg-red-700" :
-                        audit.au_auditstatus === "fertig" ? "bg-gray-100 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-700" : ""
+                          audit.au_auditstatus === "begonnen" ? "bg-yellow-100 dark:bg-yellow-600 hover:bg-yellow-200 dark:hover:bg-yellow-700" :
+                            audit.au_auditstatus === "findings_offen" ? "bg-red-200 dark:bg-red-600 hover:bg-red-300 dark:hover:bg-red-700" :
+                              audit.au_auditstatus === "fertig" ? "bg-gray-100 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-700" : ""
                       } 
                       ${selectedAudit === audit.au_idx ? "text-gray-400 dark:text-gray-900" : ""}
                       mb-4 `}
-                      onClick={() => handleAuditClick(audit.au_idx)}>
+                    onClick={() => handleAuditClick(audit.au_idx)}>
                     <div>
-                      
+
                       Audit {audit.au_idx} - {audit.au_theme}
                     </div>
                     <button
@@ -217,7 +257,11 @@ export default function AuditPage() {
                   Bearbeiten
                 </button>
                 <button
-                  onClick={() => (window.location.href = `/doaudit`)}
+                  onClick={() => {
+                    if (selectedAudit) {
+                      changeStatus(selectedAudit);
+                    }
+                  }}
                   disabled={selectedAudit === 0}
                   className={`px-4 py-2 rounded-md text-white ${selectedAudit === 0 ? "bg-gray-300 dark:bg-gray-800" : "bg-green-500"
                     }`}

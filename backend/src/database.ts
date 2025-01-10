@@ -1094,6 +1094,24 @@ export async function DeleteAudit(auditId) {
     }
 }
 
+export async function UpdateAuditStatus(auditId, newStatus) {
+    const query = `UPDATE au_audit SET au_auditstatus = ? WHERE au_idx = ?`;
+    const pool = await connectionPool.getConnection();
+    try {
+        const [result] = await pool.execute(query, [newStatus, auditId]);
+        //@ts-ignore
+        if (result.affectedRows === 0) {
+            return new Error("Audit not found");
+        }
+        return result;
+    } catch (error) {
+        return new Error(`Failed to update audit status: ${error.message}`);
+    } finally {
+        pool.release();
+    }
+}
+
+
 // Question functions
 export async function CreateQuestion(questionData) {
     const query = `
@@ -1177,3 +1195,17 @@ export async function DeleteQuestion(questionId) {
         pool.release();
     }
 }
+
+export async function GetQuestionByAuditAndLaw(auditId, lawId) {
+    const query = `
+      SELECT * FROM qu_questions 
+      WHERE qu_audit_idx = ? AND qu_law_idx = ?
+    `;
+    const pool = await connectionPool.getConnection();
+    try {
+      const [rows] = await pool.execute(query, [auditId, lawId]);
+      return rows[0] || null;
+    } catch (error) {
+      return new Error(`Failed to check question existence: ${error.message}`);
+    }
+  }  
