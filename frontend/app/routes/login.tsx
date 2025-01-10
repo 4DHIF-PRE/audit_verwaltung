@@ -19,16 +19,6 @@ if (!sessionSecret) {
     throw new Error("SESSION_SECRET is not defined in the environment variables."+ sessionSecret);
 }
 
-export const { getSession, commitSession, destroySession } = createCookieSessionStorage({
-    cookie: {
-        name: "gruppe2session",
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7,
-        secrets:  [sessionSecret]
-    },
-});
 
 export async function action({
                                  request,
@@ -36,7 +26,6 @@ export async function action({
     const body = await request.formData();
     const email = body.get("email");
     const password = body.get("password");
-
     const response = await fetch('http://localhost:3000/login', {
         method: 'POST',
         headers: {
