@@ -755,7 +755,7 @@ export async function createFinding(findingData: {
 }
 
 export async function updateFinding(updateData: {
-    findingId: number
+    f_id: number
     f_level: Number,
     f_auditor_comment: string,
     f_finding_comment: string,
@@ -765,26 +765,25 @@ export async function updateFinding(updateData: {
 }): Promise<void | Error> {
     const connection = await connectionPool.getConnection();
     try {
+        // Date conversion of f_creation_date, as SQL query fails at date parsing otherwise
+        const creationDate = new Date(updateData.f_creation_date).toISOString().split('.')[0].replace('T', ' ');
+
+       // console.log("Update Data: ", updateData);
         const results = await connection.execute(
             `UPDATE f_findings
-             SET f_level = ?, f_auditor_comment = ?, f_finding_comment = ?, f_creation_date = ?, f_timeInDays = ?, f_status = ?
-             WHERE tb_idx = ?`,
-            [
-                updateData.f_level,
-                updateData.f_auditor_comment,
-                updateData.f_finding_comment,
-                updateData.f_creation_date,
-                updateData.f_timeInDays,
-                updateData.f_status,
-                updateData.findingId
-            ]
+             SET f_level = ${updateData.f_level}, f_comment = '${updateData.f_auditor_comment}', f_finding_comment = '${updateData.f_finding_comment}', f_creation_date = '${creationDate}', f_timeInDays = ${updateData.f_timeInDays}, f_status = '${updateData.f_status}'
+             WHERE f_id = ${updateData.f_id}`
         );
         connection.release();
     } catch (error) {
         connection.release();
+        console.log(error);
         return new Error('Error updating finding');
+        
     }
 }
+
+
 
 export async function deleteFinding(findingId: number): Promise<void | Error> {
     const connection = await connectionPool.getConnection();
@@ -801,25 +800,46 @@ export async function deleteFinding(findingId: number): Promise<void | Error> {
     }
 }
 
-export async function getFindingsByID(auditId: any): Promise<any | Error> {
+export async function getFindingsByID(auditId: number): Promise<any | Error> {
     const connection = await connectionPool.getConnection();
     try {
-
-
-        const [result]: any = await connection.execute(
+        const [result] = await connection.execute(
             `SELECT *
-            FROM f_findings
-            WHERE tb_idx = ?`
-            [auditId]
+             FROM f_findings
+             WHERE f_id = ?`,
+            [auditId] // Correctly pass auditId as an array
         );
 
-        connection.release();
         return result;
     } catch (error) {
-        connection.release();
-        return new Error("Error deleting audit");
+        console.error('Error executing query:', error);
+        return new Error('Error fetching findings');
+    } finally {
+        connection.release(); // Ensure connection is released
     }
 }
+
+//get findings by id
+export async function getFindingByQuestionID(questionId: number): Promise<any | Error> {
+    const connection = await connectionPool.getConnection();
+    try {
+        const [results] = await connection.execute(
+            `SELECT *
+             FROM f_findings
+             WHERE f_qu_question_idx = ?
+             LIMIT 1`, // Ensure it only fetches one result
+            [questionId] // Bind the questionId
+        );
+
+        return results[0] || null; // Return the first (and only) result, or null if no result
+    } catch (error) {
+        console.error('Error fetching finding:', error);
+        return new Error('Error fetching finding');
+    } finally {
+        connection.release(); // Ensure the connection is released
+    }
+}
+
 
 export async function uploadAttachment(findingId: any, file: Buffer, fileName: string): Promise<any | Error> {
     const connection = await connectionPool.getConnection();
