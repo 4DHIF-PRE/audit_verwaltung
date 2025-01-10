@@ -14,6 +14,7 @@ export default function Question({ question }: { question: QuestionInt }) {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [auditorComment, setAuditorComment] = useState("");
   const [findingComment, setFindingComment] = useState("");
+ 
   const [law, setLaw] = useState({ law: "", type: "", text: "" });
   const [loading, setLoading] = useState(true);
   const [files, setFiles] = useState<string[]>([]); // Store filenames as strings
@@ -87,7 +88,7 @@ export default function Question({ question }: { question: QuestionInt }) {
   }, [question]);
 
   const handleSave = async () => {
-    console.log("preparing to save finding:")
+   // console.log("preparing to save finding:")
     try{
 
     
@@ -102,15 +103,22 @@ export default function Question({ question }: { question: QuestionInt }) {
       f_finding_comment: findingComment,
       f_creation_date: finding.f_creation_date,
       f_timeInDays: finding.f_timeInDays,
-      f_status: finding.f_status//,
-      // files,
+      f_status: finding.f_status
+      
     };
      
+    console.log(files);
    /* console.log(finding);
    console.log("finding id: ", finding.f_id);
     console.log("Saving Finding:", updatedFinding);
   console.log(JSON.stringify(updatedFinding)); */
-     await fetch(`http://localhost:3000/audit/finding`, { method: 'PUT', headers:{'Content-Type' : 'application/json'}, body: JSON.stringify(updatedFinding) })
+    const result = await fetch(`http://localhost:3000/audit/finding`, { method: 'PUT', headers:{'Content-Type' : 'application/json'}, body: JSON.stringify(updatedFinding) })
+    if(result.ok){
+      alert("Finding saved successfully!");
+    }
+    else{
+      alert("Failed to save finding.");
+    }
      // Add saving files
      }
      catch(error){
@@ -124,7 +132,7 @@ export default function Question({ question }: { question: QuestionInt }) {
   const handleDrop = (event: React.DragEvent) => {
     event.preventDefault();
     const droppedFiles = event.dataTransfer.files;
-
+   // console.log(droppedFiles)
     // Extract filenames from the dropped files and update state with strings
     const filenames = Array.from(droppedFiles).map((file) => file.name);
     setFiles((prevFiles) => [...prevFiles, ...filenames]);
@@ -132,6 +140,7 @@ export default function Question({ question }: { question: QuestionInt }) {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { files } = event.target;
+  //  console.log(files);
     if (files) {
       // Extract filenames from the selected files and update state with strings
       const filenames = Array.from(files).map((file) => file.name);
