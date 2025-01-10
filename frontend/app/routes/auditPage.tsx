@@ -132,30 +132,7 @@ export default function AuditPage() {
               {/* Suchleiste */}
               <Searchbar value={search} onChange={(value) => setSearch(value)} />
 
-              {/*<div className="flex-2 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4">
-                {displayedAudits.map((audit) => (
-                  <div
-                    key={audit.au_idx}
-                    className={`p-4 border-b border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer ${selectedAudit === audit.au_idx ? "bg-gray-300 dark:bg-gray-900" : ""
-                      }`}
-                  >
-                    <div className="flex justify-between items-center" onClick={() => handleAuditClick(audit.au_idx)}>
-                      <div>
-                        Audit {audit.au_idx} - {audit.au_theme}
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteAudit(audit.au_idx);
-                        }}
-                      >
-                        ❌
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>*/}
-              <div className="flex-1 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4">
+              <div className="flex-1 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4" >
                 {displayedAudits.map((audit) => (
                   <div
                     key={audit.au_idx}
@@ -167,8 +144,10 @@ export default function AuditPage() {
                         audit.au_auditstatus === "fertig" ? "bg-gray-100 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-700" : ""
                       } 
                       ${selectedAudit === audit.au_idx ? "text-gray-400 dark:text-gray-900" : ""}
-                      mb-4 `}>
-                    <div onClick={() => handleAuditClick(audit.au_idx)}>
+                      mb-4 `}
+                      onClick={() => handleAuditClick(audit.au_idx)}>
+                    <div>
+                      
                       Audit {audit.au_idx} - {audit.au_theme}
                     </div>
                     <button
