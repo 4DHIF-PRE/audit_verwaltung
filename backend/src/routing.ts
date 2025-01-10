@@ -10,7 +10,8 @@ const cookieName = 'gruppe2session';
 export const expressApp = express();
 
 expressApp.use(cors());
-expressApp.use(express.json());
+expressApp.use(express.json())
+expressApp.use(express.urlencoded({ extended: true }));
 expressApp.use(cookieParser());
 
 expressApp.post('/login', async (req, res) => {
@@ -359,6 +360,8 @@ expressApp.post('/audit/finding', async (req, res) => {
 // PUT eines Findings von einem Audit ( Finding aktualisieren )
 expressApp.put('/audit/finding', async (req, res) => {
     const updateData = req.body;
+    //console.log("Update Data before updateFinding:")
+   // console.log(updateData)
     try {
         const result = await updateFinding(updateData);
         if (result instanceof Error) {
@@ -369,6 +372,8 @@ expressApp.put('/audit/finding', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
+
 
 // DELETE eine Finding
 expressApp.delete('/audit/finding/:id', async (req, res) => {
