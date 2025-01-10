@@ -82,7 +82,7 @@ export default function AuditPage() {
   return (
     <div className="flex flex-col w-full h-screen bg-white">
       <Navbar />
-      <div className="flex-1 p-4 bg-white dark:bg-black">
+      <div className="flex-1 p-4 bg-white dark:bg-black mt-9">
         <div className="flex flex-row flex-1 mt-6">
           {/* Left Section */}
           <div className="flex flex-col w-1/3 space-y-4 relative">
