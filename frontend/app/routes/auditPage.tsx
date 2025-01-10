@@ -156,8 +156,11 @@ export default function AuditPage() {
         console.error("Error changing audit status:", error);
         alert("Fehler beim Ändern des Audit-Status.");
       }
-    } else {
+    } else if (audit.au_auditstatus === "begonnen") {
       window.location.href = `/doAudit/${auditId}`;
+    }
+    else {
+      console.log("Audit status is not 'bereit' or 'begonnen', no update needed.");
     }
   };
 
