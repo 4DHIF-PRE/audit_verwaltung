@@ -1,6 +1,6 @@
 import { json, LoaderFunction } from "@remix-run/node";
-import { useLoaderData, useParams } from "@remix-run/react";
-import { useState, useEffect } from "react";
+import { useLoaderData, useNavigate } from "@remix-run/react";
+import { useState } from "react";
 import { Navbar } from "../components/Navbar";
 
 interface Law {
@@ -31,7 +31,6 @@ export const loader: LoaderFunction = async ({ params }) => {
   }
   const questions: Question[] = await questionsResponse.json();
 
-  // Berechne die nächste freie Question ID
   const usedIds = new Set(questions.map((question) => question.qu_idx));
   let nextId = 0;
   while (usedIds.has(nextId)) {
@@ -55,6 +54,7 @@ export default function AuditPage() {
   });
 
   const [selectedType, setSelectedType] = useState<string>("");
+  const navigate = useNavigate();
 
   const filteredLaws = laws.filter((law) => {
     const lawText = law.la_text.toLowerCase();
@@ -66,28 +66,12 @@ export default function AuditPage() {
     return matchesSearch && matchesType;
   });
 
-  const handleFieldChange = (field: string, value: string | boolean) => {
-    setFields((prev) => ({ ...prev, [field]: value }));
-  };
-
   const handleSave = async () => {
     if (!selectedLaw) {
-      alert("Please select a law.");
       return;
     }
 
     try {
-      // Log the data to check
-      console.log({
-        qu_audit_idx: auditId,
-        qu_law_idx: selectedLaw,
-        qu_audited: fields.audited,
-        qu_applicable: fields.applicable,
-        qu_finding_level: 0, // Default value
-        qu_idx: nextQuestionId, // Use the next available QuestionID
-      });
-
-      // Fetch request to backend
       const response = await fetch("http://localhost:3000/questions", {
         method: "POST",
         headers: {
@@ -98,23 +82,19 @@ export default function AuditPage() {
           qu_law_idx: selectedLaw,
           qu_audited: fields.audited,
           qu_applicable: fields.applicable,
-          qu_finding_level: 0, // Default value
-          qu_idx: nextQuestionId, // Use the next available QuestionID
+          qu_finding_level: 0,
+          qu_idx: nextQuestionId,
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("Error saving question:", errorData);
         throw new Error(errorData.message || "Error saving question");
       }
 
-      alert("Question saved successfully!");
+      navigate("/auditpage"); // <-- Hier korrekt aufrufen
     } catch (error) {
-      // @ts-ignore
-      console.error("Save question failed:", error.message);
-      //@ts-ignore
-      alert(error.message);
+      console.error("Save question failed:", error);
     }
   };
 
@@ -171,28 +151,6 @@ export default function AuditPage() {
             />
           </div>
         ))}
-      </div>
-
-      {/* Checkboxes für Audited und Applicable */}
-      <div className="flex justify-center space-x-6">
-        <div className="flex flex-col">
-          <label className="font-bold text-gray-600 mb-1 dark:text-gray-300">Audited</label>
-          <input
-            type="checkbox"
-            checked={fields.audited}
-            onChange={(e) => handleFieldChange("audited", e.target.checked)}
-            className="w-5 h-5"
-          />
-        </div>
-        <div className="flex flex-col">
-          <label className="font-bold text-gray-600 mb-1 dark:text-gray-300">Applicable</label>
-          <input
-            type="checkbox"
-            checked={fields.applicable}
-            onChange={(e) => handleFieldChange("applicable", e.target.checked)}
-            className="w-5 h-5"
-          />
-        </div>
       </div>
 
       {/* Save Button */}

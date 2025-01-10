@@ -80,10 +80,6 @@ export default function AuditPage() {
   }, [selectedAudit]);
 
   const handleDeleteAudit = async (auditId: number) => {
-    if (!window.confirm(`Möchten Sie Audit ${auditId} wirklich löschen?`)) {
-      return;
-    }
-
     try {
       const response = await fetch(`http://localhost:3000/audit/${auditId}`, {
         method: "DELETE",
@@ -92,12 +88,10 @@ export default function AuditPage() {
 
       if (!response.ok) throw new Error("Fehler beim Löschen des Audits");
 
-      // Audit aus der lokalen Liste entfernen
       setAudits((prevAudits) =>
         prevAudits.filter((audit) => audit.au_idx !== auditId)
       );
 
-      alert(`Audit ${auditId} erfolgreich gelöscht`);
     } catch (error) {
       console.error("Error deleting audit:", error);
       alert(`Audit ${auditId} konnte nicht gelöscht werden.`);
@@ -138,16 +132,15 @@ export default function AuditPage() {
               {/* Suchleiste */}
               <Searchbar value={search} onChange={(value) => setSearch(value)} />
 
-              <div className="flex-1 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4">
+              <div className="flex-2 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4">
                 {displayedAudits.map((audit) => (
                   <div
                     key={audit.au_idx}
-                    className={`p-4 border-b border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer ${
-                      selectedAudit === audit.au_idx ? "bg-gray-300 dark:bg-gray-900" : ""
-                    }`}
+                    className={`p-4 border-b border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer ${selectedAudit === audit.au_idx ? "bg-gray-300 dark:bg-gray-900" : ""
+                      }`}
                   >
-                    <div className="flex justify-between items-center">
-                      <div onClick={() => handleAuditClick(audit.au_idx)}>
+                    <div className="flex justify-between items-center" onClick={() => handleAuditClick(audit.au_idx)}>
+                      <div>
                         Audit {audit.au_idx} - {audit.au_theme}
                       </div>
                       <button
@@ -169,18 +162,16 @@ export default function AuditPage() {
                   <button
                     onClick={handlePreviousPage}
                     disabled={currentPage === 1}
-                    className={`px-4 py-2 rounded-md ${
-                      currentPage === 1 ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
-                    }`}
+                    className={`px-4 py-2 rounded-md ${currentPage === 1 ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
+                      }`}
                   >
                     Zurück
                   </button>
                   <button
                     onClick={handleNextPage}
                     disabled={currentPage >= totalPages}
-                    className={`px-4 py-2 rounded-md ${
-                      currentPage >= totalPages ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
-                    }`}
+                    className={`px-4 py-2 rounded-md ${currentPage >= totalPages ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
+                      }`}
                   >
                     Weiter
                   </button>
@@ -203,9 +194,8 @@ export default function AuditPage() {
                     (window.location.href = `/questionPage/${selectedAudit}`)
                   }
                   disabled={selectedAudit === 0}
-                  className={`px-4 py-2 rounded-md text-white ${
-                    selectedAudit === 0 ? "bg-gray-300" : "bg-purple-500"
-                  }`}
+                  className={`px-4 py-2 rounded-md text-white ${selectedAudit === 0 ? "bg-gray-300" : "bg-purple-500"
+                    }`}
                 >
                   Neue Question
                 </button>
@@ -215,15 +205,16 @@ export default function AuditPage() {
                     (window.location.href = `/auditbearbeiten/${selectedAudit}`)
                   }
                   disabled={selectedAudit === 0}
-                  className={`px-4 py-2 rounded-md text-white ${
-                    selectedAudit === 0 ? "bg-gray-300" : "bg-blue-500"
-                  }`}
+                  className={`px-4 py-2 rounded-md text-white ${selectedAudit === 0 ? "bg-gray-300" : "bg-blue-500"
+                    }`}
                 >
                   Bearbeiten
                 </button>
                 <button
                   onClick={() => (window.location.href = `/doaudit`)}
-                  className="px-4 py-2 text-white bg-green-500 rounded-md"
+                  disabled={selectedAudit === 0}
+                  className={`px-4 py-2 rounded-md text-white ${selectedAudit === 0 ? "bg-gray-300" : "bg-green-500"
+                    }`}
                 >
                   Durchführen
                 </button>

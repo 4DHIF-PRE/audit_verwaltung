@@ -1064,13 +1064,33 @@ export async function UpdateAudit(auditId, updates) {
 export async function DeleteAudit(auditId) {
     const pool = await connectionPool.getConnection();
     try {
-        const result = await pool.execute<mysql.ResultSetHeader>('DELETE FROM `au_audit` WHERE `au_idx` = ?', [auditId]);
-        if (result[0].affectedRows === 0) {
+        await pool.beginTransaction();
+
+        await pool.execute(`
+            DELETE f 
+            FROM f_findings f
+            JOIN qu_questions q ON f.f_qu_question_idx = q.qu_idx
+            WHERE q.qu_audit_idx = ?`, 
+            [auditId]
+        );
+
+        await pool.execute('DELETE FROM qu_questions WHERE qu_audit_idx = ?', [auditId]);
+
+        const [result] = await pool.execute('DELETE FROM au_audit WHERE au_idx = ?', [auditId]);
+
+        // @ts-ignore
+        if (result.affectedRows === 0) {
+            await pool.rollback();
             return new Error("Audit not found or already deleted");
         }
+
+        await pool.commit();
     } catch (error) {
+        await pool.rollback();
         console.error("Error deleting audit:", error);
         return new Error("Database error occurred while deleting audit");
+    } finally {
+        pool.release();
     }
 }
 
