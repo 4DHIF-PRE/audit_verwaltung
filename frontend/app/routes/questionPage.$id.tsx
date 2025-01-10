@@ -156,8 +156,7 @@ export default function AuditPage() {
       {/* Save Button */}
       <div className="flex justify-center">
         <button
-          className="px-6 py-2 text-white font-bold rounded-md"
-          style={{ backgroundColor: "#9166cc" }}
+          className="px-6 py-2 text-white bg-purple-500 font-bold rounded-md"
           onClick={handleSave}
           disabled={!selectedLaw}
         >
