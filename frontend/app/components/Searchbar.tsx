@@ -15,14 +15,6 @@ const Searchbar: FC<SearchbarProps> = ({ value, onChange }) => {
                 onChange={(e) => onChange(e.target.value)}
                 className="flex-1 p-2 border border-gray-300 dark:bg-gray-900 rounded-md"
             />
-            <button
-                className="p-2 bg-gray-100 dark:bg-gray-900 rounded-md"
-                onClick={() => onChange(value)}
-            >
-                <span role="img" aria-label="search">
-                    🔍
-                </span>
-            </button>
         </div>
     );
 };
