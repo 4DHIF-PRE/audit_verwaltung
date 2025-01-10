@@ -1072,30 +1072,68 @@ export async function GetAuditById(auditId) {
 }
 
 export async function UpdateAudit(auditId, updates) {
-    const fields = Object.keys(updates).map(key => `${key} = ?`).join(', ');
+    const fields = Object.keys(updates).map((key) => `${key} = ?`).join(", ");
     const values = Object.values(updates).concat(auditId);
     const query = `UPDATE au_audit SET ${fields} WHERE au_idx = ?`;
     const pool = await connectionPool.getConnection();
     try {
-        const [result] = await pool.execute(query, values);
-        return result;
+      const [result] = await pool.execute(query, values);
+      return result;
     } catch (error) {
-        return new Error(`Failed to update audit: ${error.message}`);
+      return new Error(`Failed to update audit: ${error.message}`);
     }
 }
 
 export async function DeleteAudit(auditId) {
     const pool = await connectionPool.getConnection();
     try {
-        const result = await pool.execute<mysql.ResultSetHeader>('DELETE FROM `au_audit` WHERE `au_idx` = ?', [auditId]);
-        if (result[0].affectedRows === 0) {
+        await pool.beginTransaction();
+
+        await pool.execute(`
+            DELETE f 
+            FROM f_findings f
+            JOIN qu_questions q ON f.f_qu_question_idx = q.qu_idx
+            WHERE q.qu_audit_idx = ?`, 
+            [auditId]
+        );
+
+        await pool.execute('DELETE FROM qu_questions WHERE qu_audit_idx = ?', [auditId]);
+
+        const [result] = await pool.execute('DELETE FROM au_audit WHERE au_idx = ?', [auditId]);
+
+        // @ts-ignore
+        if (result.affectedRows === 0) {
+            await pool.rollback();
             return new Error("Audit not found or already deleted");
         }
+
+        await pool.commit();
     } catch (error) {
+        await pool.rollback();
         console.error("Error deleting audit:", error);
         return new Error("Database error occurred while deleting audit");
+    } finally {
+        pool.release();
     }
 }
+
+export async function UpdateAuditStatus(auditId, newStatus) {
+    const query = `UPDATE au_audit SET au_auditstatus = ? WHERE au_idx = ?`;
+    const pool = await connectionPool.getConnection();
+    try {
+        const [result] = await pool.execute(query, [newStatus, auditId]);
+        //@ts-ignore
+        if (result.affectedRows === 0) {
+            return new Error("Audit not found");
+        }
+        return result;
+    } catch (error) {
+        return new Error(`Failed to update audit status: ${error.message}`);
+    } finally {
+        pool.release();
+    }
+}
+
 
 // Question functions
 export async function CreateQuestion(questionData) {
@@ -1157,12 +1195,40 @@ export async function UpdateQuestion(questionId, updates) {
 export async function DeleteQuestion(questionId) {
     const pool = await connectionPool.getConnection();
     try {
+        await pool.beginTransaction();
+
+        // Delete all findings related to the question
+        await pool.execute('DELETE FROM f_findings WHERE f_qu_question_idx = ?', [questionId]);
+
+        // Delete the question
         const [result] = await pool.execute('DELETE FROM qu_questions WHERE qu_idx = ?', [questionId]);
-        if (result[0].affectedRows === 0) {
+
+        // @ts-ignore
+        if (result.affectedRows === 0) {
+            await pool.rollback();
             return new Error("Question not found or already deleted");
         }
+
+        await pool.commit();
     } catch (error) {
-        console.error("Error deleting question:", error);
+        await pool.rollback();
+        console.error("Error deleting question and findings:", error);
         return new Error("Database error occurred while deleting question");
+    } finally {
+        pool.release();
     }
 }
+
+export async function GetQuestionByAuditAndLaw(auditId, lawId) {
+    const query = `
+      SELECT * FROM qu_questions 
+      WHERE qu_audit_idx = ? AND qu_law_idx = ?
+    `;
+    const pool = await connectionPool.getConnection();
+    try {
+      const [rows] = await pool.execute(query, [auditId, lawId]);
+      return rows[0] || null;
+    } catch (error) {
+      return new Error(`Failed to check question existence: ${error.message}`);
+    }
+} 
