@@ -32,6 +32,7 @@ export default function Question({ question }: { question: QuestionInt }) {
         const finding = await findingResponse.json(); // Expecting a single finding object
 
         // Log the findings to inspect the data structure
+        console.log("retrieving finding: ")
         console.log(finding);
 
         if (finding) {
@@ -85,14 +86,39 @@ export default function Question({ question }: { question: QuestionInt }) {
     loadData();
   }, [question]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    console.log("preparing to save finding:")
+    try{
+
+    
+    const findingResponse = await fetch(
+      `http://localhost:3000/api/questions/${question.qu_idx}/finding`
+    );
+    const finding = await findingResponse.json(); // Expecting a single finding object
     const updatedFinding = {
-      status: selectedStatus,
-      auditorComment,
-      findingComment,
-      files,
+      f_id: finding.f_id,
+      f_level: selectedStatus,
+      f_auditor_comment: auditorComment,
+      f_finding_comment: findingComment,
+      f_creation_date: finding.f_creation_date,
+      f_timeInDays: finding.f_timeInDays,
+      f_status: finding.f_status//,
+      // files,
     };
+     
+   /* console.log(finding);
+   console.log("finding id: ", finding.f_id);
     console.log("Saving Finding:", updatedFinding);
+  console.log(JSON.stringify(updatedFinding)); */
+     await fetch(`http://localhost:3000/audit/finding`, { method: 'PUT', headers:{'Content-Type' : 'application/json'}, body: JSON.stringify(updatedFinding) })
+     // Add saving files
+     }
+     catch(error){
+      console.log("Error occured while attempting to save finding: ", error);
+     }
+     finally{
+      console.log("Finished accessing API.")
+     }
   };
 
   const handleDrop = (event: React.DragEvent) => {
