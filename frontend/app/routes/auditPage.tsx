@@ -132,7 +132,7 @@ export default function AuditPage() {
               {/* Suchleiste */}
               <Searchbar value={search} onChange={(value) => setSearch(value)} />
 
-              <div className="flex-2 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4">
+              {/*<div className="flex-2 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4">
                 {displayedAudits.map((audit) => (
                   <div
                     key={audit.au_idx}
@@ -152,6 +152,30 @@ export default function AuditPage() {
                         ❌
                       </button>
                     </div>
+                  </div>
+                ))}
+              </div>*/}
+              <div className="flex-1 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4">
+                {displayedAudits.map((audit) => (
+                  <div
+                    key={audit.au_idx}
+                    className={`flex border-b mt-4 border-gray-200 mx-3 justify-between items-center p-4 rounded-md ${audit.au_auditstatus === "geplant" ? "bg-blue-100 dark:bg-blue-600 hover:bg-blue-300 dark:hover:bg-blue-700" :
+                        audit.au_auditstatus === "bereit" ? "bg-green-100 hover:bg-green-300 dark:bg-green-600 dark:hover:bg-green-700" :
+                          audit.au_auditstatus === "begonnen" ? "bg-yellow-100 dark:bg-yellow-600 hover:bg-yellow-200 dark:hover:bg-yellow-700" :
+                            audit.au_auditstatus === "findings_offen" ? "bg-red-200 dark:bg-red-600 hover:bg-red-300 dark:hover:bg-red-700" :
+                              audit.au_auditstatus === "fertig" ? "bg-gray-100 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-700" : ""
+                      } mb-4`}>
+                    <div onClick={() => handleAuditClick(audit.au_idx)}>
+                      Audit {audit.au_idx} - {audit.au_theme}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteAudit(audit.au_idx);
+                      }}
+                    >
+                      ❌
+                    </button>
                   </div>
                 ))}
               </div>
