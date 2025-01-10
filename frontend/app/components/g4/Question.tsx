@@ -189,7 +189,7 @@ export default function Question({ question }: { question: QuestionInt }) {
           className="flex items-center space-x-2 text-black font-medium rounded-md shadow focus:outline-none pt-2 pb-2 pl-4 pr-4"
         >
           <img
-            src="assets/klappicon.png"
+            src="../assets/klappicon.png"
             alt="Collapse Icon"
             className={`w-5 h-5 dark:invert transition-transform ${
               isCollapsed ? "rotate-0" : "rotate-180"

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Navbar } from "../components/Navbar";
 import AuditFilter from "../components/g4/Filter";
 import Question from "../components/g4/Question";
+import { useParams } from "@remix-run/react";
 
 // Interfaces
 export interface QuestionInt {
@@ -25,6 +26,7 @@ export interface AuditInt {
 }
 
 export default function App() {
+  const { id } = useParams();
   const [audit, setAudit] = useState<AuditInt>();
   const [questions, setQuestions] = useState<QuestionInt[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,12 +38,12 @@ export default function App() {
 
       try {
         // Fetch audit data from the API (replace URL with your API endpoint)
-        const auditResponse = await fetch("http://localhost:3000/audit/15");
+        const auditResponse = await fetch(`http://localhost:3000/audit/${id}`);
         const currentAudit = await auditResponse.json();
         setAudit(currentAudit);
 
         // Fetch corresponding questions for the audit (replace URL with your API endpoint)
-        const questionsResponse = await fetch(`http://localhost:3000/audit/questions/15`);//${currentAudit?.au_idx}
+        const questionsResponse = await fetch(`http://localhost:3000/audit/questions/${id}`);//${currentAudit?.au_idx}
         const auditQuestions = await questionsResponse.json();
         setQuestions(auditQuestions);
       } catch (error) {
