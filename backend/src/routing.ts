@@ -89,6 +89,8 @@ expressApp.get('/users/querySessionowner', async (req, res) => {
     }
 });
 
+//wer das liest is ein sigma (:
+
 expressApp.get('/registration/IsFirstRegistration', async (req, res) => {
     const result = await IsFirstRegistration();
 

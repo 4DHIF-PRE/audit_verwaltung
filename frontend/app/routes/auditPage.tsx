@@ -5,7 +5,6 @@ import Searchbar from "../components/Searchbar";
 import { AuditDetails } from "../types/AuditDetails";
 import QuestionVorschau from "../components/ui/QuestionVorschau";
 import { QuestionInt } from "../types/QuestionInt";
-import { getAudit } from "./gruppe5";
 
 export default function AuditPage() {
   const [audits, setAudits] = useState<AuditDetails[]>([]);
@@ -13,7 +12,7 @@ export default function AuditPage() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedAudit, setSelectedAudit] = useState<number>(0);
-
+  const [canCreateAudit, setCanCreateAudit] = useState(false);
   const auditsPerPage = 5;
   const totalPages = Math.ceil(audits.length / auditsPerPage);
 
@@ -79,6 +78,46 @@ export default function AuditPage() {
     fetchQuestions();
     return () => controller.abort();
   }, [selectedAudit]);
+
+
+  useEffect(() => {
+    const controller = new AbortController();
+  
+    const fetchUserPermission = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/users/querySessionowner", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          credentials: "include", // Send cookies
+        });
+  
+        if (!response.ok) {
+          throw new Error("Failed to fetch user permissions");
+        }
+  
+        const data = await response.json();
+        console.log("Jonny ist dm");
+        setCanCreateAudit(data.u_erstellberechtigt === true); // Setze Berechtigung
+      } catch (error) {
+        console.log("Jonny ist dm2");
+        // @ts-ignore
+        if (error.name !== "AbortError") {
+          console.log("Jonny ist dm4");
+          console.error("Error fetching user permissions:", error);
+        }
+        setCanCreateAudit(false); // Standard: Keine Berechtigung
+      }
+    };
+  //daniel walter ist ein furry sigma!!! ich liebe sein linkes bein 
+    fetchUserPermission();
+  
+    return () => controller.abort();
+  }, []);
+  
+
+
+
 
   const handleDeleteAudit = async (auditId: number) => {
     try {
@@ -235,43 +274,50 @@ export default function AuditPage() {
               <AuditVorschau audit={selectedAudit} allAudits={audits} />
               <QuestionVorschau auditId={selectedAudit} questions={questions} />
 
-              {/* Buttons unter dem grauen Fenster */}
-              <div className="flex justify-center space-x-4 mt-4">
-                <button
-                  onClick={() =>
-                    selectedAudit &&
-                    (window.location.href = `/questionPage/${selectedAudit}`)
-                  }
-                  disabled={selectedAudit === 0}
-                  className={`px-4 py-2 rounded-md text-white ${selectedAudit === 0 ? "bg-gray-300 dark:bg-gray-800" : "bg-purple-500"
-                    }`}
-                >
-                  Neue Question
-                </button>
-                <button
-                  onClick={() =>
-                    selectedAudit &&
-                    (window.location.href = `/auditbearbeiten/${selectedAudit}`)
-                  }
-                  disabled={selectedAudit === 0}
-                  className={`px-4 py-2 rounded-md text-white ${selectedAudit === 0 ? "bg-gray-300 dark:bg-gray-800" : "bg-blue-500"
-                    }`}
-                >
-                  Bearbeiten
-                </button>
-                <button
-                  onClick={() => {
-                    if (selectedAudit) {
-                      changeStatus(selectedAudit);
-                    }
-                  }}
-                  disabled={selectedAudit === 0}
-                  className={`px-4 py-2 rounded-md text-white ${selectedAudit === 0 ? "bg-gray-300 dark:bg-gray-800" : "bg-green-500"
-                    }`}
-                >
-                  Durchführen
-                </button>
-              </div>
+                              {/* Buttons unter dem grauen Fenster */}
+                {selectedAudit !== 0 ? (
+                  <div className="flex justify-center space-x-4 mt-4">
+                    <button
+                      onClick={() =>
+                        selectedAudit &&
+                        (window.location.href = `/questionPage/${selectedAudit}`)
+                      }
+                      className="px-4 py-2 rounded-md text-white bg-purple-500"
+                    >
+                      Neue Question
+                    </button>
+                    <button
+                      onClick={() =>
+                        selectedAudit &&
+                        (window.location.href = `/auditbearbeiten/${selectedAudit}`)
+                      }
+                      className="px-4 py-2 rounded-md text-white bg-blue-500"
+                    >
+                      Bearbeiten
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (selectedAudit) {
+                          changeStatus(selectedAudit);
+                        }
+                      }}
+                      className="px-4 py-2 rounded-md text-white bg-green-500"
+                    >
+                      Durchführen
+                    </button>
+                  </div>
+                ) : (
+                  canCreateAudit && ( // Button nur anzeigen, wenn der Benutzer erstellberechtigt ist
+                    <div className="flex justify-center mt-4">
+                      <button
+                        onClick={() => window.location.href = '/neuesAuditErstellen'}
+                        className="px-4 py-2 rounded-md text-white bg-red-500"
+                      >
+                        Neues Audit erstellen
+                      </button>
+                    </div>
+                  )
+                )}
             </div>
           </div>
         </div>
