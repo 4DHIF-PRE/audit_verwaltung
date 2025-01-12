@@ -11,6 +11,8 @@ import {useLoaderData} from "@remix-run/react";
 
 
 
+
+
 export const loader: LoaderFunction = async ({ request }) => {
 
   const cookie = request.headers.get("cookie");
@@ -53,15 +55,15 @@ export const loader: LoaderFunction = async ({ request }) => {
     auditsData = await auditRes.json();
   }
 
-  //console.log(userData);
+  console.log(userData);
 
-  const userRolesForAudits = rolesData.filter(
-      (role) => role.ru_u_userId === userData.id && role.ru_r_id !== 1
-  );
 
-  const filteredAudits = auditsData.filter((audit) =>
-      userRolesForAudits.some((role) => role.audit === audit.au_idx)
-  );
+
+
+  const auditsForUser = userData.roles
+      .map(role => role.audit);  // Get only the associated audit IDs
+
+  const filteredAudits = auditsData.filter(audit => auditsForUser.includes(audit.au_idx));
 
   console.log(filteredAudits);
   return json({
@@ -76,7 +78,8 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 
 export default function AuditPage() {
-  const { audits } = useLoaderData<{ audits: AuditDetails[] }>();
+  const loaderData = useLoaderData<{ audits: AuditDetails[] }>();
+  const [audits, setAudits] = useState<AuditDetails[]>([]);
   const [questions, setQuestions] = useState<QuestionInt[]>([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -84,6 +87,11 @@ export default function AuditPage() {
   const [canCreateAudit, setCanCreateAudit] = useState(false);
   const auditsPerPage = 5;
   const totalPages = Math.ceil(audits.length / auditsPerPage);
+
+
+  useEffect(() => {
+    setAudits(loaderData.audits); // Audits in den State laden
+  }, [loaderData]);
 
 
 

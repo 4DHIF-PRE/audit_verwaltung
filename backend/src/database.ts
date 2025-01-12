@@ -121,7 +121,7 @@ export async function SessionToUser(
 
     const [resultsRoles, fieldsRoles]: [any[], mysql.FieldPacket[]] =
       await connection.execute(
-        "SELECT `r_id`, `r_rolename` FROM `ru_rolesuser` inner join `r_roles` on r_id = ru_r_id WHERE `ru_u_userId` = ?",
+        "SELECT `r_id`, `audit` FROM `ru_rolesuser` inner join `r_roles` on r_id = ru_r_id WHERE `ru_u_userId` = ?",
         [queryUser.u_userId]
       );
 
