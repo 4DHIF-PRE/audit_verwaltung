@@ -6,11 +6,9 @@ import { AuditDetails } from "../types/AuditDetails";
 import QuestionVorschau from "../components/ui/QuestionVorschau";
 import { QuestionInt } from "../types/QuestionInt";
 import { RolesUser } from "../types/RolesUser";
-import {json, LoaderFunction} from "@remix-run/node";
-import {useLoaderData} from "@remix-run/react";
-
-
-
+import { UserDetails } from "../types/UserDetails";
+import { json, LoaderFunction } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -22,17 +20,15 @@ export const loader: LoaderFunction = async ({ request }) => {
 
   const userRes = await fetch("http://localhost:3000/users/querySessionowner", {
     method: "GET",
-    headers: { "Content-Type": "application/json", Cookie: cookie || "",},
+    headers: { "Content-Type": "application/json", Cookie: cookie || "", },
     credentials: "include",
     signal: controller.signal,
   });
 
-
   if (!userRes.ok) {
     throw new Response("User nicht eingeloggt oder keine Rechte.", { status: 401 });
   }
-  const userData = await userRes.json();
-
+  let userData: UserDetails = await userRes.json();
 
   const rolesRes = await fetch("http://localhost:3000/rolesuser", {
     method: "GET",
@@ -44,7 +40,6 @@ export const loader: LoaderFunction = async ({ request }) => {
     rolesData = await rolesRes.json();
   }
 
-
   const auditRes = await fetch("http://localhost:3000/audit", {
     method: "GET",
     headers: { "Content-Type": "application/json" },
@@ -55,13 +50,8 @@ export const loader: LoaderFunction = async ({ request }) => {
     auditsData = await auditRes.json();
   }
 
-  console.log(userData);
-
-
-
-
   const auditsForUser = userData.roles
-      .map(role => role.audit);  // Get only the associated audit IDs
+    .map(role => role.audit);
 
   const filteredAudits = auditsData.filter(audit => auditsForUser.includes(audit.au_idx));
 
@@ -70,16 +60,17 @@ export const loader: LoaderFunction = async ({ request }) => {
     user: userData,
     roles: rolesData,
     audits: filteredAudits,
-
   });
 };
-
-
 
 
 export default function AuditPage() {
   const loaderData = useLoaderData<{ audits: AuditDetails[] }>();
   const [audits, setAudits] = useState<AuditDetails[]>([]);
+
+  const loaderData2 = useLoaderData<{ user: UserDetails}>();
+  const [user, setUser] = useState<UserDetails>();
+
   const [questions, setQuestions] = useState<QuestionInt[]>([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -88,12 +79,15 @@ export default function AuditPage() {
   const auditsPerPage = 5;
   const totalPages = Math.ceil(audits.length / auditsPerPage);
 
+  useEffect(() => {
+    setUser(loaderData2.user); 
+  }, [loaderData2]);
+
+  console.log(loaderData2.user)
 
   useEffect(() => {
-    setAudits(loaderData.audits); // Audits in den State laden
+    setAudits(loaderData.audits); 
   }, [loaderData]);
-
-
 
   useEffect(() => {
     if (selectedAudit === 0) {
@@ -128,46 +122,67 @@ export default function AuditPage() {
     fetchQuestions();
     return () => controller.abort();
   }, [selectedAudit]);
+  
 
-
-  useEffect(() => {
-    const controller = new AbortController();
-  
-    const fetchUserPermission = async () => {
-      try {
-        const response = await fetch("http://localhost:3000/users/querySessionowner", {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          signal: controller.signal,
-          credentials: "include", // Send cookies
-        });
-  
-        if (!response.ok) {
-          throw new Error("Failed to fetch user permissions");
-        }
-  
-        const data = await response.json();
-        console.log("Jonny ist dm");
-        setCanCreateAudit(data.u_erstellberechtigt === true); // Setze Berechtigung
-      } catch (error) {
-        console.log("Jonny ist dm2");
-        // @ts-ignore
-        if (error.name !== "AbortError") {
-          console.log("Jonny ist dm4");
-          console.error("Error fetching user permissions:", error);
-        }
-        setCanCreateAudit(false); // Standard: Keine Berechtigung
-      }
+  const createAudit = async (
+    user: UserDetails,
+    setAudits: React.Dispatch<React.SetStateAction<AuditDetails[]>>
+  ) => {
+    const today = new Date().toISOString().split("T")[0];
+    const newAudit = {
+      au_audit_date: today,
+      au_number_of_days: 1,
+      au_leadauditor_idx: user.u_userId,
+      au_leadauditee_idx: user.u_userId,
+      au_auditstatus: "geplant",
+      au_place: "Ort",
+      au_theme: "Kein Thema",
+      au_typ: "audit",
     };
-  //daniel walter ist ein furry sigma!!! ich liebe sein linkes bein 
-    fetchUserPermission();
+
+    console.log(newAudit.au_theme);
   
-    return () => controller.abort();
-  }, []);
+    try {
+      const response = await fetch("http://localhost:3000/audit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newAudit),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(`Fehler beim Erstellen des Audits: ${JSON.stringify(error)}`);
+        return;
+      }
   
+      const createdAudit = await response.json();
 
-
-
+      console.log(user.u_userId + " " + createdAudit.au_idx)
+  
+      const roleResponse = await fetch("http://localhost:3000/rolesuser", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user.u_userId,
+          auditId: createdAudit.au_idx,
+        }),
+      });
+  
+      if (!roleResponse.ok) {
+        const error = await roleResponse.json();
+        alert(`Fehler beim Hinzufügen der Rolle: ${JSON.stringify(error)}`);
+        return;
+      }
+  
+      setAudits((prevAudits) => [...prevAudits, createdAudit]);
+    } catch (error) {
+      console.error("Fehler beim Erstellen des Audits:", error);
+    }
+  };
 
   const handleDeleteAudit = async (auditId: number) => {
     try {
@@ -213,12 +228,12 @@ export default function AuditPage() {
 
   const changeStatus = async (auditId: number) => {
     const audit = audits.find(a => a.au_idx === auditId);
-  
+
     if (!audit) {
       console.error("Audit not found");
       return;
     }
-  
+
     if (audit.au_auditstatus === "bereit") {
       try {
         const response = await fetch(`http://localhost:3000/audit/${auditId}/status`, {
@@ -228,19 +243,19 @@ export default function AuditPage() {
           },
           body: JSON.stringify({ au_auditstatus: "begonnen" })
         });
-  
+
         if (!response.ok) {
           throw new Error("Failed to update audit status");
         }
-  
+
         setAudits(prevAudits =>
           prevAudits.map(a =>
             a.au_idx === auditId ? { ...a, au_auditstatus: "begonnen" } : a
           )
         );
-  
+
         window.location.href = `/doAudit/${auditId}`;
-  
+
       } catch (error) {
         console.error("Error changing audit status:", error);
         alert("Fehler beim Ändern des Audit-Status.");
@@ -261,8 +276,17 @@ export default function AuditPage() {
           {/* Left Section */}
           <div className="flex flex-col w-1/3 space-y-4 relative">
             <div className="flex flex-col h-full">
-              {/* Suchleiste */}
-              <Searchbar value={search} onChange={(value) => setSearch(value)} />
+
+              {/* Suchleiste und Add Button*/}
+              <div className="flex flex-col">
+                <Searchbar value={search} onChange={(value) => setSearch(value)} />
+                <button
+                  className="mb-4 rounded bg-green-100 dark:bg-green-500 border border-gray-300"
+                  onClick={() => createAudit(user, setAudits)}
+                >
+                  Audit Add
+                </button>
+              </div>
 
               <div className="flex-1 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4" >
                 {displayedAudits.map((audit) => (
@@ -324,50 +348,50 @@ export default function AuditPage() {
               <AuditVorschau audit={selectedAudit} allAudits={audits} />
               <QuestionVorschau auditId={selectedAudit} questions={questions} />
 
-                              {/* Buttons unter dem grauen Fenster */}
-                {selectedAudit !== 0 ? (
-                  <div className="flex justify-center space-x-4 mt-4">
-                    <button
-                      onClick={() =>
-                        selectedAudit &&
-                        (window.location.href = `/questionPage/${selectedAudit}`)
+              {/* Buttons unter dem grauen Fenster */}
+              {selectedAudit !== 0 ? (
+                <div className="flex justify-center space-x-4 mt-4">
+                  <button
+                    onClick={() =>
+                      selectedAudit &&
+                      (window.location.href = `/questionPage/${selectedAudit}`)
+                    }
+                    className="px-4 py-2 rounded-md text-white bg-purple-500"
+                  >
+                    Neue Question
+                  </button>
+                  <button
+                    onClick={() =>
+                      selectedAudit &&
+                      (window.location.href = `/auditbearbeiten/${selectedAudit}`)
+                    }
+                    className="px-4 py-2 rounded-md text-white bg-blue-500"
+                  >
+                    Bearbeiten
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (selectedAudit) {
+                        changeStatus(selectedAudit);
                       }
-                      className="px-4 py-2 rounded-md text-white bg-purple-500"
-                    >
-                      Neue Question
-                    </button>
+                    }}
+                    className="px-4 py-2 rounded-md text-white bg-green-500"
+                  >
+                    Durchführen
+                  </button>
+                </div>
+              ) : (
+                canCreateAudit && ( // Button nur anzeigen, wenn der Benutzer erstellberechtigt ist
+                  <div className="flex justify-center mt-4">
                     <button
-                      onClick={() =>
-                        selectedAudit &&
-                        (window.location.href = `/auditbearbeiten/${selectedAudit}`)
-                      }
-                      className="px-4 py-2 rounded-md text-white bg-blue-500"
+                      onClick={() => window.location.href = '/neuesAuditErstellen'}
+                      className="px-4 py-2 rounded-md text-white bg-red-500"
                     >
-                      Bearbeiten
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (selectedAudit) {
-                          changeStatus(selectedAudit);
-                        }
-                      }}
-                      className="px-4 py-2 rounded-md text-white bg-green-500"
-                    >
-                      Durchführen
+                      Neues Audit erstellen
                     </button>
                   </div>
-                ) : (
-                  canCreateAudit && ( // Button nur anzeigen, wenn der Benutzer erstellberechtigt ist
-                    <div className="flex justify-center mt-4">
-                      <button
-                        onClick={() => window.location.href = '/neuesAuditErstellen'}
-                        className="px-4 py-2 rounded-md text-white bg-red-500"
-                      >
-                        Neues Audit erstellen
-                      </button>
-                    </div>
-                  )
-                )}
+                )
+              )}
             </div>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import { validateEmail, validateName, validatePassword } from './util/validation.util.js';
-import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings, getFindingByQuestionID, getAuditQuestions, createFinding, updateFinding, deleteFinding, getFindingsByID, uploadAttachment, getFileNameByFindingId, getFilesByFindingId, deleteFileByFindingAttachmentId, getFileByFindingAttachmentId, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion, GetQuestionByAuditAndLaw, UpdateAuditStatus, GetRolesUser } from './database.js';
+import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings, getFindingByQuestionID, getAuditQuestions, createFinding, updateFinding, deleteFinding, getFindingsByID, uploadAttachment, getFileNameByFindingId, getFilesByFindingId, deleteFileByFindingAttachmentId, getFileByFindingAttachmentId, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion, GetQuestionByAuditAndLaw, UpdateAuditStatus, GetRolesUser, AddRoleForAudit } from './database.js';
 
 import { sendMailDefault, sendMailInvite } from './mailService.js';
 import cors from 'cors'
@@ -651,6 +651,7 @@ expressApp.get('/api/finding/attachments/:id/delete', async (req, res) => {
                 res.status(201).json(result);
             }
         });
+
         expressApp.get('/audit', async (req, res) => {
             const result = await GetAllAudits();
             if (result instanceof Error) {
@@ -821,6 +822,16 @@ expressApp.get('/api/finding/attachments/:id/delete', async (req, res) => {
           });
 
 
+          expressApp.post('/rolesuser', async (req, res) => {
+            const { userId, auditId } = req.body;
+            const result = await AddRoleForAudit(userId, auditId);
+        
+            if (result instanceof Error) {
+                res.status(400).json({ message: result.message });
+            } else {
+                res.status(201).json({ message: "Role successfully added." });
+            }
+           });
 
             expressApp.get('/rolesuser', async (req, res) => {
                 const result = await GetRolesUser();

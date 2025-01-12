@@ -126,6 +126,7 @@ export async function SessionToUser(
       );
 
     const userData: UserDataFrontend = {
+      u_userId: queryUser.u_userId,
       u_firstname: queryUser.u_firstname,
       u_lastname: queryUser.u_lastname,
       u_email: queryUser.u_email,
@@ -1134,9 +1135,13 @@ export async function CreateAudit(auditData) {
     auditData.au_theme,
     auditData.au_typ,
   ];
+
   try {
     const [result] = await pool.execute(query, values);
-    return result;
+    
+    const [lastInsertResult] = await pool.execute('SELECT LAST_INSERT_ID() as au_idx');
+    
+    return { au_idx: lastInsertResult[0].au_idx }; 
   } catch (error) {
     return new Error(`Failed to create audit: ${error.message}`);
   } finally {
@@ -1360,6 +1365,18 @@ export async function GetQuestionByAuditAndLaw(auditId, lawId) {
 
 
 // Rollen
+export async function AddRoleForAudit(userId: number, auditId: number) {
+  const query = `INSERT INTO ru_rolesuser (ru_r_id, ru_u_userId, audit) VALUES (?, ?, ?)`;
+  const pool = await connectionPool.getConnection();
+  try {
+      const [result] = await pool.execute(query, [2, userId, auditId]);
+      return result;
+  } catch (error) {
+      return new Error(`Failed to add role for audit: ${error.message}`);
+  } finally {
+      pool.release();
+  }
+}
 
 export async function GetRolesUser() {
   const query = `SELECT * FROM ru_rolesuser`;
