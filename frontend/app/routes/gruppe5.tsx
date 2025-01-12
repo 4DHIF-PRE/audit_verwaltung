@@ -86,10 +86,10 @@ export default function Setup() {
   };
 
   return (
-    <div>
+    <div className="flex flex-col h-screen">
       <Navbar />
-      <div className="flex justify-between px-10 mt-3">
-        <div className="max-w-[350px]">
+      <div className="flex justify-between px-10 mt-5 pt-5">
+        <div className="max-w-[350px] mt-8">
           <h1 className="text-2xl font-bold mb-4">Findings</h1>
           <ul>
 

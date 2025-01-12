@@ -1,7 +1,9 @@
-import type { MetaFunction } from "@remix-run/node";
+import {MetaFunction, redirect} from "@remix-run/node";
 import {BaseLayout} from "~/layout";
 import {Label} from "~/components/ui/label";
 import {Button} from "~/components/ui/button";
+import { useNavigate } from "@remix-run/react";
+
 
 export const meta: MetaFunction = () => {
   return [
@@ -10,20 +12,17 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export const loader = async () => {
+    return redirect("/auditPage");
+};
+
 export default function Index() {
-    
-    function rufeAdminDingsAuf() {
-        console.log("TAg");
-    }
+
 
     
   return (
       <BaseLayout>
           <div className="flex flex-col gap-4">
-            <Label>Test</Label>
-              <Button className="w-52" onClick={rufeAdminDingsAuf}>
-                  AdminRegisterTokenErstellung
-              </Button>
           </div>
       </BaseLayout>
   );
