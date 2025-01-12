@@ -1118,6 +1118,17 @@ export async function GetQuestionById(questionId) {
     }
 }
 
+export async function GetFindingWorkOnById(findingWorkOnId) {
+    const query = `SELECT * FROM fw_finding_workon WHERE fw_finding_idx = ?`;
+    const pool = await connectionPool.getConnection();
+    try {
+        const [rows] = await pool.execute(query, [findingWorkOnId]);
+        return rows[0] || null;
+    } catch (error) {
+        return new Error(`Failed to retrieve question: ${error.message}`);
+    }
+}
+
 export async function UpdateQuestion(questionId, updates) {
     const fields = Object.keys(updates).map(key => `${key} = ?`).join(', ');
     const values = Object.values(updates).concat(questionId);

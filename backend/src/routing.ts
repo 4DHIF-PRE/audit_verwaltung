@@ -1,7 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import { validateEmail, validateName, validatePassword } from './util/validation.util.js';
-import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings,getAuditQuestions,createFinding, updateFinding, deleteFinding, getFindingsByID,uploadAttachment,getFileNameByFindingId,getFilesByFindingId,deleteFileByFindingAttachmentId,getFileByFindingAttachmentId, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion } from './database.js';
+import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings,getAuditQuestions,createFinding, updateFinding, deleteFinding, getFindingsByID,uploadAttachment,getFileNameByFindingId,getFilesByFindingId,deleteFileByFindingAttachmentId,getFileByFindingAttachmentId, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion, GetFindingWorkOnById } from './database.js';
 import { sendMailDefault, sendMailInvite } from './mailService.js';
 import cors from 'cors'
 
@@ -707,5 +707,14 @@ expressApp.get('/api/finding/attachments/:id/delete', async (req, res) => {
                 res.status(400).json({message: result.message});
             } else {
                 res.status(204).send();
+            }
+        });
+        expressApp.get('/findings/workon/:id', async (req, res) => {
+            const findingWorkOnId = req.params.id;
+            const result = await GetFindingWorkOnById(+findingWorkOnId);
+            if (result instanceof Error) {
+                res.status(400).json({message: result.message});
+            } else {
+                res.status(200).json(result);
             }
         });

@@ -12,6 +12,7 @@ export default function Setup() {
   const [audits, setAudits] = useState([]);
   const [selectedFinding, setSelectedFinding] = useState(null);
   const [showMore, setShowMore] = useState(false);
+  const [comment, setComment] = useState(""); // New state for comment input
 
   useEffect(() => {
     async function fetchFindings() {
@@ -83,6 +84,17 @@ export default function Setup() {
       default:
         return 'border-gray-300';
     }
+  };
+
+  const handleCommentChange = (e) => {
+    setComment(e.target.value);
+  };
+
+  const handleCommentSubmit = (e) => {
+    e.preventDefault();
+    // Handle the comment submission logic here, for example, sending it to the server
+    console.log("Submitted comment:", comment);
+    setComment(""); // Clear the input field after submission
   };
 
   return (
@@ -169,7 +181,22 @@ export default function Setup() {
           <div className="flex-1 ml-10 m-2">
             {selectedFinding && (
               <Card className={`p-6 rounded-lg shadow-md w-full h-auto border-4 ${getBorderColor(selectedFinding.f_status)}`}>
-                <h2 className="text-3xl font-bold mb-4">Comments</h2>
+                <h2 className="text-3xl font-bold mb-4">Kommentare</h2>
+                <form onSubmit={handleCommentSubmit}>
+                  <textarea
+                    className="w-full p-2 border rounded-md"
+                    placeholder="Add a comment..."
+                    value={comment}
+                    onChange={handleCommentChange}
+                    rows={2}
+                  />
+                  <button
+                    type="submit"
+                    className="mt-2 text-white bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded"
+                  >
+                    Submit
+                  </button>
+                </form>
               </Card>
             )}
           </div>
@@ -192,6 +219,16 @@ export async function showAllFindings() {
 
 export async function getAudit(id: number) {
   const response = await fetch(`http://localhost:3000/audit/${id}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  return response;
+}
+
+export async function getWorkon(id: number) {
+  const response = await fetch(`http://localhost:3000/findings/workon/${id}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
