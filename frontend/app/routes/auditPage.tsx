@@ -5,9 +5,78 @@ import Searchbar from "../components/Searchbar";
 import { AuditDetails } from "../types/AuditDetails";
 import QuestionVorschau from "../components/ui/QuestionVorschau";
 import { QuestionInt } from "../types/QuestionInt";
+import { RolesUser } from "../types/RolesUser";
+import {json, LoaderFunction} from "@remix-run/node";
+import {useLoaderData} from "@remix-run/react";
+
+
+
+export const loader: LoaderFunction = async ({ request }) => {
+
+  const cookie = request.headers.get("cookie");
+  const controller = new AbortController();
+  request.signal.addEventListener("abort", () => controller.abort());
+
+
+  const userRes = await fetch("http://localhost:3000/users/querySessionowner", {
+    method: "GET",
+    headers: { "Content-Type": "application/json", Cookie: cookie || "",},
+    credentials: "include",
+    signal: controller.signal,
+  });
+
+
+  if (!userRes.ok) {
+    throw new Response("User nicht eingeloggt oder keine Rechte.", { status: 401 });
+  }
+  const userData = await userRes.json();
+
+
+  const rolesRes = await fetch("http://localhost:3000/rolesuser", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    signal: controller.signal,
+  });
+  let rolesData: RolesUser[] = [];
+  if (rolesRes.ok) {
+    rolesData = await rolesRes.json();
+  }
+
+
+  const auditRes = await fetch("http://localhost:3000/audit", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    signal: controller.signal,
+  });
+  let auditsData: AuditDetails[] = [];
+  if (auditRes.ok) {
+    auditsData = await auditRes.json();
+  }
+
+  //console.log(userData);
+
+  const userRolesForAudits = rolesData.filter(
+      (role) => role.ru_u_userId === userData.id && role.ru_r_id !== 1
+  );
+
+  const filteredAudits = auditsData.filter((audit) =>
+      userRolesForAudits.some((role) => role.audit === audit.au_idx)
+  );
+
+  console.log(filteredAudits);
+  return json({
+    user: userData,
+    roles: rolesData,
+    audits: filteredAudits,
+
+  });
+};
+
+
+
 
 export default function AuditPage() {
-  const [audits, setAudits] = useState<AuditDetails[]>([]);
+  const { audits } = useLoaderData<{ audits: AuditDetails[] }>();
   const [questions, setQuestions] = useState<QuestionInt[]>([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -16,34 +85,7 @@ export default function AuditPage() {
   const auditsPerPage = 5;
   const totalPages = Math.ceil(audits.length / auditsPerPage);
 
-  useEffect(() => {
-    const controller = new AbortController();
 
-    const fetchData = async () => {
-      try {
-        const response = await fetch("http://localhost:3000/audit", {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          signal: controller.signal,
-        });
-        if (!response.ok) throw new Error("Network response was not ok");
-
-        const data: AuditDetails[] = await response.json();
-        setAudits(data);
-      } catch (error) {
-        // @ts-ignore
-        if (error.name === "AbortError") {
-          console.log("Fetch aborted");
-        } else {
-          console.error("Error fetching audits:", error);
-        }
-      }
-    };
-
-    fetchData();
-
-    return () => controller.abort();
-  }, []);
 
   useEffect(() => {
     if (selectedAudit === 0) {

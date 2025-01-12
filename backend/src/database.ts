@@ -1357,3 +1357,20 @@ export async function GetQuestionByAuditAndLaw(auditId, lawId) {
     pool.release();
   }
 }
+
+
+// Rollen
+
+export async function GetRolesUser() {
+  const query = `SELECT * FROM ru_rolesuser`;
+  const pool = await connectionPool.getConnection();
+  try {
+    const [rows] = await pool.execute(query);
+    return rows;
+  } catch (error) {
+    return new Error(`Failed to retrieve audits: ${error.message}`);
+  } finally {
+    pool.release();
+  }
+}
+
