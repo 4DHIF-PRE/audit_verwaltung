@@ -253,15 +253,17 @@ export default function AuditPage() {
         QuestionAudit.forEach(async (element) => {
           const newFinding = {
             f_level: 0,
-            f_auditor_comment:"",
-            f_finding_comment: "",
-            f_creation_Date: new Date(),
+            f_creation_date: new Date().toISOString().replace('T', ' ').replace('Z', '').split('.')[0],
             f_timeInDays: 14,
-            f_status: "offen",
             f_au_audit_idx: auditId,
             f_qu_question_idx: element.qu_idx, 
-            f_u_auditdor_idx: user?.u_userId,
+            f_u_auditor_id: user?.u_userId,
+            f_status: "offen",
+            f_comment: "",
+            f_finding_comment: "",
           };
+          console.log("f_u_auditor_id length:", user?.u_userId.length);
+          
 
           console.log("new Finding", newFinding);
           const addfinding = await fetch("http://localhost:3000/audit/finding", {
@@ -272,12 +274,18 @@ export default function AuditPage() {
             body: JSON.stringify(newFinding),
           });
           if (!addfinding.ok) {
-            const errorResponse = await addfinding.json();
-            throw new Error(`Failed to create finding for question: ${errorResponse.message}`);
-          }
+            let errorMessage = 'Unknown error';
+            try {
+                const errorResponse = await addfinding.json();
+                errorMessage = errorResponse.message || errorResponse.error || errorMessage;
+            } catch (e) {
+                console.error('Error parsing error response:', e);
+            }
+            throw new Error(`Failed to create finding for question: ${errorMessage}`);
+        }
         });
 
-        const response = await fetch(`http://localhost:3000/audit/${auditId}/status`, {
+        const response = await fetch(`http://localhost:3000/audit/${auditId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json"

@@ -804,36 +804,44 @@ export async function getAuditQuestions(
 
 export async function createFinding(findingData: {
   f_level: Number;
-  f_auditor_comment: string;
-  f_finding_comment: string;
   f_creation_date: Date;
   f_timeInDays: number;
-  f_status: string;
   f_au_audit_idx: number;
   f_qu_question_idx: number;
-  f_u_auditor_id: number;
+  f_u_auditor_id: string;
+  f_status: string;
+  f_comment: string;
+  f_finding_comment: string;
 }): Promise<number | Error> {
   const connection = await connectionPool.getConnection();
   try {
     const [result]: any = await connection.execute(
-      `INSERT INTO f_findings (f_level, f_auditor_comment, f_finding_comment, f_creation_date, f_timeInDays, f_status, f_au_audit_idx, f_qu_question_idx, f_u_auditor_id)
+      `INSERT INTO f_findings (f_level, f_creation_date, f_timeInDays, f_au_audit_idx, f_qu_question_idx, f_u_auditor_id, f_status, f_comment, f_finding_comment)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         findingData.f_level,
-        findingData.f_auditor_comment,
-        findingData.f_finding_comment,
         findingData.f_creation_date,
         findingData.f_timeInDays,
-        findingData.f_status,
         findingData.f_au_audit_idx,
         findingData.f_qu_question_idx,
         findingData.f_u_auditor_id,
+        findingData.f_status,
+        findingData.f_comment,
+        findingData.f_finding_comment,
       ]
     );
     return result.insertId;
-  } catch (error) {
+  } 
+  catch (error) {
     return new Error("Error inserting finding");
-  } finally {
+  }
+
+  // catch (error: any) {
+  //   console.error("MySQL error details:", error);
+  //   return new Error("Error inserting finding");
+  // } 
+
+  finally {
     connection.release();
   }
 }
