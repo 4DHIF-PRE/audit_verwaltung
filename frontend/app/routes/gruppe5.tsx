@@ -14,6 +14,7 @@ export default function Setup() {
   const [showMore, setShowMore] = useState(false);
   const [comment, setComment] = useState(""); 
   const [workonComments, setWorkonComments] = useState([]); 
+
   useEffect(() => {
     async function fetchFindings() {
       const response = await showAllFindings();
@@ -48,21 +49,13 @@ export default function Setup() {
     async function fetchWorkonComments() {
       if (selectedFinding) {
         try {
-          const response = await getWorkon(selectedFinding.f_id); 
-          if (response.ok) {
-            const data = await response.json();
-            if (Array.isArray(data)) {
-              setWorkonComments(data); 
-            } else {
-              setWorkonComments([data]); 
-            }
-          } else {
-            console.error('Failed to fetch workon comments:', response.status);
-            setWorkonComments([]); 
-          }
+          const response = await getWorkon(selectedFinding.f_id);
+          const data = await response.json();
+          
+          
+          setWorkonComments(Array.isArray(data) ? data : [data]);
         } catch (error) {
-          console.error('Error fetching workon comments:', error);
-          setWorkonComments([]);
+          console.error("Failed to fetch workon comments:", error);
         }
       }
     }
@@ -120,7 +113,31 @@ export default function Setup() {
 
   const handleCommentSubmit = (e) => {
     e.preventDefault();
-    console.log("Submitted comment:", comment);
+
+    
+    setWorkonComments([...workonComments, { fw_kommentar: comment }]);
+
+    
+    async function submitComment() {
+      try {
+        const response = await fetch(`http://localhost:3000/findings/workon/${selectedFinding.f_id}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ comment }), 
+        });
+
+        if (!response.ok) {
+          console.error('Failed to submit comment:', response.status);
+        }
+      } catch (error) {
+        console.error('Error submitting comment:', error);
+      }
+    }
+
+    submitComment();
+
     setComment(""); 
   };
 
@@ -239,7 +256,6 @@ export default function Setup() {
             )}
           </div>
         </div>
-
       </div>
     </div>
   );
@@ -256,7 +272,7 @@ export async function showAllFindings() {
 }
 
 export async function getAudit(id: number) {
-  const response = await fetch(`http://localhost:3000/audits/getone/${id}`, {
+  const response = await fetch(`http://localhost:3000/audit/${id}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
