@@ -69,9 +69,12 @@ export default function AuditBearbeiten() {
   };
 
   return (
-    <div className="flex flex-col w-full h-screen p-4 bg-white space-y-6 dark:bg-gray-900">
-      <Navbar />
-      <h1 className="text-2xl font-bold text-center">Audit bearbeiten - ID {id}</h1>
+    <div className="flex flex-col h-screen">
+    <Navbar />
+    <div className="flex flex-col w-full h-screen p-4 bg-white space-y-6 dark:bg-black">
+      <h1 className="text-2xl font-bold text-center">
+        Audit bearbeiten - ID {id}
+      </h1>
       <h1>
         <strong>{formData.au_theme}</strong>
       </h1>
@@ -84,8 +87,14 @@ export default function AuditBearbeiten() {
             <label className="block font-bold">Datum</label>
             <input
               type="date"
-              value={formData.au_audit_date ? formData.au_audit_date.split("T")[0] : ""}
-              onChange={(e) => handleInputChange("au_audit_date", e.target.value)}
+              value={
+                formData.au_audit_date
+                  ? formData.au_audit_date.split("T")[0]
+                  : ""
+              }
+              onChange={(e) =>
+                handleInputChange("au_audit_date", e.target.value)
+              }
               className="w-full border p-2 rounded text-black"
             />
           </div>
@@ -94,7 +103,9 @@ export default function AuditBearbeiten() {
             <input
               type="number"
               value={formData.au_number_of_days}
-              onChange={(e) => handleInputChange("au_number_of_days", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("au_number_of_days", e.target.value)
+              }
               className="w-full border p-2 rounded text-black"
             />
           </div>
@@ -107,7 +118,9 @@ export default function AuditBearbeiten() {
             <input
               type="text"
               value={formData.au_leadauditor_idx}
-              onChange={(e) => handleInputChange("au_leadauditor_idx", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("au_leadauditor_idx", e.target.value)
+              }
               className="w-full border p-2 rounded text-black"
             />
           </div>
@@ -116,7 +129,9 @@ export default function AuditBearbeiten() {
             <input
               type="text"
               value={formData.au_leadauditee_idx}
-              onChange={(e) => handleInputChange("au_leadauditee_idx", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("au_leadauditee_idx", e.target.value)
+              }
               className="w-full border p-2 rounded text-black"
             />
           </div>
@@ -144,29 +159,33 @@ export default function AuditBearbeiten() {
           </div>
           <div className="flex-1">
             <label className="block font-bold">Typ</label>
-            <select 
-                value = {formData.au_typ}
-                onChange = {(e) => handleInputChange("au_typ", e.target.value)}
-                className = "w-full border p-2 rounded text-black">
-                  <option value="audit">audit</option>
-                  <option value="inspektion">inspektion</option>
-                  <option value="ca">ca</option>
-                  <option value="extern">extern</option>
-                  <option value="sonstig">sonstig</option>
-                </select>
+            <select
+              value={formData.au_typ}
+              onChange={(e) => handleInputChange("au_typ", e.target.value)}
+              className="w-full border p-2 rounded text-black"
+            >
+              <option value="audit">audit</option>
+              <option value="inspektion">inspektion</option>
+              <option value="ca">ca</option>
+              <option value="extern">extern</option>
+              <option value="sonstig">sonstig</option>
+            </select>
           </div>
           <div className="flex-1">
             <label className="block font-bold">Status</label>
-            <select 
-                value = {formData.au_auditstatus}
-                onChange = {(e) => handleInputChange("au_auditstatus", e.target.value)}
-                className = "w-full border p-2 rounded text-black">
-                  <option value="geplant">geplant</option>
-                  <option value="bereit">bereit</option>
-                  <option value="begonnen">begonnen</option>
-                  <option value="findings_offen">findings_offen</option>
-                  <option value="fertig">fertig</option>
-                </select>
+            <select
+              value={formData.au_auditstatus}
+              onChange={(e) =>
+                handleInputChange("au_auditstatus", e.target.value)
+              }
+              className="w-full border p-2 rounded text-black"
+            >
+              <option value="geplant">geplant</option>
+              <option value="bereit">bereit</option>
+              <option value="begonnen">begonnen</option>
+              <option value="findings_offen">findings_offen</option>
+              <option value="fertig">fertig</option>
+            </select>
           </div>
         </div>
 
@@ -178,6 +197,7 @@ export default function AuditBearbeiten() {
           Speichern
         </button>
       </div>
+    </div>
     </div>
   );
 }

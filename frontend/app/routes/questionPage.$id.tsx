@@ -16,8 +16,8 @@ interface Law {
 interface Question {
   qu_idx: number;
   qu_audit_idx: string;
-  qu_law_idx: string; 
-  qu_audited: boolean;  
+  qu_law_idx: string;
+  qu_audited: boolean;
   qu_applicable: boolean;
   qu_finding_level: number;
 }
@@ -42,12 +42,11 @@ export const loader: LoaderFunction = async ({ params }) => {
     nextId++;
   }
 
-  return json({ auditId: id, laws, nextQuestionId: nextId});
-}
-
+  return json({ auditId: id, laws, nextQuestionId: nextId });
+};
 
 export default function AuditPage() {
-  const { auditId, laws, nextQuestionId} = useLoaderData<{
+  const { auditId, laws, nextQuestionId } = useLoaderData<{
     auditId: string;
     laws: Law[];
     nextQuestionId: number;
@@ -84,30 +83,32 @@ export default function AuditPage() {
     if (selectedLaws.length === 0) {
       return;
     }
-  
+
     try {
       const response = await fetch(`http://localhost:3000/questions`);
       if (!response.ok) {
         const errorResponse = await response.json();
-        throw new Error(`Failed to load existing questions: ${errorResponse.message}`);
+        throw new Error(
+          `Failed to load existing questions: ${errorResponse.message}`
+        );
       }
-  
+
       const existingQuestions: Question[] = await response.json();
       const existingLawIds = new Set(
         existingQuestions
           .filter((question) => question.qu_audit_idx === auditId)
           .map((question) => question.qu_law_idx.toString())
       );
-  
+
       const newLaws = selectedLaws.filter(
         (lawId) => !existingLawIds.has(lawId)
       );
-  
+
       if (newLaws.length === 0) {
         alert("These laws are already added for this audit.");
         return;
       }
-  
+
       const newQuestions = newLaws.map((lawId) => ({
         qu_audit_idx: auditId,
         qu_law_idx: lawId,
@@ -115,7 +116,7 @@ export default function AuditPage() {
         qu_applicable: fields.applicable,
         qu_finding_level: 0,
       }));
-  
+
       const saveResponse = await fetch("http://localhost:3000/questions/bulk", {
         method: "POST",
         headers: {
@@ -123,32 +124,38 @@ export default function AuditPage() {
         },
         body: JSON.stringify(newQuestions),
       });
-  
+
       if (!saveResponse.ok) {
         const errorResponse = await saveResponse.json();
-        throw new Error(`Failed to save new questions: ${errorResponse.message}`);
+        throw new Error(
+          `Failed to save new questions: ${errorResponse.message}`
+        );
       }
-  
+
       const auditQuestions = existingQuestions.filter(
         (question) => question.qu_audit_idx === auditId
       );
 
-      if(auditQuestions.length === 0){
-        const updateResponse = await fetch(`http://localhost:3000/audit/${auditId}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ au_auditstatus: "bereit" }),
-        });
+      if (auditQuestions.length === 0) {
+        const updateResponse = await fetch(
+          `http://localhost:3000/audit/${auditId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ au_auditstatus: "bereit" }),
+          }
+        );
 
         if (!updateResponse.ok) {
           const errorResponse = await updateResponse.json();
-          throw new Error(`Failed to update audit status: ${errorResponse.message}`);
+          throw new Error(
+            `Failed to update audit status: ${errorResponse.message}`
+          );
         }
       }
       navigate("/auditpage");
-  
     } catch (error) {
       console.error("Error saving questions:", error);
       // @ts-ignore
@@ -157,58 +164,60 @@ export default function AuditPage() {
   };
 
   return (
-    <div className="flex flex-col w-full h-screen p-4 bg-white space-y-6 dark:bg-gray-900 dark:text-white">
+    <div className="flex flex-col h-screen">
       <Navbar />
-      <div className="text-center font-bold text-2xl">
-        Question Page {auditId}
-      </div>
-      <div className="flex justify-center">
-        <input
-          type="text"
-          placeholder="Search Laws..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          className="p-2 border border-gray-400 rounded-md w-1/2 dark:bg-gray-700 dark:text-white"
-        />
-      </div>
-      <div className="flex justify-center mt-4">
-        <select
-          value={selectedType}
-          onChange={(e) => setSelectedType(e.target.value)}
-          className="p-2 border border-gray-400 rounded-md w-1/2 dark:bg-gray-700 dark:text-white"
-        >
-          <option value="">All Types</option>
-          <option value="r">r</option>
-          <option value="amc">amc</option>
-          <option value="gm">gm</option>
-        </select>
-      </div>
-      <div className="border border-gray-400 rounded-md w-full max-h-64 overflow-y-auto dark:border-gray-600">
-        {filteredLaws.map((law) => (
-          <div
-            key={law.la_idx}
-            className="flex items-center justify-between border-b border-gray-300 p-2 dark:border-gray-600"
+      <div className="flex flex-col w-full h-screen p-4 bg-white space-y-6 dark:bg-black dark:text-white mt-10">
+        <div className="text-center font-bold text-2xl">
+          Question Page {auditId}
+        </div>
+        <div className="flex justify-center">
+          <input
+            type="text"
+            placeholder="Search Laws..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            className="p-2 border border-gray-400 rounded-md w-1/2 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+        <div className="flex justify-center mt-4">
+          <select
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
+            className="p-2 border border-gray-400 rounded-md w-1/2 dark:bg-gray-700 dark:text-white"
           >
-            <div className="font-bold text-gray-700 dark:text-white">
-              {law.la_text}
+            <option value="">All Types</option>
+            <option value="r">r</option>
+            <option value="amc">amc</option>
+            <option value="gm">gm</option>
+          </select>
+        </div>
+        <div className="border border-gray-400 rounded-md w-full max-h-64 overflow-y-auto dark:border-gray-600">
+          {filteredLaws.map((law) => (
+            <div
+              key={law.la_idx}
+              className="flex items-center justify-between border-b border-gray-300 p-2 dark:border-gray-600"
+            >
+              <div className="font-bold text-gray-700 dark:text-white">
+                {law.la_text}
+              </div>
+              <input
+                type="checkbox"
+                checked={selectedLaws.includes(law.la_idx.toString())}
+                onChange={() => handleCheckboxChange(law.la_idx.toString())}
+                className="w-5 h-5"
+              />
             </div>
-            <input
-              type="checkbox"
-              checked={selectedLaws.includes(law.la_idx.toString())}
-              onChange={() => handleCheckboxChange(law.la_idx.toString())}
-              className="w-5 h-5"
-            />
-          </div>
-        ))}
-      </div>
-      <div className="flex justify-center">
-        <button
-          className="px-6 py-2 text-white bg-purple-500 font-bold rounded-md"
-          onClick={handleSave}
-          disabled={selectedLaws.length === 0}
-        >
-          Save
-        </button>
+          ))}
+        </div>
+        <div className="flex justify-center">
+          <button
+            className="px-6 py-2 text-white bg-purple-500 font-bold rounded-md"
+            onClick={handleSave}
+            disabled={selectedLaws.length === 0}
+          >
+            Save
+          </button>
+        </div>
       </div>
     </div>
   );
