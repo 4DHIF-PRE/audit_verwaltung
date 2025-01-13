@@ -39,18 +39,21 @@ export default function Setup() {
     fetchAudits();
   }, [findings]);
 
-  useEffect(() => {
-    async function fetchWorkonComments() {
-      if (selectedFinding) {
-        try {
-          const response = await getWorkonComments(selectedFinding.f_id);
-          const data = await response.json();
-          setWorkonComments(Array.isArray(data) ? data : [data]);
-        } catch (error) {
-          console.error("Failed to fetch workon comments:", error);
-        }
+  // Function to fetch workon comments
+  const fetchWorkonComments = async () => {
+    if (selectedFinding) {
+      try {
+        const response = await getWorkonComments(selectedFinding.f_id);
+        const data = await response.json();
+        setWorkonComments(Array.isArray(data) ? data : [data]);
+      } catch (error) {
+        console.error("Failed to fetch workon comments:", error);
       }
     }
+  };
+
+  // Trigger fetchWorkonComments whenever a finding is selected
+  useEffect(() => {
     fetchWorkonComments();
   }, [selectedFinding]);
 
@@ -120,6 +123,11 @@ export default function Setup() {
     }
 
     setComment("");
+  };
+
+  // Adding refresh button handler to refresh comments
+  const handleRefreshComments = () => {
+    fetchWorkonComments();
   };
 
   return (
@@ -199,7 +207,7 @@ export default function Setup() {
             )}
           </div>
 
-          <div className="flex-1 ml-10 m-2">
+          <div className="flex-1 ml-10 m-2 relative">
             {selectedFinding && (
               <Card className={`p-6 rounded-lg shadow-md w-full h-auto border-4 ${getBorderColor(selectedFinding.f_status)}`}>
                 <h2 className="text-3xl font-bold mb-4">Kommentare</h2>
@@ -217,6 +225,14 @@ export default function Setup() {
                   <p>Keine Kommentare vorhanden.</p>
                 )}
 
+                {/* Refresh button for comments */}
+                <button
+                  onClick={handleRefreshComments}
+                  className="text-blue-500 hover:text-blue-700 py-1 px-3 rounded bg-transparent border border-blue-500 absolute top-0 right-0 mt-4 mr-4"
+                >
+                  Refresh Comments
+                </button>
+
                 <form onSubmit={handleCommentSubmit}>
                   <textarea
                     className="w-full p-2 border rounded-md"
@@ -229,7 +245,7 @@ export default function Setup() {
                     type="submit"
                     className="mt-2 text-white bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded"
                   >
-                    Submit
+                    Submit Comment
                   </button>
                 </form>
               </Card>
@@ -240,6 +256,8 @@ export default function Setup() {
     </div>
   );
 }
+
+
 
 
 export async function postWorkonComment(id, commentData) {
