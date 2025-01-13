@@ -167,7 +167,7 @@ export default function AuditPage() {
     <div className="flex flex-col h-screen">
       <Navbar />
       <div className="flex flex-col w-full h-screen p-4 bg-white space-y-6 dark:bg-black dark:text-white mt-10">
-        <div className="text-center font-bold text-2xl">
+        <div className="text-center font-bold text-2xl mt-4">
           Question Page {auditId}
         </div>
         <div className="flex justify-center">

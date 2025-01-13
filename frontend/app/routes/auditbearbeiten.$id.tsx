@@ -71,8 +71,8 @@ export default function AuditBearbeiten() {
   return (
     <div className="flex flex-col h-screen">
     <Navbar />
-    <div className="flex flex-col w-full h-screen p-4 bg-white space-y-6 dark:bg-black">
-      <h1 className="text-2xl font-bold text-center">
+    <div className="flex flex-col w-full h-screen p-4 bg-white space-y-6 dark:bg-black mt-10">
+      <h1 className="text-2xl font-bold text-center mt-4">
         Audit bearbeiten - ID {id}
       </h1>
       <h1>
