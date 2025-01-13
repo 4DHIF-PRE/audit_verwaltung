@@ -1,12 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import { validateEmail, validateName, validatePassword } from './util/validation.util.js';
-<<<<<<< HEAD
-import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings,getAuditQuestions,createFinding, updateFinding, deleteFinding, getFindingsByID,uploadAttachment,getFileNameByFindingId,getFilesByFindingId,deleteFileByFindingAttachmentId,getFileByFindingAttachmentId, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion, GetFindingWorkOnById } from './database.js';
-=======
-import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings, getFindingByQuestionID, getAuditQuestions, createFinding, updateFinding, deleteFinding, getFindingsByID, uploadAttachment, getFileNameByFindingId, getFilesByFindingId, deleteFileByFindingAttachmentId, getFileByFindingAttachmentId, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion, GetQuestionByAuditAndLaw, UpdateAuditStatus } from './database.js';
-
->>>>>>> 910928749d229356669f77c39f150a9fa0289599
+import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings, getFindingByQuestionID, getAuditQuestions, createFinding, updateFinding, deleteFinding, getFindingsByID, uploadAttachment, getFileNameByFindingId, getFilesByFindingId, deleteFileByFindingAttachmentId, getFileByFindingAttachmentId, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion, GetQuestionByAuditAndLaw, UpdateAuditStatus, GetFindingWorkOnById } from './database.js';
 import { sendMailDefault, sendMailInvite } from './mailService.js';
 import cors from 'cors'
 
@@ -775,6 +770,7 @@ expressApp.get('/api/finding/attachments/:id/delete', async (req, res) => {
             const questionId = parseInt(req.params.id, 10);
             if (isNaN(questionId)) {
                 return res.status(400).json({ message: "Invalid question ID" });
+<<<<<<< HEAD
             }
 <<<<<<< HEAD
         });
@@ -788,6 +784,9 @@ expressApp.get('/api/finding/attachments/:id/delete', async (req, res) => {
             }
         });
 =======
+=======
+            }
+>>>>>>> 910928749d229356669f77c39f150a9fa0289599
         
             try {
                 const result = await DeleteQuestion(questionId);
@@ -830,5 +829,9 @@ expressApp.get('/api/finding/attachments/:id/delete', async (req, res) => {
             } catch (error) {
               res.status(500).json({ message: "Error saving questions", error });
             }
+<<<<<<< HEAD
+          });
+>>>>>>> 910928749d229356669f77c39f150a9fa0289599
+=======
           });
 >>>>>>> 910928749d229356669f77c39f150a9fa0289599
