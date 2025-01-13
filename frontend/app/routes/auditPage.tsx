@@ -52,7 +52,6 @@ export const loader: LoaderFunction = async ({ request }) => {
     .map(role => role.audit);
 
   const filteredAudits = auditsData.filter(audit => auditsForUser.includes(audit.au_idx));
-
   console.log(filteredAudits);
   return json({
     user: userData,
@@ -65,7 +64,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 export default function AuditPage() {
   const loaderData = useLoaderData<{ audits: AuditDetails[] }>();
   const [audits, setAudits] = useState<AuditDetails[]>([]);
-
+  const [auditstatus, setAuditstatus] = useState<string>("");
   const loaderData2 = useLoaderData<{ user: UserDetails}>();
   const [user, setUser] = useState<UserDetails>();
 
@@ -217,7 +216,10 @@ export default function AuditPage() {
 
   const handleAuditClick = (auditId: number) => {
     setSelectedAudit((prev) => (prev === auditId ? 0 : auditId));
+    const selectedAuditStatus = audits.find(a => a.au_idx === auditId)?.au_auditstatus || "";
+    setAuditstatus(selectedAuditStatus);
   };
+  
 
   const displayedAudits = filteredAudits.slice(
     (currentPage - 1) * auditsPerPage,
@@ -344,9 +346,9 @@ export default function AuditPage() {
                     className={`flex border-b mt-4 border-gray-200 mx-3 justify-between items-center p-4 rounded-md 
                       ${audit.au_auditstatus === "geplant" ? "bg-blue-100 dark:bg-blue-600 hover:bg-blue-300 dark:hover:bg-blue-700" :
                         audit.au_auditstatus === "bereit" ? "bg-green-100 hover:bg-green-300 dark:bg-green-600 dark:hover:bg-green-700" :
-                          audit.au_auditstatus === "begonnen" ? "bg-yellow-100 dark:bg-yellow-600 hover:bg-yellow-200 dark:hover:bg-yellow-700" :
-                            audit.au_auditstatus === "findings_offen" ? "bg-red-200 dark:bg-red-600 hover:bg-red-300 dark:hover:bg-red-700" :
-                              audit.au_auditstatus === "fertig" ? "bg-gray-100 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-700" : ""
+                        audit.au_auditstatus === "begonnen" ? "bg-yellow-100 dark:bg-yellow-600 hover:bg-yellow-200 dark:hover:bg-yellow-700" :
+                        audit.au_auditstatus === "findings_offen" ? "bg-red-200 dark:bg-red-600 hover:bg-red-300 dark:hover:bg-red-700" :
+                        audit.au_auditstatus === "fertig" ? "bg-gray-100 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-700" : ""
                       } 
                       ${selectedAudit === audit.au_idx ? "text-gray-400 dark:text-gray-900" : ""}
                       mb-4 `}
@@ -400,6 +402,7 @@ export default function AuditPage() {
               {/* Buttons unter dem grauen Fenster */}
               {selectedAudit !== 0 ? (
                 <div className="flex justify-center space-x-4 mt-4">
+                  {auditstatus === "geplant" || auditstatus === "bereit" ? (
                   <button
                     onClick={() =>
                       selectedAudit &&
@@ -409,6 +412,7 @@ export default function AuditPage() {
                   >
                     Neue Question
                   </button>
+                  ) : ""}
                   <button
                     onClick={() =>
                       selectedAudit &&
@@ -418,6 +422,7 @@ export default function AuditPage() {
                   >
                     Bearbeiten
                   </button>
+                  {auditstatus !== "geplant" ? (
                   <button
                     onClick={() => {
                       if (selectedAudit) {
@@ -427,7 +432,7 @@ export default function AuditPage() {
                     className="px-4 py-2 rounded-md text-white bg-green-500"
                   >
                     Durchführen
-                  </button>
+                  </button>) : ""}
                 </div>
               ) : (
                 canCreateAudit && ( // Button nur anzeigen, wenn der Benutzer erstellberechtigt ist
