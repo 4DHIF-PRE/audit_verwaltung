@@ -65,7 +65,7 @@ export default function Question({ question }: { question: QuestionInt }) {
           setAuditorComment("");
           setFindingComment("");
         }
-
+        if (finding) {
         // Fetch the attachments/files data
         const attachmentsResponse = await fetch(
           `http://localhost:3000/api/finding/attachments/${finding.f_id}/filenames`
@@ -76,6 +76,7 @@ export default function Question({ question }: { question: QuestionInt }) {
         const filenames = attachments.fileName.map(
           (file: { fa_filename: string }) => file.fa_filename
         );
+        }
         setFiles(filenames);
       } catch (error) {
         console.error("Error fetching data:", error);
