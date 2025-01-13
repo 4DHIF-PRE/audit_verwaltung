@@ -12,8 +12,8 @@ export default function Setup() {
   const [audits, setAudits] = useState([]);
   const [selectedFinding, setSelectedFinding] = useState(null);
   const [showMore, setShowMore] = useState(false);
-  const [comment, setComment] = useState(""); // New state for comment input
-
+  const [comment, setComment] = useState(""); 
+  const [workonComments, setWorkonComments] = useState([]); 
   useEffect(() => {
     async function fetchFindings() {
       const response = await showAllFindings();
@@ -43,9 +43,37 @@ export default function Setup() {
     fetchAudits();
   }, [findings]);
 
+  
+  useEffect(() => {
+    async function fetchWorkonComments() {
+      if (selectedFinding) {
+        try {
+          const response = await getWorkon(selectedFinding.f_id); 
+          if (response.ok) {
+            const data = await response.json();
+            if (Array.isArray(data)) {
+              setWorkonComments(data); 
+            } else {
+              setWorkonComments([data]); 
+            }
+          } else {
+            console.error('Failed to fetch workon comments:', response.status);
+            setWorkonComments([]); 
+          }
+        } catch (error) {
+          console.error('Error fetching workon comments:', error);
+          setWorkonComments([]);
+        }
+      }
+    }
+
+    fetchWorkonComments();
+  }, [selectedFinding]);
+
   const handleSelectFinding = (finding) => {
     if (selectedFinding && selectedFinding.f_id === finding.f_id) {
       setSelectedFinding(null);
+      setWorkonComments([]); 
     } else {
       setSelectedFinding(finding);
       setShowMore(false);
@@ -53,7 +81,7 @@ export default function Setup() {
   };
 
   const selectedAudit = selectedFinding
-    ? audits.find((audit) => Number(audit.au_idx) == Number(selectedFinding.f_au_audit_idx))
+    ? audits.find((audit) => Number(audit.au_idx) === Number(selectedFinding.f_au_audit_idx))
     : null;
 
   const getStatusColor = (status) => {
@@ -92,9 +120,8 @@ export default function Setup() {
 
   const handleCommentSubmit = (e) => {
     e.preventDefault();
-    // Handle the comment submission logic here, for example, sending it to the server
     console.log("Submitted comment:", comment);
-    setComment(""); // Clear the input field after submission
+    setComment(""); 
   };
 
   return (
@@ -135,7 +162,6 @@ export default function Setup() {
               <Card className={`p-6 rounded-lg shadow-md w-full h-auto border-4 ${getBorderColor(selectedFinding.f_status)}`}>
                 <h2 className="text-3xl font-bold mb-4">Details zu Finding ID: {selectedFinding.f_id}</h2>
 
-
                 <p className="text-lg mb-2"><strong>Kommentar: </strong>
                   {selectedFinding.f_comment && selectedFinding.f_comment.length > 0 ? (
                     selectedFinding.f_comment
@@ -143,7 +169,6 @@ export default function Setup() {
                     <span> Kein Kommentar vorhanden.</span>
                   )}
                 </p>
-
 
                 {showMore && (
                   <div>
@@ -167,7 +192,6 @@ export default function Setup() {
                   </div>
                 )}
 
-
                 <button
                   onClick={() => setShowMore(!showMore)}
                   className="text-blue-500 hover:text-blue-700 mt-4 py-2 px-4 rounded bg-transparent border border-blue-500"
@@ -182,6 +206,20 @@ export default function Setup() {
             {selectedFinding && (
               <Card className={`p-6 rounded-lg shadow-md w-full h-auto border-4 ${getBorderColor(selectedFinding.f_status)}`}>
                 <h2 className="text-3xl font-bold mb-4">Kommentare</h2>
+
+                {/* Display workon comments */}
+                {workonComments.length > 0 ? (
+                  <ul className="mb-4">
+                    {workonComments.map((workonComment, index) => (
+                      <li key={index} className="mb-2">
+                        {workonComment.fw_kommentar}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>Keine Kommentare vorhanden.</p>
+                )}
+
                 <form onSubmit={handleCommentSubmit}>
                   <textarea
                     className="w-full p-2 border rounded-md"
@@ -218,7 +256,7 @@ export async function showAllFindings() {
 }
 
 export async function getAudit(id: number) {
-  const response = await fetch(`http://localhost:3000/audit/${id}`, {
+  const response = await fetch(`http://localhost:3000/audits/getone/${id}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',

@@ -1291,7 +1291,6 @@ export async function GetQuestionById(questionId) {
   } finally {
     pool.release();
   }
-<<<<<<< HEAD
 }
 
 export async function GetFindingWorkOnById(findingWorkOnId) {
@@ -1303,8 +1302,6 @@ export async function GetFindingWorkOnById(findingWorkOnId) {
     } catch (error) {
         return new Error(`Failed to retrieve question: ${error.message}`);
     }
-=======
->>>>>>> 910928749d229356669f77c39f150a9fa0289599
 }
 
 export async function UpdateQuestion(questionId, updates) {
