@@ -794,8 +794,6 @@ expressApp.post('/findings/workon/:id', async (req, res) => {
         const createdWorkOns = [];
 
         for (const finding of workon) {
-            console.log(finding);
-            console.log(findingId);
             const result = await CreateFindingWorkOn(findingId, finding.comment);
             if (result instanceof Error) {
                 console.error("Error creating workon:", result.message);
