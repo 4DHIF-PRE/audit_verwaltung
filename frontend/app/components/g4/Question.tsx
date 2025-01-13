@@ -25,6 +25,7 @@ export default function Question({ question }: { question: QuestionInt }) {
   const [files, setFiles] = useState<string[]>([]); // Store filenames as strings
   const [fileData, setFileData] = useState<File[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const[findingId, setFindingId] = useState(-1);
 
   // Load data from API
   useEffect(() => {
@@ -42,6 +43,7 @@ export default function Question({ question }: { question: QuestionInt }) {
 
         if (finding) {
           // Fetch the laws data from the API
+          setFindingId(finding.f_id);
           const lawResponse = await fetch(
             `http://localhost:3000/law/${question.qu_law_idx}`
           );
@@ -71,6 +73,7 @@ export default function Question({ question }: { question: QuestionInt }) {
         }
 
         // Fetch the attachments/files data
+       
         const attachmentsResponse = await fetch(
           `http://localhost:3000/api/finding/attachments/10/files`
         );
@@ -109,6 +112,8 @@ export default function Question({ question }: { question: QuestionInt }) {
 
   const handleSave = async () => {
     try {
+      if(findingId == -1) setFindingId(10); 
+      console.log(findingId);
       const findingResponse = await fetch(
         `http://localhost:3000/api/questions/${question.qu_idx}/finding`
       );
@@ -135,16 +140,16 @@ export default function Question({ question }: { question: QuestionInt }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(alteredFinding),
       });
-      // Add saving file
       const attachmentsResponse = await fetch(
         `http://localhost:3000/api/finding/attachments/10/files`
       );
       const attachments = await attachmentsResponse.json();
-      const highestId =
-        attachments.fileName[attachments.fileName.length - 1].fa_id;
-      const existingFileNames = attachments.fileName.map(
-        (file) => file.fa_filename
-      );
+      console.log(attachments);
+      const existingFileNames = Array.isArray(attachments.fileName)
+      ? attachments.fileName.map(file => file.fa_filename)
+      : [];
+      if(existingFileNames.length === 0) console.log("List of API files is empty.");
+
 
       // Upload new files not already in existingFileNames
       const filesToUpload = fileData.filter(
@@ -170,23 +175,10 @@ export default function Question({ question }: { question: QuestionInt }) {
             }
           );
 
-          // Evaluate result of finding and file uploads.
-          if (result.ok && uploadResult.ok) {
-            alert("Finding and attachments saved successfully!");
-          } else if (result.ok) {
-            console.log("Finding saved successfully, attachments failed to save: ", uploadResult)
-            alert(
-              "Finding saved successfully, but failed to save attachments!"
-            );
-          } else if (uploadResult.ok) {
-            // This shouldn't happen if the question has a matching finding.
-            console.log("Attachments saved successfully, failed to save finding: ", result);
-            alert(
-              "Attachments saved successfully, but finding failed to save!"
-            );
-          } else {
-            alert("Failed to save finding and attachments!");
-          }
+         
+        }
+        if(result.ok){
+          console.log ("Finding saved successfully!");
         }
       }
       // Evaluate result of saving finding when attachment uploads are skipped.
