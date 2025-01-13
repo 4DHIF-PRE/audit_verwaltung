@@ -68,7 +68,7 @@ export default function Question({ question }: { question: QuestionInt }) {
 
         // Fetch the attachments/files data
         const attachmentsResponse = await fetch(
-          `http://localhost:3000/api/finding/attachments/10/files`
+          `http://localhost:3000/api/finding/attachments/${finding.f_id}/filenames`
         );
         const attachments = await attachmentsResponse.json();
 
