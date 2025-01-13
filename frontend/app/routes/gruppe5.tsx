@@ -111,7 +111,7 @@ export default function Setup() {
 
     // POST Request für den Kommentar senden
     try {
-      const response = await postWorkonComment(selectedFinding.f_id, { comment });
+      const response = await postWorkonComment(selectedFinding.f_id, [{ comment }]);
       if (!response.ok) {
         console.error('Failed to submit comment:', response.status);
       }
@@ -242,7 +242,6 @@ export default function Setup() {
 }
 
 
-// Gleiche Funktion für GET und POST
 export async function postWorkonComment(id, commentData) {
   const response = await fetch(`http://localhost:3000/findings/workon/${id}`, {
     method: 'POST',

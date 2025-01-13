@@ -1282,14 +1282,14 @@ export async function GetFindingWorkOnById(findingWorkOnId) {
     }
 }
 
-export async function CreateFindingWorkOn(workOnData) {
+export async function CreateFindingWorkOn(id, comment) {
     const query = `
           INSERT INTO fw_finding_workon (fw_finding_idx, fw_kommentar)
           VALUES (?, ?)
       `;
     const values = [
-        workOnData.fw_finding_idx,
-        workOnData.fw_kommentar,
+        id,
+        comment,
     ];
     const pool = await connectionPool.getConnection();
     try {
