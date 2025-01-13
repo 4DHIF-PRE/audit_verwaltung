@@ -852,7 +852,7 @@ export async function updateFinding(updateData: {
     const creationDate = new Date(updateData.f_creation_date)
       .toISOString()
       .split(".")[0]
-      .replace("T", " ");
+      .replace("T", " ").replace(/;/g, "");
 
     // console.log("Update Data: ", updateData);
     const results = await connection.execute(
@@ -980,6 +980,7 @@ export async function getFilesByFindingId(findingId) {
       "SELECT fa_file, fa_filename, fa_id FROM fa_findingattachments WHERE fa_fid = ?",
       [findingId]
     );
+   // console.log(rows);
     return rows;
   } catch (error) {
     console.error("Error retrieving filename:", error);

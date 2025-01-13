@@ -10,20 +10,27 @@ export interface QuestionInt {
   qu_finding_level: number;
 }
 
+export interface FileInt {
+  fa_id: number;
+  fa_file: File;
+}
+
 export default function Question({ question }: { question: QuestionInt }) {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [auditorComment, setAuditorComment] = useState("");
   const [findingComment, setFindingComment] = useState("");
- 
+
   const [law, setLaw] = useState({ law: "", type: "", text: "" });
   const [loading, setLoading] = useState(true);
   const [files, setFiles] = useState<string[]>([]); // Store filenames as strings
+  const [fileData, setFileData] = useState<File[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(true);
 
   // Load data from API
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
+      console.log(question);
 
       try {
         // Fetch the findings data from the API (assuming only one finding is returned)
@@ -33,8 +40,8 @@ export default function Question({ question }: { question: QuestionInt }) {
         const finding = await findingResponse.json(); // Expecting a single finding object
 
         // Log the findings to inspect the data structure
-        console.log("retrieving finding: ")
-        console.log(finding);
+        console.log("retrieving finding: ");
+        // console.log(finding);
 
         if (finding) {
           // Fetch the laws data from the API
@@ -71,11 +78,33 @@ export default function Question({ question }: { question: QuestionInt }) {
           `http://localhost:3000/api/finding/attachments/10/files`
         );
         const attachments = await attachmentsResponse.json();
+        console.log("Attachments: ");
+        console.log(attachments);
+
+        if (attachments.fileName) {
+          const filesReturned = attachments.fileName.map(
+            (fileObj: { fa_file: { data: number[] }; fa_filename: string }) => {
+              const bufferData = new Uint8Array(fileObj.fa_file.data); // Convert data array to Uint8Array
+              const blob = new Blob([bufferData]); // Create a Blob
+              const filetoAdd = new File([blob], fileObj.fa_filename); // Create a File from the Blob
+              console.log("File to add:");
+              console.log(filetoAdd);
+              return filetoAdd;
+            }
+          );
+          console.log("Files returned:");
+          console.log(filesReturned);
+
+          setFileData(filesReturned); // Store files in state if you're using React
+        } else {
+          console.error("Unexpected response format:", attachments);
+        }
 
         // Extract filenames from the API response
         const filenames = attachments.fileName.map(
           (file: { fa_filename: string }) => file.fa_filename
         );
+
         setFiles(filenames);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -88,68 +117,130 @@ export default function Question({ question }: { question: QuestionInt }) {
   }, [question]);
 
   const handleSave = async () => {
-   // console.log("preparing to save finding:")
-    try{
+    try {
+      console.log("File Data: ");
+      console.log(fileData);
+      const findingResponse = await fetch(
+        `http://localhost:3000/api/questions/${question.qu_idx}/finding`
+      );
+      const finding = await findingResponse.json(); // Expecting a single finding object
+      const updatedFinding = {
+        f_id: finding.f_id,
+        f_level: selectedStatus,
+        f_auditor_comment: auditorComment.replace(/;/g, ""),
+        f_finding_comment: findingComment.replace(/;/g, ""),
+        f_creation_date: finding.f_creation_date,
+        f_timeInDays: finding.f_timeInDays,
+        f_status: finding.f_status.replace(/;/g, ""),
+      };
 
-    
-    const findingResponse = await fetch(
-      `http://localhost:3000/api/questions/${question.qu_idx}/finding`
-    );
-    const finding = await findingResponse.json(); // Expecting a single finding object
-    const updatedFinding = {
-      f_id: finding.f_id,
-      f_level: selectedStatus,
-      f_auditor_comment: auditorComment,
-      f_finding_comment: findingComment,
-      f_creation_date: finding.f_creation_date,
-      f_timeInDays: finding.f_timeInDays,
-      f_status: finding.f_status
-      
-    };
-     
-    console.log(files);
-   /* console.log(finding);
-   console.log("finding id: ", finding.f_id);
-    console.log("Saving Finding:", updatedFinding);
-  console.log(JSON.stringify(updatedFinding)); */
-    const result = await fetch(`http://localhost:3000/audit/finding`, { method: 'PUT', headers:{'Content-Type' : 'application/json'}, body: JSON.stringify(updatedFinding) })
-    if(result.ok){
-      alert("Finding saved successfully!");
-    }
-    else{
-      alert("Failed to save finding.");
-    }
-     // Add saving files
-     }
-     catch(error){
+      const alteredFinding = JSON.parse(
+        JSON.stringify(updatedFinding, (key, value) => {
+          return typeof value === "string" ? value.replace(/;/g, "") : value;
+        })
+      );
+
+      console.log(files);
+
+      const result = await fetch(`http://localhost:3000/audit/finding`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(alteredFinding),
+      });
+      // Add saving file
+      const attachmentsResponse = await fetch(
+        `http://localhost:3000/api/finding/attachments/10/files`
+      );
+      const attachments = await attachmentsResponse.json();
+      const highestId =
+        attachments.fileName[attachments.fileName.length - 1].fa_id;
+      const existingFileNames = attachments.fileName.map(
+        (file) => file.fa_filename
+      );
+
+      // Upload new files not already in existingFileNames
+      const filesToUpload = fileData.filter(
+        (file) => !existingFileNames.includes(file.name)
+      );
+      // Check if there are any files not already in API to be uploaded.
+      // If not, skip invoking the API and evaluate finding save success.
+      if (filesToUpload.length !== 0) {
+        const formData = new FormData();
+        for (const file of filesToUpload) {
+          formData.append("file", file);
+
+          const uploadResult = await fetch(
+            `http://localhost:3000/api/finding/attachments/10/${encodeURIComponent(
+              file.name
+            )}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+              body: formData,
+            }
+          );
+
+          // Evaluate result of finding and file uploads.
+          if (result.ok && uploadResult.ok) {
+            alert("Finding and attachments saved successfully!");
+          } else if (result.ok) {
+            alert(
+              "Finding saved successfully, but failed to save attachments!"
+            );
+          } else if (uploadResult.ok) {
+            // This shouldn't happen if the question has a matching finding.
+            alert(
+              "Attachments saved successfully, but finding failed to save!"
+            );
+          } else {
+            alert("Failed to save finding and attachments!");
+          }
+        }
+      }
+      // Evaluate result of saving finding when attachment uploads are skipped.
+      else if (result.ok)
+        alert("Finding saved successfully! No new attachments to save.");
+      else alert("Failed to save finding! No new attachments were saved.");
+    } catch (error) {
       console.log("Error occured while attempting to save finding: ", error);
-     }
-     finally{
-      console.log("Finished accessing API.")
-     }
+    } finally {
+      console.log("Finished accessing API.");
+    }
   };
 
   const handleDrop = (event: React.DragEvent) => {
     event.preventDefault();
     const droppedFiles = event.dataTransfer.files;
-   // console.log(droppedFiles)
+
     // Extract filenames from the dropped files and update state with strings
-    const filenames = Array.from(droppedFiles).map((file) => file.name);
+    const filenames = Array.from(droppedFiles).map((file) =>
+      file.name.replace(/;/g, "")
+    );
     setFiles((prevFiles) => [...prevFiles, ...filenames]);
+    setFileData((prevFiles) => [...prevFiles, ...Array.from(droppedFiles)]);
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { files } = event.target;
-  //  console.log(files);
+
     if (files) {
       // Extract filenames from the selected files and update state with strings
-      const filenames = Array.from(files).map((file) => file.name);
+      const fileList = Array.from(files);
+      const filenames = Array.from(files).map((file) =>
+        file.name.replace(/;/g, "")
+      );
       setFiles((prevFiles) => [...prevFiles, ...filenames]);
+      setFileData((prevFiles) => [...prevFiles, ...fileList]);
     }
   };
 
   const handleRemoveFile = (fileToRemove: string) => {
     setFiles(files.filter((file) => file !== fileToRemove));
+    setFileData((prevFiles) =>
+      prevFiles.filter((file) => file.name !== fileToRemove)
+    );
   };
 
   const toggleCollapse = () => {
@@ -178,9 +269,7 @@ export default function Question({ question }: { question: QuestionInt }) {
           <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
             {law.law} #{law.type}
           </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {law.text}
-          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{law.text}</p>
         </div>
 
         {/* Toggle Button mit Icon */}
@@ -195,7 +284,6 @@ export default function Question({ question }: { question: QuestionInt }) {
               isCollapsed ? "rotate-0" : "rotate-180"
             }`}
           />
-          
         </button>
       </div>
 
@@ -251,9 +339,7 @@ export default function Question({ question }: { question: QuestionInt }) {
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
           >
-            <label
-              className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
-            >
+            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
                 <svg
                   className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
