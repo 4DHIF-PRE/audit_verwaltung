@@ -1276,7 +1276,7 @@ export async function GetFindingWorkOnById(findingWorkOnId) {
     const pool = await connectionPool.getConnection();
     try {
         const [rows] = await pool.execute(query, [findingWorkOnId]);
-        return rows[0] || null;
+        return rows || null;
     } catch (error) {
         return new Error(`Failed to retrieve question: ${error.message}`);
     }
