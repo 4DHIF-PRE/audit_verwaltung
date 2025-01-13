@@ -245,6 +245,9 @@ export default function Setup() {
   );
 }
 
+
+
+
 export async function showAllFindings() {
   const response = await fetch('http://localhost:3000/findings/getall', {
     method: 'GET',
