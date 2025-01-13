@@ -71,11 +71,11 @@ export default function Question({ question }: { question: QuestionInt }) {
           setAuditorComment("");
           setFindingComment("");
         }
-
+        if (finding) {
         // Fetch the attachments/files data
        
         const attachmentsResponse = await fetch(
-          `http://localhost:3000/api/finding/attachments/10/files`
+          `http://localhost:3000/api/finding/attachments/${finding.f_id}/filenames`
         );
         const attachments = await attachmentsResponse.json();
 
@@ -97,9 +97,7 @@ export default function Question({ question }: { question: QuestionInt }) {
         // Extract filenames from the API response
         const filenames = attachments.fileName.map(
           (file: { fa_filename: string }) => file.fa_filename
-        );
-
-        setFiles(filenames);
+        );}
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
