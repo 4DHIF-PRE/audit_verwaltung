@@ -30,7 +30,6 @@ export default function Question({ question }: { question: QuestionInt }) {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      console.log(question);
 
       try {
         // Fetch the findings data from the API (assuming only one finding is returned)
@@ -40,8 +39,6 @@ export default function Question({ question }: { question: QuestionInt }) {
         const finding = await findingResponse.json(); // Expecting a single finding object
 
         // Log the findings to inspect the data structure
-        console.log("retrieving finding: ");
-        // console.log(finding);
 
         if (finding) {
           // Fetch the laws data from the API
@@ -78,8 +75,6 @@ export default function Question({ question }: { question: QuestionInt }) {
           `http://localhost:3000/api/finding/attachments/10/files`
         );
         const attachments = await attachmentsResponse.json();
-        console.log("Attachments: ");
-        console.log(attachments);
 
         if (attachments.fileName) {
           const filesReturned = attachments.fileName.map(
@@ -87,13 +82,9 @@ export default function Question({ question }: { question: QuestionInt }) {
               const bufferData = new Uint8Array(fileObj.fa_file.data); // Convert data array to Uint8Array
               const blob = new Blob([bufferData]); // Create a Blob
               const filetoAdd = new File([blob], fileObj.fa_filename); // Create a File from the Blob
-              console.log("File to add:");
-              console.log(filetoAdd);
               return filetoAdd;
             }
           );
-          console.log("Files returned:");
-          console.log(filesReturned);
 
           setFileData(filesReturned); // Store files in state if you're using React
         } else {
@@ -118,8 +109,6 @@ export default function Question({ question }: { question: QuestionInt }) {
 
   const handleSave = async () => {
     try {
-      console.log("File Data: ");
-      console.log(fileData);
       const findingResponse = await fetch(
         `http://localhost:3000/api/questions/${question.qu_idx}/finding`
       );
@@ -140,7 +129,6 @@ export default function Question({ question }: { question: QuestionInt }) {
         })
       );
 
-      console.log(files);
 
       const result = await fetch(`http://localhost:3000/audit/finding`, {
         method: "PUT",
@@ -186,11 +174,13 @@ export default function Question({ question }: { question: QuestionInt }) {
           if (result.ok && uploadResult.ok) {
             alert("Finding and attachments saved successfully!");
           } else if (result.ok) {
+            console.log("Finding saved successfully, attachments failed to save: ", uploadResult)
             alert(
               "Finding saved successfully, but failed to save attachments!"
             );
           } else if (uploadResult.ok) {
             // This shouldn't happen if the question has a matching finding.
+            console.log("Attachments saved successfully, failed to save finding: ", result);
             alert(
               "Attachments saved successfully, but finding failed to save!"
             );
@@ -202,7 +192,11 @@ export default function Question({ question }: { question: QuestionInt }) {
       // Evaluate result of saving finding when attachment uploads are skipped.
       else if (result.ok)
         alert("Finding saved successfully! No new attachments to save.");
-      else alert("Failed to save finding! No new attachments were saved.");
+      else {
+        console.log("Failed to save finding: ", result);
+        alert("Failed to save finding! No new attachments were saved.");
+
+      }
     } catch (error) {
       console.log("Error occured while attempting to save finding: ", error);
     } finally {
