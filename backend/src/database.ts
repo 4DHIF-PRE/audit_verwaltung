@@ -836,11 +836,6 @@ export async function createFinding(findingData: {
     return new Error("Error inserting finding");
   }
 
-  // catch (error: any) {
-  //   console.error("MySQL error details:", error);
-  //   return new Error("Error inserting finding");
-  // } 
-
   finally {
     connection.release();
   }
