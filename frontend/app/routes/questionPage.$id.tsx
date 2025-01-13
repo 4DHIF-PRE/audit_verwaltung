@@ -128,6 +128,24 @@ export default function AuditPage() {
         throw new Error(`Failed to save new questions: ${errorResponse.message}`);
       }
   
+      const auditQuestions = existingQuestions.filter(
+        (question) => question.qu_audit_idx === auditId
+      );
+
+      if(auditQuestions.length === 0){
+        const updateResponse = await fetch(`http://localhost:3000/audit/${auditId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ au_auditstatus: "begonnen" }),
+        });
+  
+        if (!updateResponse.ok) {
+          const errorResponse = await updateResponse.json();
+          throw new Error(`Failed to update audit status: ${errorResponse.message}`);
+        }
+      }
       navigate("/auditpage");
   
     } catch (error) {
