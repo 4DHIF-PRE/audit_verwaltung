@@ -1,19 +1,14 @@
 import { useState, useEffect } from 'react';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
-import { Navbar } from "~/components/Navbar";
+import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
+import { Navbar } from '~/components/Navbar';
 
 export default function Setup() {
   const [findings, setFindings] = useState([]);
   const [audits, setAudits] = useState([]);
   const [selectedFinding, setSelectedFinding] = useState(null);
   const [showMore, setShowMore] = useState(false);
-  const [comment, setComment] = useState(""); 
-  const [workonComments, setWorkonComments] = useState([]); 
+  const [comment, setComment] = useState("");
+  const [workonComments, setWorkonComments] = useState([]);
 
   useEffect(() => {
     async function fetchFindings() {
@@ -44,29 +39,25 @@ export default function Setup() {
     fetchAudits();
   }, [findings]);
 
-  
   useEffect(() => {
     async function fetchWorkonComments() {
       if (selectedFinding) {
         try {
-          const response = await getWorkon(selectedFinding.f_id);
+          const response = await getWorkonComments(selectedFinding.f_id);
           const data = await response.json();
-          
-          
           setWorkonComments(Array.isArray(data) ? data : [data]);
         } catch (error) {
           console.error("Failed to fetch workon comments:", error);
         }
       }
     }
-
     fetchWorkonComments();
   }, [selectedFinding]);
 
   const handleSelectFinding = (finding) => {
     if (selectedFinding && selectedFinding.f_id === finding.f_id) {
       setSelectedFinding(null);
-      setWorkonComments([]); 
+      setWorkonComments([]);
     } else {
       setSelectedFinding(finding);
       setShowMore(false);
@@ -111,34 +102,24 @@ export default function Setup() {
     setComment(e.target.value);
   };
 
-  const handleCommentSubmit = (e) => {
+  const handleCommentSubmit = async (e) => {
     e.preventDefault();
+    if (!selectedFinding) return;
 
-    
+    // Optimistische UI-Aktualisierung
     setWorkonComments([...workonComments, { fw_kommentar: comment }]);
 
-    
-    async function submitComment() {
-      try {
-        const response = await fetch(`http://localhost:3000/findings/workon/${selectedFinding.f_id}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ comment }), 
-        });
-
-        if (!response.ok) {
-          console.error('Failed to submit comment:', response.status);
-        }
-      } catch (error) {
-        console.error('Error submitting comment:', error);
+    // POST Request für den Kommentar senden
+    try {
+      const response = await postWorkonComment(selectedFinding.f_id, { comment });
+      if (!response.ok) {
+        console.error('Failed to submit comment:', response.status);
       }
+    } catch (error) {
+      console.error('Error submitting comment:', error);
     }
 
-    submitComment();
-
-    setComment(""); 
+    setComment("");
   };
 
   return (
@@ -148,7 +129,6 @@ export default function Setup() {
         <div className="max-w-[350px] mt-2">
           <h1 className="text-2xl font-bold mb-4">Findings</h1>
           <ul>
-
             {findings.length > 0 ? (
               findings.map((finding) => (
                 <Card
@@ -262,6 +242,27 @@ export default function Setup() {
 }
 
 
+// Gleiche Funktion für GET und POST
+export async function postWorkonComment(id, commentData) {
+  const response = await fetch(`http://localhost:3000/findings/workon/${id}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(commentData),
+  });
+  return response;
+}
+
+export async function getWorkonComments(id) {
+  const response = await fetch(`http://localhost:3000/findings/workon/${id}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  return response;
+}
 
 
 export async function showAllFindings() {
@@ -274,18 +275,8 @@ export async function showAllFindings() {
   return response;
 }
 
-export async function getAudit(id: number) {
+export async function getAudit(id) {
   const response = await fetch(`http://localhost:3000/audit/${id}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  return response;
-}
-
-export async function getWorkon(id: number) {
-  const response = await fetch(`http://localhost:3000/findings/workon/${id}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',

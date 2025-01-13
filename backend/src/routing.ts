@@ -782,36 +782,46 @@ expressApp.get('/findings/workon/:id', async (req, res) => {
     }
 });
 
-expressApp.post('/findings/workon', async (req, res) => {
+expressApp.post('/findings/workon/:id', async (req, res) => {
     const workon = req.body;
+    const findingId = req.params.id; // findingsId als 'id' extrahieren
 
+    // Validierung: Stelle sicher, dass die empfangenen Daten ein Array sind
     if (!Array.isArray(workon)) {
-        return res.status(400).json({ message: "Invalid data format" });
+        return res.status(400).json({ message: "Invalid data format, expected an array of workon data." });
     }
 
     try {
         const createdWorkOns = [];
 
-        for (const finding of createdWorkOns) {
-            const existingWorkOn = await GetWorkOnById(
-                finding.fw_idx
-            );
+        // Iteriere über jedes Element im 'workon'-Array
+        for (const finding of workon) {
+            // Prüfe, ob ein WorkOn-Eintrag mit dieser fw_idx bereits existiert
+            const existingWorkOn = await GetWorkOnById(finding.fw_idx);
 
             if (!existingWorkOn) {
-                const result = await CreateFindingWorkOn(workon);
+                // Wenn kein WorkOn gefunden wurde, erstelle einen neuen
+                finding.findingId = findingId; // Füge die 'id' zu jedem 'finding' hinzu
+                const result = await CreateFindingWorkOn(finding); // Annahme: CreateFindingWorkOn existiert
                 if (result instanceof Error) {
-                    console.error("Error creating question:", result.message);
+                    console.error("Error creating workon:", result.message);
                 } else {
                     createdWorkOns.push(result);
                 }
+            } else {
+                console.log(`WorkOn with ID ${finding.fw_idx} already exists.`);
             }
         }
 
-        res.status(201).json({ created: createdWorkOns.length });
+        // Erfolgsnachricht zurückgeben, wie viele Einträge erstellt wurden
+        res.status(201).json({ created: createdWorkOns.length, data: createdWorkOns });
     } catch (error) {
-        res.status(500).json({ message: "Error saving questions", error });
+        // Fehlerhandling bei einem allgemeinen Fehler
+        console.error("Error saving workons:", error);
+        res.status(500).json({ message: "Error saving workon data", error: error.message });
     }
 });
+
 
 expressApp.post('/questions/bulk', async (req, res) => {
     const questions = req.body;
