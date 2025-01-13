@@ -770,9 +770,7 @@ expressApp.get('/api/finding/attachments/:id/delete', async (req, res) => {
             const questionId = parseInt(req.params.id, 10);
             if (isNaN(questionId)) {
                 return res.status(400).json({ message: "Invalid question ID" });
-<<<<<<< HEAD
             }
-<<<<<<< HEAD
         });
         expressApp.get('/findings/workon/:id', async (req, res) => {
             const findingWorkOnId = req.params.id;
@@ -781,21 +779,6 @@ expressApp.get('/api/finding/attachments/:id/delete', async (req, res) => {
                 res.status(400).json({message: result.message});
             } else {
                 res.status(200).json(result);
-            }
-        });
-=======
-=======
-            }
->>>>>>> 910928749d229356669f77c39f150a9fa0289599
-        
-            try {
-                const result = await DeleteQuestion(questionId);
-                if (result instanceof Error) {
-                    return res.status(400).json({ message: result.message });
-                }
-                res.status(204).send();
-            } catch (error) {
-                res.status(500).json({ error: 'Internal Server Error' });
             }
         });
 
@@ -829,9 +812,4 @@ expressApp.get('/api/finding/attachments/:id/delete', async (req, res) => {
             } catch (error) {
               res.status(500).json({ message: "Error saving questions", error });
             }
-<<<<<<< HEAD
           });
->>>>>>> 910928749d229356669f77c39f150a9fa0289599
-=======
-          });
->>>>>>> 910928749d229356669f77c39f150a9fa0289599
