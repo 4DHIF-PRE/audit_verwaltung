@@ -42,11 +42,12 @@ export const loader: LoaderFunction = async ({ params }) => {
     nextId++;
   }
 
-  return json({ auditId: id, laws, nextQuestionId: nextId });
-};
+  return json({ auditId: id, laws, nextQuestionId: nextId});
+}
+
 
 export default function AuditPage() {
-  const { auditId, laws, nextQuestionId } = useLoaderData<{
+  const { auditId, laws, nextQuestionId} = useLoaderData<{
     auditId: string;
     laws: Law[];
     nextQuestionId: number;
@@ -138,9 +139,9 @@ export default function AuditPage() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ au_auditstatus: "begonnen" }),
+          body: JSON.stringify({ au_auditstatus: "bereit" }),
         });
-  
+
         if (!updateResponse.ok) {
           const errorResponse = await updateResponse.json();
           throw new Error(`Failed to update audit status: ${errorResponse.message}`);

@@ -16,8 +16,6 @@ export const loader: LoaderFunction = async ({ request }) => {
   const cookie = request.headers.get("cookie");
   const controller = new AbortController();
   request.signal.addEventListener("abort", () => controller.abort());
-
-
   const userRes = await fetch("http://localhost:3000/users/querySessionowner", {
     method: "GET",
     headers: { "Content-Type": "application/json", Cookie: cookie || "", },
@@ -236,8 +234,51 @@ export default function AuditPage() {
 
     if (audit.au_auditstatus === "bereit") {
       try {
+      
+        interface QuestionInt {
+          qu_idx: number;
+          qu_audit_idx: number;
+          qu_law_idx: number;
+          qu_audited: number;
+          qu_applicable: number;
+          qu_finding_level: number;
+        }
+
+        const getQuestionsfromAudit = await fetch(`http://localhost:3000/audit/questions/${auditId}`, {
+          method: "GET",
+        });
+        
+        const QuestionAudit: QuestionInt[] = await getQuestionsfromAudit.json();
+        
+        QuestionAudit.forEach(async (element) => {
+          const newFinding = {
+            f_level: 0,
+            f_auditor_comment:"",
+            f_finding_comment: "",
+            f_creation_Date: new Date(),
+            f_timeInDays: 14,
+            f_status: "offen",
+            f_au_audit_idx: auditId,
+            f_qu_question_idx: element.qu_idx, 
+            f_u_auditdor_idx: user?.u_userId,
+          };
+
+          console.log("new Finding", newFinding);
+          const addfinding = await fetch("http://localhost:3000/audit/finding", {
+            method:"POST",
+            headers:{
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newFinding),
+          });
+          if (!addfinding.ok) {
+            const errorResponse = await addfinding.json();
+            throw new Error(`Failed to create finding for question: ${errorResponse.message}`);
+          }
+        });
+
         const response = await fetch(`http://localhost:3000/audit/${auditId}/status`, {
-          method: "PATCH",
+          method: "PUT",
           headers: {
             "Content-Type": "application/json"
           },
