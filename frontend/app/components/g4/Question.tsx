@@ -219,18 +219,18 @@ export default function Question({ question }: { question: QuestionInt }) {
 
   //maby add a dupicat restriction on name?
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { filesChanged } = event.target;
-console.log(filesChanged)
-    if (filesChanged) {
+    const { files } = event.target;
+console.log(files)
+    if (files) {
       // Extract filenames from the selected files and update state with strings
-      const fileList = Array.from(filesChanged);
-      const filenames = Array.from(filesChanged).map((file) =>
+      const fileList = Array.from(files);
+      const filenames = Array.from(files).map((file) =>
         file.name.replace(/;/g, "")
       );
       //filenames.concat(files);
       //console.log(tmp);
       setFiles((prevFiles) => Array.from(new Set([...prevFiles, ...filenames])));
-      console.log(files);
+      
       setFileData((prevFiles) => Array.from(new Set([...prevFiles, ...fileList])));
     }
   };
