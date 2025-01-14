@@ -131,7 +131,7 @@ export default function Setup() {
   };
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-grow flex-col dark:bg-black">
       <Navbar />
       <div className="flex justify-between px-10 mt-10 pt-5">
         <div className="max-w-[350px] mt-2">
@@ -140,7 +140,7 @@ export default function Setup() {
             {findings.length > 0 ? (
               findings.map((finding) => (
                 <Card
-                  className={`w-[350px] mb-4 cursor-pointer border-l-8 ${getStatusColor(finding.f_status)}`}
+                  className={`w-[350px] mb-4 cursor-pointer border-l-8 dark:text-black ${getStatusColor(finding.f_status)}`}
                   key={finding.f_id}
                   onClick={() => handleSelectFinding(finding)}
                 >
@@ -222,7 +222,7 @@ export default function Setup() {
                     ))}
                   </ul>
                 ) : (
-                  <p>Keine Kommentare vorhanden.</p>
+                  <p className="pb-3">Keine Kommentare vorhanden.</p>
                 )}
 
                 {/* Refresh button for comments */}
@@ -235,7 +235,7 @@ export default function Setup() {
 
                 <form onSubmit={handleCommentSubmit}>
                   <textarea
-                    className="w-full p-2 border rounded-md"
+                    className="w-full p-2 border rounded-md dark:text-black"
                     placeholder="Add a comment..."
                     value={comment}
                     onChange={handleCommentChange}
