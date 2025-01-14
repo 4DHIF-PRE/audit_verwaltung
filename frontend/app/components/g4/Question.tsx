@@ -31,14 +31,14 @@ export default function Question({ question }: { question: QuestionInt }) {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-
+      console.log("onload");
       try {
         // Fetch the findings data from the API (assuming only one finding is returned)
         const findingResponse = await fetch(
           `http://localhost:3000/api/questions/${question.qu_idx}/finding`
         );
         const finding = await findingResponse.json(); // Expecting a single finding object
-
+        
         // Log the findings to inspect the data structure
 
         if (finding) {
@@ -78,8 +78,10 @@ export default function Question({ question }: { question: QuestionInt }) {
           `http://localhost:3000/api/finding/attachments/${finding.f_id}/filenames`
         );
         const attachments = await attachmentsResponse.json();
+        console.log("attach");
+        console.log(attachments);
 
-        if (attachments.fileName) {
+        /*if (attachments.fileName) {
           const filesReturned = attachments.fileName.map(
             (fileObj: { fa_file: { data: number[] }; fa_filename: string }) => {
               const bufferData = new Uint8Array(fileObj.fa_file.data); // Convert data array to Uint8Array
@@ -92,12 +94,16 @@ export default function Question({ question }: { question: QuestionInt }) {
           setFileData(filesReturned); // Store files in state if you're using React
         } else {
           console.error("Unexpected response format:", attachments);
-        }
+        }*/
 
         // Extract filenames from the API response
         const filenames = attachments.fileName.map(
           (file: { fa_filename: string }) => file.fa_filename
-        );}
+        );
+        console.log(filenames);
+        setFiles((prevFiles) => Array.from(new Set([...prevFiles, ...filenames])));
+      }
+        
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -139,7 +145,7 @@ export default function Question({ question }: { question: QuestionInt }) {
         body: JSON.stringify(alteredFinding),
       });
       const attachmentsResponse = await fetch(
-        `http://localhost:3000/api/finding/attachments/10/files`
+        `http://localhost:3000/api/finding/attachments/${findingId}/filenames`
       );
       const attachments = await attachmentsResponse.json();
       console.log(attachments);
@@ -157,11 +163,12 @@ export default function Question({ question }: { question: QuestionInt }) {
       // If not, skip invoking the API and evaluate finding save success.
       if (filesToUpload.length !== 0) {
         const formData = new FormData();
+        //console.log(filesToUpload)
         for (const file of filesToUpload) {
           formData.append("file", file);
 
           const uploadResult = await fetch(
-            `http://localhost:3000/api/finding/attachments/10/${encodeURIComponent(
+            `http://localhost:3000/api/finding/attachments/${findingId}/${encodeURIComponent(
               file.name
             )}`,
             {
@@ -202,26 +209,35 @@ export default function Question({ question }: { question: QuestionInt }) {
     const filenames = Array.from(droppedFiles).map((file) =>
       file.name.replace(/;/g, "")
     );
-    setFiles((prevFiles) => [...prevFiles, ...filenames]);
-    setFileData((prevFiles) => [...prevFiles, ...Array.from(droppedFiles)]);
+    //filenames.concat(files);
+    //console.log(filenames);
+    setFiles((prevFiles) => Array.from(new Set([...prevFiles, ...filenames])));
+    console.log(files);
+    setFileData((prevFiles) => Array.from(new Set([...prevFiles, ...Array.from(droppedFiles)])));
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { files } = event.target;
 
-    if (files) {
+  //maby add a dupicat restriction on name?
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { filesChanged } = event.target;
+console.log(filesChanged)
+    if (filesChanged) {
       // Extract filenames from the selected files and update state with strings
-      const fileList = Array.from(files);
-      const filenames = Array.from(files).map((file) =>
+      const fileList = Array.from(filesChanged);
+      const filenames = Array.from(filesChanged).map((file) =>
         file.name.replace(/;/g, "")
       );
-      setFiles((prevFiles) => [...prevFiles, ...filenames]);
-      setFileData((prevFiles) => [...prevFiles, ...fileList]);
+      //filenames.concat(files);
+      //console.log(tmp);
+      setFiles((prevFiles) => Array.from(new Set([...prevFiles, ...filenames])));
+      console.log(files);
+      setFileData((prevFiles) => Array.from(new Set([...prevFiles, ...fileList])));
     }
   };
 
   const handleRemoveFile = (fileToRemove: string) => {
     setFiles(files.filter((file) => file !== fileToRemove));
+    console.log(files);
     setFileData((prevFiles) =>
       prevFiles.filter((file) => file.name !== fileToRemove)
     );
