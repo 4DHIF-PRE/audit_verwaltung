@@ -29,9 +29,9 @@ export function Navbar() {
                     className="flex items-center space-x-3 rtl:space-x-reverse"
                 >
                     <img
-                        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTy4PH-8tCokfemaDlj_PZJZFb2SX_M2Uabbg&s"
+                        src="../assets/spg-logo.png"
                         className="h-8"
-                        alt="Flowbite Logo"
+                        alt="Spg Logo"
                     />
                     <span className="text-black text-2xl font-semibold whitespace-nowrap dark:text-white">
                         PreAudit
