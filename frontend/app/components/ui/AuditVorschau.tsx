@@ -24,7 +24,7 @@ export default function AuditVorschau({ audit, allAudits }: Props) {
   };
 
   return (
-    <div className="flex-1 ml-6 p-4 rounded-md center">
+    <div className="flex-1 ml-6 p-4 rounded-md left">
       {selectedAuditDetails ? (
         <div>
           <h2 className="text-2xl font-bold mb-4">
@@ -38,8 +38,8 @@ export default function AuditVorschau({ audit, allAudits }: Props) {
             {formatDate(selectedAuditDetails.au_audit_date)}
           </p>
           <p>
-            <strong>Leadauditee ID:</strong>{" "}
-            {selectedAuditDetails.au_leadauditee_idx}
+            <strong>Leadauditor:</strong>{" "}
+            Hier muss der LEADAUDITOR-Name rein, wehe ich seh noch einmal Leadauditee
           </p>
           <p>
             <strong>Status:</strong> {selectedAuditDetails.au_auditstatus}

@@ -75,7 +75,7 @@ export default function AuditBearbeiten() {
       <h1 className="text-2xl font-bold text-center mt-4">
         Audit bearbeiten - ID {id}
       </h1>
-      <h1>
+      <h1 className="text-2xl">
         <strong>{formData.au_theme}</strong>
       </h1>
 
@@ -111,7 +111,7 @@ export default function AuditBearbeiten() {
           </div>
         </div>
 
-        {/* Lead Auditor und Auditee */}
+        {/* Lead Auditor und Auditee 
         <div className="flex space-x-4">
           <div className="flex-1">
             <label className="block font-bold">Lead Auditor ID</label>
@@ -136,7 +136,7 @@ export default function AuditBearbeiten() {
             />
           </div>
         </div>
-
+        */}
         {/* Ort, Thema, Typ und Status */}
         <div className="flex space-x-4">
           <div className="flex-1">
@@ -171,6 +171,7 @@ export default function AuditBearbeiten() {
               <option value="sonstig">sonstig</option>
             </select>
           </div>
+          {/*
           <div className="flex-1">
             <label className="block font-bold">Status</label>
             <select
@@ -186,7 +187,7 @@ export default function AuditBearbeiten() {
               <option value="findings_offen">findings_offen</option>
               <option value="fertig">fertig</option>
             </select>
-          </div>
+          </div> */}
         </div>
 
         {/* Save Button */}
