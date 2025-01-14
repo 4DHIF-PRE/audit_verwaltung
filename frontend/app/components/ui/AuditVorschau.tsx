@@ -28,21 +28,18 @@ export default function AuditVorschau({ audit, allAudits }: Props) {
       {selectedAuditDetails ? (
         <div>
           <h2 className="text-2xl font-bold mb-4">
-            {selectedAuditDetails.au_idx} - {selectedAuditDetails.au_theme}
+            {selectedAuditDetails.au_theme}
           </h2>
-          <p>
-            <strong>ID:</strong> {selectedAuditDetails.au_idx}
-          </p>
           <p>
             <strong>Datum:</strong>{" "}
             {formatDate(selectedAuditDetails.au_audit_date)}
           </p>
           <p>
             <strong>Leadauditor:</strong>{" "}
-            Hier muss der LEADAUDITOR-Name rein, wehe ich seh noch einmal Leadauditee
+            Hier fehlt der Leadauditor-Name!
           </p>
           <p>
-            <strong>Status:</strong> {selectedAuditDetails.au_auditstatus}
+            <strong>Status:</strong> {selectedAuditDetails.au_auditstatus.charAt(0).toUpperCase() + selectedAuditDetails.au_auditstatus.slice(1)}
           </p>
           <p>
             <strong>Ort:</strong> {selectedAuditDetails.au_place}
@@ -51,7 +48,7 @@ export default function AuditVorschau({ audit, allAudits }: Props) {
             <strong>Thema:</strong> {selectedAuditDetails.au_theme}
           </p>
           <p>
-            <strong>Typ:</strong> {selectedAuditDetails.au_typ}
+            <strong>Typ:</strong> {selectedAuditDetails.au_typ.charAt(0).toUpperCase() + selectedAuditDetails.au_typ.slice(1)}
           </p>
         </div>
       ) : (

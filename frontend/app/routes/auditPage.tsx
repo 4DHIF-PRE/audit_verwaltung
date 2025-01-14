@@ -335,7 +335,7 @@ export default function AuditPage() {
                   className="mb-4 rounded bg-green-100 dark:bg-green-500 border border-gray-300"
                   onClick={() => createAudit(user, setAudits)}
                 >
-                  Audit Add
+                  Audit erstellen
                 </button>
               </div>
 
@@ -355,7 +355,7 @@ export default function AuditPage() {
                     onClick={() => handleAuditClick(audit.au_idx)}>
                     <div>
 
-                      Audit {audit.au_idx} - {audit.au_theme}
+                      {audit.au_theme}
                     </div>
                     <button
                       onClick={(e) => {
