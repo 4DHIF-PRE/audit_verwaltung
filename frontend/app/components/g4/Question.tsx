@@ -247,7 +247,7 @@ export default function Question({ question }: { question: QuestionInt }) {
 
   // Background color logic
   let bgColorClass = "bg-gray-100 dark:bg-gray-800";
-  if (selectedStatus === "geschlossen") {
+  if (selectedStatus === "richtig") {
     bgColorClass = "bg-green-100 dark:bg-green-800";
   } else if (selectedStatus === "kritisch") {
     bgColorClass = "bg-red-100 dark:bg-red-800";
@@ -273,7 +273,7 @@ export default function Question({ question }: { question: QuestionInt }) {
         {/* Toggle Button mit Icon */}
         <button
           onClick={toggleCollapse}
-          className="flex items-center space-x-2 text-black font-medium rounded-md shadow focus:outline-none pt-2 pb-2 pl-4 pr-4"
+          className="flex items-center space-x-2 text-black font-medium rounded-md focus:outline-none pt-2 pb-2 pl-4 pr-4"
         >
           <img
             src="../assets/klappicon.png"
@@ -298,7 +298,7 @@ export default function Question({ question }: { question: QuestionInt }) {
               className="border rounded-lg p-2.5 text-gray-700 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             >
               <option value="offen">Frage bewerten</option>
-              <option value="geschlossen">Keine Findings</option>
+              <option value="richtig">Keine Findings</option>
               <option value="dokumentiert">Nur dokumentiert</option>
               <option value="kritisch">Kritisches Finding</option>
             </select>
