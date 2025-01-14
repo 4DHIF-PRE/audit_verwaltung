@@ -822,17 +822,17 @@ export async function updateFinding(updateData: {
     f_timeInDays: number;
     f_status: string;
 }): Promise<void | Error> {
-    const connection = await connectionPool.getConnection();
-    try {
-        // Date conversion of f_creation_date, as SQL query fails at date parsing otherwise
-        const creationDate = new Date(updateData.f_creation_date)
-            .toISOString()
-            .split(".")[0]
-            .replace("T", " ");
 
-        // console.log("Update Data: ", updateData);
-        const results = await connection.execute(
-            `UPDATE f_findings
+  const connection = await connectionPool.getConnection();
+  try {
+    // Date conversion of f_creation_date, as SQL query fails at date parsing otherwise
+    const creationDate = new Date(updateData.f_creation_date)
+      .toISOString()
+      .split(".")[0]
+      .replace("T", " ").replace(/;/g, "");
+
+    const results = await connection.execute(
+      `UPDATE f_findings
              SET f_level = ${updateData.f_level}, f_comment = '${updateData.f_auditor_comment}', f_finding_comment = '${updateData.f_finding_comment}', f_creation_date = '${creationDate}', f_timeInDays = ${updateData.f_timeInDays}, f_status = '${updateData.f_status}'
              WHERE f_id = ${updateData.f_id}`
         );
@@ -946,23 +946,25 @@ export async function getFileNameByFindingId(findingId) {
 
 //get Files
 export async function getFilesByFindingId(findingId) {
-    if (!findingId) {
-        return new Error("Finding ID must not be null or undefined.");
-    }
 
-    const connection = await connectionPool.getConnection();
-    try {
-        const [rows] = await connection.execute(
-            "SELECT fa_file, fa_filename, fa_id FROM fa_findingattachments WHERE fa_fid = ?",
-            [findingId]
-        );
-        return rows;
-    } catch (error) {
-        console.error("Error retrieving filename:", error);
-        return new Error("Error retrieving filename.");
-    } finally {
-        connection.release();
-    }
+  if (!findingId) {
+    return new Error("Finding ID must not be null or undefined.");
+  }
+
+  const connection = await connectionPool.getConnection();
+  try {
+    const [rows] = await connection.execute(
+      "SELECT fa_file, fa_filename, fa_id FROM fa_findingattachments WHERE fa_fid = ?",
+      [findingId]
+    );
+   // console.log(rows);
+    return rows;
+  } catch (error) {
+    console.error("Error retrieving filename:", error);
+    return new Error("Error retrieving filename.");
+  } finally {
+    connection.release();
+  }
 }
 
 //delete File
