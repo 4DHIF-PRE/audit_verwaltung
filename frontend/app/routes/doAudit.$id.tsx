@@ -56,6 +56,12 @@ export default function App() {
     loadAuditData();
   }, []);
 
+  const handleSave = async() => {
+
+
+    window.location.href = `/gruppe5`
+  }
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -82,7 +88,7 @@ export default function App() {
       <button
         id="saveAudit"
         type="button"
-        onClick={() => window.location.href = `/gruppe5`}
+        onClick={handleSave}
         className="bg-red-500 hover:bg-red-600 text-white font-medium rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 pt-2 pb-2 pl-5 pr-5"
       >
         Audit speichern

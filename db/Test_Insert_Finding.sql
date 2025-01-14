@@ -9,3 +9,5 @@ INSERT INTO f_findings (f_level, f_creation_date, f_timeInDays, f_status, f_au_a
 INSERT INTO f_findings (f_level, f_creation_date, f_timeInDays, f_status, f_au_audit_idx, f_qu_question_idx, f_u_auditor_id) VALUES (2, NOW(), 21, 'offen', 12, 6, "82dc20bc85c3eb7f387b7c611b6e8151feec2fa096c02bc84f137571797368cd");
 INSERT INTO f_findings (f_level, f_creation_date, f_timeInDays, f_status, f_au_audit_idx, f_qu_question_idx, f_u_auditor_id) VALUES (2, NOW(), 21, 'geschlossen', 12, 6, "82dc20bc85c3eb7f387b7c611b6e8151feec2fa096c02bc84f137571797368cd");
 INSERT INTO f_findings (f_level, f_creation_date, f_timeInDays, f_status, f_au_audit_idx, f_qu_question_idx, f_u_auditor_id) VALUES (2, NOW(), 21, 'offen', 12, 6, "82dc20bc85c3eb7f387b7c611b6e8151feec2fa096c02bc84f137571797368cd");
+
+INSERT INTO fw_finding_workon (fw_finding_idx, fw_kommentar) VALUES (13, "Regel 155 bearbeiten");
