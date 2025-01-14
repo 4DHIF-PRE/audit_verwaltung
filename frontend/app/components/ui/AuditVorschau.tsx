@@ -24,25 +24,22 @@ export default function AuditVorschau({ audit, allAudits }: Props) {
   };
 
   return (
-    <div className="flex-1 ml-6 p-4 rounded-md center">
+    <div className="flex-1 ml-6 p-4 rounded-md left">
       {selectedAuditDetails ? (
         <div>
           <h2 className="text-2xl font-bold mb-4">
-            {selectedAuditDetails.au_idx} - {selectedAuditDetails.au_theme}
+            {selectedAuditDetails.au_theme}
           </h2>
-          <p>
-            <strong>ID:</strong> {selectedAuditDetails.au_idx}
-          </p>
           <p>
             <strong>Datum:</strong>{" "}
             {formatDate(selectedAuditDetails.au_audit_date)}
           </p>
           <p>
-            <strong>Leadauditee ID:</strong>{" "}
-            {selectedAuditDetails.au_leadauditee_idx}
+            <strong>Leadauditor:</strong>{" "}
+            Hier fehlt der Leadauditor-Name!
           </p>
           <p>
-            <strong>Status:</strong> {selectedAuditDetails.au_auditstatus}
+            <strong>Status:</strong> {selectedAuditDetails.au_auditstatus.charAt(0).toUpperCase() + selectedAuditDetails.au_auditstatus.slice(1)}
           </p>
           <p>
             <strong>Ort:</strong> {selectedAuditDetails.au_place}
@@ -51,12 +48,12 @@ export default function AuditVorschau({ audit, allAudits }: Props) {
             <strong>Thema:</strong> {selectedAuditDetails.au_theme}
           </p>
           <p>
-            <strong>Typ:</strong> {selectedAuditDetails.au_typ}
+            <strong>Typ:</strong> {selectedAuditDetails.au_typ.charAt(0).toUpperCase() + selectedAuditDetails.au_typ.slice(1)}
           </p>
         </div>
       ) : (
         <span className="text-xl text-gray-500 dark:text-white">
-          Select Audit
+          Select or Create Audit 
         </span>
       )}
     </div>

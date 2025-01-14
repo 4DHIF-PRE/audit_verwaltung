@@ -115,24 +115,23 @@ export async function SessionToUser(
 
         const timeNow = new Date(Date.now());
 
+    const [resultsRoles, fieldsRoles]: [any[], mysql.FieldPacket[]] =
+      await connection.execute(
+        "SELECT `r_id`, `audit` FROM `ru_rolesuser` inner join `r_roles` on r_id = ru_r_id WHERE `ru_u_userId` = ?",
+        [queryUser.u_userId]
+      );
+
+    const userData: UserDataFrontend = {
+      u_userId: queryUser.u_userId,
+      u_firstname: queryUser.u_firstname,
+      u_lastname: queryUser.u_lastname,
+      u_email: queryUser.u_email,
+      u_createdAt: queryUser.u_createdAt,
+      roles: resultsRoles,
+    };
         if (timeNow.getTime() >= queryUser.us_expiresAt.getTime()) {
             return new Error("The provided sessionId has expired");
         }
-
-        const [resultsRoles, fieldsRoles]: [any[], mysql.FieldPacket[]] =
-            await connection.execute(
-                "SELECT `r_id`, `r_rolename` FROM `ru_rolesuser` inner join `r_roles` on r_id = ru_r_id WHERE `ru_u_userId` = ?",
-                [queryUser.u_userId]
-            );
-
-        const userData: UserDataFrontend = {
-            u_firstname: queryUser.u_firstname,
-            u_lastname: queryUser.u_lastname,
-            u_email: queryUser.u_email,
-            u_createdAt: queryUser.u_createdAt,
-            roles: resultsRoles,
-        };
-
         await connection.commit();
         return userData;
     } catch (error) {
@@ -778,39 +777,42 @@ export async function getAuditQuestions(
 }
 
 export async function createFinding(findingData: {
-    f_level: Number;
-    f_auditor_comment: string;
-    f_finding_comment: string;
-    f_creation_date: Date;
-    f_timeInDays: number;
-    f_status: string;
-    f_au_audit_idx: number;
-    f_qu_question_idx: number;
-    f_u_auditor_id: number;
+  f_level: Number;
+  f_creation_date: Date;
+  f_timeInDays: number;
+  f_au_audit_idx: number;
+  f_qu_question_idx: number;
+  f_u_auditor_id: string;
+  f_status: string;
+  f_comment: string;
+  f_finding_comment: string;
 }): Promise<number | Error> {
-    const connection = await connectionPool.getConnection();
-    try {
-        const [result]: any = await connection.execute(
-            `INSERT INTO f_findings (f_level, f_auditor_comment, f_finding_comment, f_creation_date, f_timeInDays, f_status, f_au_audit_idx, f_qu_question_idx, f_u_auditor_id)
+  const connection = await connectionPool.getConnection();
+  try {
+    const [result]: any = await connection.execute(
+      `INSERT INTO f_findings (f_level, f_creation_date, f_timeInDays, f_au_audit_idx, f_qu_question_idx, f_u_auditor_id, f_status, f_comment, f_finding_comment)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-                findingData.f_level,
-                findingData.f_auditor_comment,
-                findingData.f_finding_comment,
-                findingData.f_creation_date,
-                findingData.f_timeInDays,
-                findingData.f_status,
-                findingData.f_au_audit_idx,
-                findingData.f_qu_question_idx,
-                findingData.f_u_auditor_id,
-            ]
-        );
-        return result.insertId;
-    } catch (error) {
-        return new Error("Error inserting finding");
-    } finally {
-        connection.release();
-    }
+      [
+        findingData.f_level,
+        findingData.f_creation_date,
+        findingData.f_timeInDays,
+        findingData.f_au_audit_idx,
+        findingData.f_qu_question_idx,
+        findingData.f_u_auditor_id,
+        findingData.f_status,
+        findingData.f_comment,
+        findingData.f_finding_comment,
+      ]
+    );
+    return result.insertId;
+  } 
+  catch (error) {
+    return new Error("Error inserting finding");
+  }
+
+  finally {
+    connection.release();
+  }
 }
 
 export async function updateFinding(updateData: {
@@ -1102,24 +1104,28 @@ export async function CreateAudit(auditData) {
         INSERT INTO au_audit (au_audit_date, au_number_of_days, au_leadauditor_idx, au_leadauditee_idx, au_auditstatus, au_place, au_theme, au_typ)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    const values = [
-        auditData.au_audit_date,
-        auditData.au_number_of_days,
-        auditData.au_leadauditor_idx,
-        auditData.au_leadauditee_idx,
-        auditData.au_auditstatus,
-        auditData.au_place,
-        auditData.au_theme,
-        auditData.au_typ,
-    ];
-    try {
-        const [result] = await pool.execute(query, values);
-        return result;
-    } catch (error) {
-        return new Error(`Failed to create audit: ${error.message}`);
-    } finally {
-        pool.release();
-    }
+  const values = [
+    auditData.au_audit_date,
+    auditData.au_number_of_days,
+    auditData.au_leadauditor_idx,
+    auditData.au_leadauditee_idx,
+    auditData.au_auditstatus,
+    auditData.au_place,
+    auditData.au_theme,
+    auditData.au_typ,
+  ];
+
+  try {
+    const [result] = await pool.execute(query, values);
+    
+    const [lastInsertResult] = await pool.execute('SELECT LAST_INSERT_ID() as au_idx');
+    
+    return { au_idx: lastInsertResult[0].au_idx }; 
+  } catch (error) {
+    return new Error(`Failed to create audit: ${error.message}`);
+  } finally {
+    pool.release();
+  }
 }
 
 export async function GetAllAudits() {
@@ -1410,3 +1416,32 @@ export async function GetQuestionByAuditAndLaw(auditId, lawId) {
         pool.release();
     }
 }
+
+
+// Rollen
+export async function AddRoleForAudit(userId: number, auditId: number) {
+  const query = `INSERT INTO ru_rolesuser (ru_r_id, ru_u_userId, audit) VALUES (?, ?, ?)`;
+  const pool = await connectionPool.getConnection();
+  try {
+      const [result] = await pool.execute(query, [2, userId, auditId]);
+      return result;
+  } catch (error) {
+      return new Error(`Failed to add role for audit: ${error.message}`);
+  } finally {
+      pool.release();
+  }
+}
+
+export async function GetRolesUser() {
+  const query = `SELECT * FROM ru_rolesuser`;
+  const pool = await connectionPool.getConnection();
+  try {
+    const [rows] = await pool.execute(query);
+    return rows;
+  } catch (error) {
+    return new Error(`Failed to retrieve audits: ${error.message}`);
+  } finally {
+    pool.release();
+  }
+}
+
