@@ -11,7 +11,6 @@ export default function AuditBearbeiten() {
     au_audit_date: "",
     au_number_of_days: 0,
     au_leadauditor_idx: "",
-    au_leadauditee_idx: "",
     au_auditstatus: "",
     au_place: "",
     au_theme: "",
@@ -29,7 +28,6 @@ export default function AuditBearbeiten() {
           au_audit_date: data.au_audit_date,
           au_number_of_days: data.au_number_of_days,
           au_leadauditor_idx: data.au_leadauditor_idx,
-          au_leadauditee_idx: data.au_leadauditee_idx,
           au_auditstatus: data.au_auditstatus,
           au_place: data.au_place,
           au_theme: data.au_theme,
@@ -126,12 +124,6 @@ export default function AuditBearbeiten() {
           </div>
           <div className="flex-1">
             <label className="block font-bold">Lead Auditee ID</label>
-            <input
-              type="text"
-              value={formData.au_leadauditee_idx}
-              onChange={(e) =>
-                handleInputChange("au_leadauditee_idx", e.target.value)
-              }
               className="w-full border p-2 rounded text-black"
             />
           </div>

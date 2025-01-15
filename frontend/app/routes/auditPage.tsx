@@ -130,7 +130,6 @@ export default function AuditPage() {
       au_audit_date: today,
       au_number_of_days: 1,
       au_leadauditor_idx: user.u_userId,
-      au_leadauditee_idx: user.u_userId,
       au_auditstatus: "geplant",
       au_place: "Ort",
       au_theme: "Kein Thema",
