@@ -168,7 +168,7 @@ export default function AuditPage() {
       <Navbar />
       <div className="flex flex-col w-full h-screen p-4 bg-white space-y-6 dark:bg-black dark:text-white mt-10">
         <div className="text-center font-bold text-2xl mt-4">
-          Question Page {auditId}
+          Fragen Seite {auditId}
         </div>
         <div className="flex justify-center">
           <input
@@ -185,10 +185,10 @@ export default function AuditPage() {
             onChange={(e) => setSelectedType(e.target.value)}
             className="p-2 border border-gray-400 rounded-md w-1/2 dark:bg-gray-700 dark:text-white"
           >
-            <option value="">All Types</option>
-            <option value="r">r</option>
-            <option value="amc">amc</option>
-            <option value="gm">gm</option>
+            <option value="">Alle Typen</option>
+            <option value="r">R</option>
+            <option value="amc">AMC</option>
+            <option value="gm">GM</option>
           </select>
         </div>
         <div className="border border-gray-400 rounded-md w-full max-h-64 overflow-y-auto dark:border-gray-600">
@@ -215,7 +215,7 @@ export default function AuditPage() {
             onClick={handleSave}
             disabled={selectedLaws.length === 0}
           >
-            Save
+            Speichern
           </button>
         </div>
       </div>
