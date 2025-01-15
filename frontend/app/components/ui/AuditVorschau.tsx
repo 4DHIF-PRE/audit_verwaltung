@@ -35,7 +35,8 @@ export default function AuditVorschau({ audit, allAudits }: Props) {
             {formatDate(selectedAuditDetails.au_audit_date)}
           </p>
           <p>
-            <strong>Leadauditor:</strong>{" "}
+            <strong>
+              or:</strong>{" "}
             Hier fehlt der Leadauditor-Name!
           </p>
           <p>

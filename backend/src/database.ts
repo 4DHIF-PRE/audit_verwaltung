@@ -1101,14 +1101,13 @@ export async function DeleteLaw(lawId) {
 export async function CreateAudit(auditData) {
     const pool = await connectionPool.getConnection();
     const query = `
-        INSERT INTO au_audit (au_audit_date, au_number_of_days, au_leadauditor_idx, au_leadauditee_idx, au_auditstatus, au_place, au_theme, au_typ)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO au_audit (au_audit_date, au_number_of_days, au_leadauditor_idx, au_auditstatus, au_place, au_theme, au_typ)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
   const values = [
     auditData.au_audit_date,
     auditData.au_number_of_days,
     auditData.au_leadauditor_idx,
-    auditData.au_leadauditee_idx,
     auditData.au_auditstatus,
     auditData.au_place,
     auditData.au_theme,
@@ -1119,7 +1118,7 @@ export async function CreateAudit(auditData) {
     const [result] = await pool.execute(query, values);
     
     const [lastInsertResult] = await pool.execute('SELECT LAST_INSERT_ID() as au_idx');
-    
+    console.log(values);
     return { au_idx: lastInsertResult[0].au_idx }; 
   } catch (error) {
     return new Error(`Failed to create audit: ${error.message}`);
