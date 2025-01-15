@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
+  import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Navbar } from '~/components/Navbar';
 
 export default function Setup() {
@@ -131,54 +131,58 @@ export default function Setup() {
   };
 
   return (
-    <div className="flex flex-grow flex-col dark:bg-black">
+    <div className="flex flex-col h-screen">
       <Navbar />
       <div className="flex justify-between px-10 mt-10 pt-5">
-        <div className="max-w-[350px] mt-2">
+        <div className="w-full max-w-md mt-2">
           <h1 className="text-2xl font-bold mb-4">Findings</h1>
-          <ul>
-            {findings.length > 0 ? (
-              findings.map((finding) => (
-                <Card
-                  className={`w-[350px] mb-4 cursor-pointer border-l-8 dark:text-black ${getStatusColor(finding.f_status)}`}
-                  key={finding.f_id}
-                  onClick={() => handleSelectFinding(finding)}
-                >
-                  <CardHeader className="m-2 text-2xl">
-                    <CardTitle>
-                      <p><strong>ID:</strong> {finding.f_id}</p>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p><strong>Erstelldatum:</strong> {finding.f_creation_date}</p>
-                    <p><strong>Status:</strong> {finding.f_status}</p>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <p>Loading or no findings available</p>
-            )}
-          </ul>
+          <div className="overflow-y-auto max-h-[750px] overflow-x-hidden">
+            <ul className="space-y-4">
+              {findings.length > 0 ? (
+                  findings.map((finding) => (
+                      <Card
+                          className={`w-full p-4 cursor-pointer border-l-8 ${getStatusColor(finding.f_status)}`}
+                          key={finding.f_id}
+                          onClick={() => handleSelectFinding(finding)}
+                      >
+                        <CardHeader className="text-lg">
+                          <CardTitle>
+                            <p><strong>ID:</strong> {finding.f_id}</p>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p><strong>Erstelldatum:</strong> {finding.f_creation_date}</p>
+                          <p><strong>Status:</strong> {finding.f_status}</p>
+                        </CardContent>
+                      </Card>
+                  ))
+              ) : (
+                  <p>Loading or no findings available</p>
+              )}
+            </ul>
+          </div>
         </div>
+
 
         <div className="flex-col container mt-2">
           <div className="flex-1 ml-10 m-2">
             {selectedFinding && (
-              <Card className={`p-6 rounded-lg shadow-md w-full h-auto border-4 ${getBorderColor(selectedFinding.f_status)}`}>
-                <h2 className="text-3xl font-bold mb-4">Details zu Finding ID: {selectedFinding.f_id}</h2>
+                <Card
+                    className={`p-6 rounded-lg shadow-md w-full h-auto border-4 ${getBorderColor(selectedFinding.f_status)}`}>
+                  <h2 className="text-3xl font-bold mb-4">Details zu Finding ID: {selectedFinding.f_id}</h2>
 
-                <p className="text-lg mb-2"><strong>Kommentar: </strong>
-                  {selectedFinding.f_comment && selectedFinding.f_comment.length > 0 ? (
-                    selectedFinding.f_comment
-                  ) : (
-                    <span> Kein Kommentar vorhanden.</span>
-                  )}
-                </p>
+                  <p className="text-lg mb-2"><strong>Kommentar: </strong>
+                    {selectedFinding.f_comment && selectedFinding.f_comment.length > 0 ? (
+                        selectedFinding.f_comment
+                    ) : (
+                        <span> Kein Kommentar vorhanden.</span>
+                    )}
+                  </p>
 
-                {showMore && (
-                  <div>
-                    <p className="text-lg mb-2"><strong>Erstelldatum:</strong> {selectedFinding.f_creation_date}</p>
-                    <p className="text-lg mb-2"><strong>Status:</strong> {selectedFinding.f_status}</p>
+                  {showMore && (
+                      <div>
+                        <p className="text-lg mb-2"><strong>Erstelldatum:</strong> {selectedFinding.f_creation_date}</p>
+                        <p className="text-lg mb-2"><strong>Status:</strong> {selectedFinding.f_status}</p>
                     <p className="text-lg mb-2"><strong>Level:</strong> {selectedFinding.f_level}</p>
                     <div className="text-lg mb-2">
                       <strong>Audit:</strong>
@@ -222,7 +226,7 @@ export default function Setup() {
                     ))}
                   </ul>
                 ) : (
-                  <p className="pb-3">Keine Kommentare vorhanden.</p>
+                  <p>Keine Kommentare vorhanden.</p>
                 )}
 
                 {/* Refresh button for comments */}
@@ -235,7 +239,7 @@ export default function Setup() {
 
                 <form onSubmit={handleCommentSubmit}>
                   <textarea
-                    className="w-full p-2 border rounded-md dark:text-black"
+                    className="w-full p-2 border rounded-md"
                     placeholder="Add a comment..."
                     value={comment}
                     onChange={handleCommentChange}
