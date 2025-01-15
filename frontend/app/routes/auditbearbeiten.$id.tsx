@@ -156,11 +156,11 @@ export default function AuditBearbeiten() {
               onChange={(e) => handleInputChange("au_typ", e.target.value)}
               className="w-full border p-2 rounded text-black"
             >
-              <option value="audit">audit</option>
-              <option value="inspektion">inspektion</option>
-              <option value="ca">ca</option>
-              <option value="extern">extern</option>
-              <option value="sonstig">sonstig</option>
+              <option value="audit">Audit</option>
+              <option value="inspektion">Inspektion</option>
+              <option value="ca">Ca</option>
+              <option value="extern">Extern</option>
+              <option value="sonstig">Sonstig</option>
             </select>
           </div>
           {/*
@@ -173,11 +173,11 @@ export default function AuditBearbeiten() {
               }
               className="w-full border p-2 rounded text-black"
             >
-              <option value="geplant">geplant</option>
-              <option value="bereit">bereit</option>
-              <option value="begonnen">begonnen</option>
-              <option value="findings_offen">findings_offen</option>
-              <option value="fertig">fertig</option>
+              <option value="geplant">Geplant</option>
+              <option value="bereit">Bereit</option>
+              <option value="begonnen">Begonnen</option>
+              <option value="findings_offen">Findings_offen</option>
+              <option value="fertig">Fertig</option>
             </select>
           </div> */}
         </div>
