@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-  import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Navbar } from '~/components/Navbar';
 
 export default function Setup() {
@@ -39,7 +39,6 @@ export default function Setup() {
     fetchAudits();
   }, [findings]);
 
-  // Function to fetch workon comments
   const fetchWorkonComments = async () => {
     if (selectedFinding) {
       try {
@@ -52,7 +51,6 @@ export default function Setup() {
     }
   };
 
-  // Trigger fetchWorkonComments whenever a finding is selected
   useEffect(() => {
     fetchWorkonComments();
   }, [selectedFinding]);
@@ -109,10 +107,8 @@ export default function Setup() {
     e.preventDefault();
     if (!selectedFinding) return;
 
-    // Optimistische UI-Aktualisierung
     setWorkonComments([...workonComments, { fw_kommentar: comment }]);
 
-    // POST Request für den Kommentar senden
     try {
       const response = await postWorkonComment(selectedFinding.f_id, [{ comment }]);
       if (!response.ok) {
@@ -124,14 +120,12 @@ export default function Setup() {
 
     setComment("");
   };
-
-  // Adding refresh button handler to refresh comments
   const handleRefreshComments = () => {
     fetchWorkonComments();
   };
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col">
       <Navbar />
       <div className="flex justify-between px-10 mt-10 pt-5">
         <div className="w-full max-w-md mt-2">
@@ -141,7 +135,7 @@ export default function Setup() {
               {findings.length > 0 ? (
                   findings.map((finding) => (
                       <Card
-                          className={`w-full p-4 cursor-pointer border-l-8 ${getStatusColor(finding.f_status)}`}
+                          className={`w-full p-4 cursor-pointer border-l-8 dark:text-black ${getStatusColor(finding.f_status)}`}
                           key={finding.f_id}
                           onClick={() => handleSelectFinding(finding)}
                       >
@@ -215,8 +209,6 @@ export default function Setup() {
             {selectedFinding && (
               <Card className={`p-6 rounded-lg shadow-md w-full h-auto border-4 ${getBorderColor(selectedFinding.f_status)}`}>
                 <h2 className="text-3xl font-bold mb-4">Kommentare</h2>
-
-                {/* Display workon comments */}
                 {workonComments.length > 0 ? (
                   <ul className="mb-4">
                     {workonComments.map((workonComment, index) => (
@@ -226,10 +218,8 @@ export default function Setup() {
                     ))}
                   </ul>
                 ) : (
-                  <p>Keine Kommentare vorhanden.</p>
+                  <p className="pb-3">Keine Kommentare vorhanden.</p>
                 )}
-
-                {/* Refresh button for comments */}
                 <button
                   onClick={handleRefreshComments}
                   className="text-blue-500 hover:text-blue-700 py-1 px-3 rounded bg-transparent border border-blue-500 absolute top-0 right-0 mt-4 mr-4"
@@ -239,7 +229,7 @@ export default function Setup() {
 
                 <form onSubmit={handleCommentSubmit}>
                   <textarea
-                    className="w-full p-2 border rounded-md"
+                    className="w-full p-2 border rounded-md dark:text-black"
                     placeholder="Add a comment..."
                     value={comment}
                     onChange={handleCommentChange}
