@@ -4,7 +4,6 @@
     "au_audit_date": "2024-11-20",
     "au_number_of_days": 2,
     "au_leadauditor_idx": 301,
-    "au_leadauditee_idx": 302,
     "au_auditstatus": "In Progress",
     "au_place": "Berlin",
     "au_theme": "IT Security",

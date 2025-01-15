@@ -11,7 +11,6 @@ export default function AuditBearbeiten() {
     au_audit_date: "",
     au_number_of_days: 0,
     au_leadauditor_idx: "",
-    au_leadauditee_idx: "",
     au_auditstatus: "",
     au_place: "",
     au_theme: "",
@@ -29,7 +28,6 @@ export default function AuditBearbeiten() {
           au_audit_date: data.au_audit_date,
           au_number_of_days: data.au_number_of_days,
           au_leadauditor_idx: data.au_leadauditor_idx,
-          au_leadauditee_idx: data.au_leadauditee_idx,
           au_auditstatus: data.au_auditstatus,
           au_place: data.au_place,
           au_theme: data.au_theme,
@@ -126,12 +124,6 @@ export default function AuditBearbeiten() {
           </div>
           <div className="flex-1">
             <label className="block font-bold">Lead Auditee ID</label>
-            <input
-              type="text"
-              value={formData.au_leadauditee_idx}
-              onChange={(e) =>
-                handleInputChange("au_leadauditee_idx", e.target.value)
-              }
               className="w-full border p-2 rounded text-black"
             />
           </div>
@@ -164,11 +156,11 @@ export default function AuditBearbeiten() {
               onChange={(e) => handleInputChange("au_typ", e.target.value)}
               className="w-full border p-2 rounded text-black"
             >
-              <option value="audit">audit</option>
-              <option value="inspektion">inspektion</option>
-              <option value="ca">ca</option>
-              <option value="extern">extern</option>
-              <option value="sonstig">sonstig</option>
+              <option value="audit">Audit</option>
+              <option value="inspektion">Inspektion</option>
+              <option value="ca">Ca</option>
+              <option value="extern">Extern</option>
+              <option value="sonstig">Sonstig</option>
             </select>
           </div>
           {/*
@@ -181,11 +173,11 @@ export default function AuditBearbeiten() {
               }
               className="w-full border p-2 rounded text-black"
             >
-              <option value="geplant">geplant</option>
-              <option value="bereit">bereit</option>
-              <option value="begonnen">begonnen</option>
-              <option value="findings_offen">findings_offen</option>
-              <option value="fertig">fertig</option>
+              <option value="geplant">Geplant</option>
+              <option value="bereit">Bereit</option>
+              <option value="begonnen">Begonnen</option>
+              <option value="findings_offen">Findings_offen</option>
+              <option value="fertig">Fertig</option>
             </select>
           </div> */}
         </div>
