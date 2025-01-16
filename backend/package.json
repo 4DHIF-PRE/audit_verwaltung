@@ -26,6 +26,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
+    "jspdf": "^2.5.2",
     "mysql2": "^3.11.5",
     "nodemailer": "^6.9.16",
     "prop-types": "^15.8.1",

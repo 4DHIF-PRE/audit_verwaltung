@@ -3,12 +3,14 @@ import { Navbar } from "~/components/Navbar";
 import AuditVorschau from "~/components/ui/AuditVorschau";
 import Searchbar from "../components/Searchbar";
 import { AuditDetails } from "../types/AuditDetails";
+import { FindingDetails } from "../types/FindingDetails";
 import QuestionVorschau from "../components/ui/QuestionVorschau";
 import { QuestionInt } from "../types/QuestionInt";
 import { RolesUser } from "../types/RolesUser";
 import { UserDetails } from "../types/UserDetails";
 import { json, LoaderFunction } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
+import jsPDF from "jspdf";
 
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -48,6 +50,17 @@ export const loader: LoaderFunction = async ({ request }) => {
     auditsData = await auditRes.json();
   }
 
+  const findingsRes = await fetch("http://localhost:3000/findings", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    signal: controller.signal,
+  });
+  let findingsData = [];
+  if (findingsRes.ok) {
+    findingsData = await findingsRes.json();
+  }
+  
+
   const auditsForUser = userData.roles
     .map(role => role.audit);
 
@@ -57,13 +70,15 @@ export const loader: LoaderFunction = async ({ request }) => {
     user: userData,
     roles: rolesData,
     audits: filteredAudits,
+    findings: findingsData,
   });
 };
 
 
 export default function AuditPage() {
-  const loaderData = useLoaderData<{ audits: AuditDetails[] }>();
+  const loaderData = useLoaderData<{ audits: AuditDetails[]; findings: FindingDetails[]; }>();
   const [audits, setAudits] = useState<AuditDetails[]>([]);
+  const [findings, setFindings] = useState<FindingDetails[]>([]);
   const [auditstatus, setAuditstatus] = useState<string>("");
   const loaderData2 = useLoaderData<{ user: UserDetails}>();
   const [user, setUser] = useState<UserDetails>();
@@ -84,6 +99,7 @@ export default function AuditPage() {
 
   useEffect(() => {
     setAudits(loaderData.audits); 
+    setFindings(loaderData.findings);
   }, [loaderData]);
 
   useEffect(() => {
@@ -319,6 +335,74 @@ export default function AuditPage() {
     }
   };
 
+  const exportAllAuditsAndFindingsToPDF = async (audits: any[], findings: any[]) => {
+    try {
+      if (audits.length === 0) {
+        throw new Error("Keine Audits gefunden.");
+      }
+  
+      // PDF-Dokument initialisieren
+      const doc = new jsPDF();
+      let yPosition = 10;
+  
+      audits.forEach((audit, auditIndex) => {
+        if (yPosition > 270) {
+          doc.addPage();
+          yPosition = 10;
+        }
+  
+        // Audit-Details hinzufügen
+        doc.setFontSize(14);
+        doc.text(`Audit ${auditIndex + 1}: ${audit.au_theme}`, 10, yPosition);
+        doc.setFontSize(12);
+        doc.text(`Datum: ${audit.au_audit_date}`, 10, yPosition + 10);
+        doc.text(`Ort: ${audit.au_place}`, 10, yPosition + 20);
+        doc.text(`Leitender Auditor: ${audit.au_leadauditor_idx}`, 10, yPosition + 30);
+        yPosition += 40;
+  
+        // Debug: Zeige Audit-ID
+        console.log(`Audit-ID: ${audit.au_idx}`);
+  
+        // Findings für das aktuelle Audit hinzufügen
+        const auditFindings = findings.filter(finding => {
+          console.log(`Checking Finding: ${finding.f_au_audit_idx} === ${audit.au_idx}`);
+          return finding.f_au_audit_idx === audit.au_idx;
+        });
+  
+        if (auditFindings.length > 0) {
+          doc.text("Findings:", 10, yPosition);
+          yPosition += 10;
+  
+          auditFindings.forEach((finding, index) => {
+            if (yPosition > 270) {
+              doc.addPage();
+              yPosition = 10;
+            }
+  
+            doc.text(`${index + 1}. Frage-ID: ${finding.f_qu_question_idx || "Keine"}`, 10, yPosition);
+            doc.text(`   Level: ${finding.f_level || "Nicht angegeben"}`, 10, yPosition + 10);
+            doc.text(`   Status: ${finding.f_status}`, 10, yPosition + 20);
+            doc.text(`   Kommentar: ${finding.f_auditor_comment || "Keine"}`, 10, yPosition + 30);
+            doc.text(`   Maßnahme: ${finding.f_finding_comment || "Keine"}`, 10, yPosition + 40);
+            doc.text(`   Erstellt am: ${finding.f_creation_date}`, 10, yPosition + 50);
+  
+            yPosition += 60;
+          });
+        } else {
+          doc.text("Keine Findings für dieses Audit.", 10, yPosition);
+          yPosition += 20;
+        }
+      });
+  
+      // PDF speichern
+      doc.save(`All_Audits_and_Findings.pdf`);
+    } catch (error) {
+      console.error("Fehler beim Exportieren der Audit-Details:", error);
+      alert("Fehler beim Exportieren der Audit-Details.");
+    }
+  };
+  
+
   return (
     <div className="flex flex-col w-full h-screen bg-white">
       <Navbar />
@@ -422,6 +506,13 @@ export default function AuditPage() {
                   >
                     Bearbeiten
                   </button>
+                  <button
+                  
+      onClick={() => exportAllAuditsAndFindingsToPDF(audits, findings)}
+      className="px-4 py-2 rounded-md text-white bg-green-500"
+    >
+      Export Audit Details as PDF
+    </button>
                   {auditstatus !== "geplant" ? (
                   <button
                     onClick={() => {
@@ -432,7 +523,8 @@ export default function AuditPage() {
                     className="px-4 py-2 rounded-md text-white bg-green-500"
                   >
                     Durchführen
-                  </button>) : ""}
+                  </button>
+                ) : ""}
                 </div>
               ) : (
                 canCreateAudit && ( // Button nur anzeigen, wenn der Benutzer erstellberechtigt ist
