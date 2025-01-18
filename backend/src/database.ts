@@ -891,7 +891,7 @@ export async function getAuditsWithFindings(): Promise<any[] | Error> {
             ORDER BY au.au_idx, f.f_idx;
         `);
         console.log("Audits mit Findings:", results); // Debugging
-        return results;
+        // return results;
     } catch (error) {
         console.error("Fehler beim Abrufen von Audits mit Findings:", error);
         return new Error("Error fetching audits with findings");
