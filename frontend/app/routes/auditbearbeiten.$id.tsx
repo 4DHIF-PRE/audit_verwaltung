@@ -71,7 +71,7 @@ export default function AuditBearbeiten() {
     <Navbar />
     <div className="flex flex-col w-full h-screen p-4 bg-white space-y-6 dark:bg-black mt-10">
       <h1 className="text-2xl font-bold text-center mt-4">
-        Audit bearbeiten - ID {id}
+        Audit bearbeiten
       </h1>
       <h1 className="text-2xl">
         <strong>{formData.au_theme}</strong>

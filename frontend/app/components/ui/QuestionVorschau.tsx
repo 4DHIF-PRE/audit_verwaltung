@@ -61,8 +61,6 @@ export default function QuestionVorschau({ auditId, questions }: Props) {
         <table className="table-fixed w-full">
           <thead className="text-left">
             <tr>
-              <th>ID</th>
-              <th>Law ID</th>
               <th>Audited</th>
               <th>Applicable</th>
               <th>Finding Level</th>
@@ -72,8 +70,6 @@ export default function QuestionVorschau({ auditId, questions }: Props) {
           <tbody>
             {filteredQuestions.map((q) => (
               <tr key={q.qu_idx}>
-                <td>{q.qu_idx}</td>
-                <td>{q.qu_law_idx}</td>
                 <td>{q.qu_audited ? "Yes" : "No"}</td>
                 <td>{q.qu_applicable ? "Yes" : "No"}</td>
                 <td>{q.qu_finding_level ?? "N/A"}</td>

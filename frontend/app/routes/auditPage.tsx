@@ -218,8 +218,7 @@ export default function AuditPage() {
 
   const filteredAudits = audits.filter(
     (audit) =>
-      audit.au_theme.toLowerCase().includes(search.toLowerCase()) ||
-      audit.au_idx.toString().includes(search)
+      audit.au_theme.toLowerCase().includes(search.toLowerCase()) 
   );
 
   const handleNextPage = () => {

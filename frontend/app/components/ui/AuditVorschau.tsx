@@ -1,15 +1,61 @@
 import { useEffect, useState } from "react";
 import { AuditDetails } from "~/types/AuditDetails";
+import { UserDetails } from "~/types/UserDetails";
+import { json, LoaderFunction } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 
 interface Props {
   audit: number;
   allAudits: AuditDetails[];
 }
 
+// export const loader : LoaderFunction = async ({}) => {
+//   const userRes = await fetch('http://localhost:3000/getalluser', {
+//     method: 'GET',
+//     headers: {'Content-Type': 'application/json',},
+//   });
+
+//   if (!userRes.ok) {
+//     throw new Error('Failed to fetch users');
+//   }
+
+//  let userData: UserDetails[] = [];
+//  if(userRes.ok){
+//   userData = await userRes.json();
+//  }
+//  return json({ users: userData });
+// };
+
 export default function AuditVorschau({ audit, allAudits }: Props) {
+ //const { users } = useLoaderData<{ users: UserDetails[] }>();
+ const [users, setUsers] = useState<UserDetails[]>([]);
   const [selectedAuditDetails, setSelectedAuditDetails] = useState<AuditDetails | null>(null);
 
   useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/getalluser', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch users');
+        }
+        const userData: UserDetails[] = await response.json();
+        setUsers(userData);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  useEffect(() => {
+  
     if (audit === 0) {
       setSelectedAuditDetails(null);
     } else {
@@ -17,6 +63,12 @@ export default function AuditVorschau({ audit, allAudits }: Props) {
       setSelectedAuditDetails(foundAudit || null);
     }
   }, [audit, allAudits]);
+
+  const getAuditorName = (auditorId: number | null) => {
+    if (!auditorId) return "Unbekannt";
+    const user = users.find((u) => u.u_userId === auditorId.toString());
+    return user ? `${user.u_firstname} ${user.u_lastname}` : "Unbekannt";
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -35,9 +87,8 @@ export default function AuditVorschau({ audit, allAudits }: Props) {
             {formatDate(selectedAuditDetails.au_audit_date)}
           </p>
           <p>
-            <strong>
-              or:</strong>{" "}
-            Hier fehlt der Leadauditor-Name!
+            <strong>Auditor:</strong>{" "}
+              {getAuditorName(selectedAuditDetails.au_leadauditor_idx)}
           </p>
           <p>
             <strong>Status:</strong> {selectedAuditDetails.au_auditstatus.charAt(0).toUpperCase() + selectedAuditDetails.au_auditstatus.slice(1)}
