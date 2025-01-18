@@ -507,11 +507,11 @@ export default function AuditPage() {
                   </button>
                   <button
                   
-      onClick={() => exportAllAuditsAndFindingsToPDF(audits, findings)}
-      className="px-4 py-2 rounded-md text-white bg-green-500"
-    >
-      Export Audit Details as PDF
-    </button>
+                    onClick={() => exportAllAuditsAndFindingsToPDF(audits, findings)}
+                    className="px-4 py-2 rounded-md text-white bg-green-500"
+                  >
+                    Export Audit Details as PDF
+                  </button>
                   {auditstatus !== "geplant" ? (
                   <button
                     onClick={() => {
@@ -524,6 +524,17 @@ export default function AuditPage() {
                     Durchführen
                   </button>
                 ) : ""}
+                {auditstatus === "findings_offen" ? (
+                <button
+                    onClick={() => {
+                      if (selectedAudit) {
+                        window.location.href = `/gruppe5/${selectedAudit}`;
+                      }
+                    }}
+                    className="px-4 py-2 rounded-md text-white bg-green-500"
+                  >
+                    Findus
+                  </button>) : ""}
                 </div>
               ) : (
                 canCreateAudit && ( // Button nur anzeigen, wenn der Benutzer erstellberechtigt ist
