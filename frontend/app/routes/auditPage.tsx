@@ -505,13 +505,7 @@ export default function AuditPage() {
                   >
                     Bearbeiten
                   </button>
-                  <button
                   
-                    onClick={() => exportAllAuditsAndFindingsToPDF(audits, findings)}
-                    className="px-4 py-2 rounded-md text-white bg-green-500"
-                  >
-                    Export Audit Details as PDF
-                  </button>
                   {auditstatus !== "geplant" ? (
                   <button
                     onClick={() => {
@@ -531,9 +525,9 @@ export default function AuditPage() {
                         window.location.href = `/gruppe5/${selectedAudit}`;
                       }
                     }}
-                    className="px-4 py-2 rounded-md text-white bg-green-500"
+                    className="px-4 py-2 rounded-md text-white bg-red-600"
                   >
-                    Findus
+                    Findings
                   </button>) : ""}
                 </div>
               ) : (
@@ -549,6 +543,11 @@ export default function AuditPage() {
                 )
               )}
             </div>
+            <button
+                onClick={() => exportAllAuditsAndFindingsToPDF(audits, findings)}
+                className="px-4 py-2 rounded-md bg-sky-300 dark:bg-sky-500 dark:text-white mt-4">
+                Export Audit Details as PDF
+            </button>
           </div>
         </div>
       </div>
