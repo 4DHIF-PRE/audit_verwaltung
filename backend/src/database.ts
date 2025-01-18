@@ -817,7 +817,6 @@ export async function createFinding(findingData: {
 
 export async function updateFinding(updateData: {
     f_id: number;
-    f_level: Number;
     f_auditor_comment: string;
     f_finding_comment: string;
     f_creation_date: Date;
@@ -835,7 +834,7 @@ export async function updateFinding(updateData: {
 
     const results = await connection.execute(
       `UPDATE f_findings
-             SET f_level = ${updateData.f_level}, f_comment = '${updateData.f_auditor_comment}', f_finding_comment = '${updateData.f_finding_comment}', f_creation_date = '${creationDate}', f_timeInDays = ${updateData.f_timeInDays}, f_status = '${updateData.f_status}'
+             SET f_comment = '${updateData.f_auditor_comment}', f_finding_comment = '${updateData.f_finding_comment}', f_creation_date = '${creationDate}', f_timeInDays = ${updateData.f_timeInDays}, f_status = '${updateData.f_status}'
              WHERE f_id = ${updateData.f_id}`
         );
     } catch (error) {
