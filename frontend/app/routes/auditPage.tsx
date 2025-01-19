@@ -130,6 +130,7 @@ export default function AuditPage() {
       au_audit_date: today,
       au_number_of_days: 1,
       au_leadauditor_idx: user.u_userId,
+      au_leadauditee_idx: user.u_userId,
       au_auditstatus: "geplant",
       au_place: "Ort",
       au_theme: "Kein Thema",
@@ -137,8 +138,7 @@ export default function AuditPage() {
     };
 
     console.log(newAudit.au_theme);
-    
-
+  
     try {
       const response = await fetch("http://localhost:3000/audit", {
         method: "POST",
@@ -320,142 +320,141 @@ export default function AuditPage() {
   };
 
   return (
-      <div className="flex flex-col w-full h-screen bg-white">
-        <Navbar/>
-        <div className="flex-1 p-4 bg-white dark:bg-black mt-9">
-          <div className="flex flex-col lg:flex-row flex-1 mt-6 space-y-6 lg:space-y-0 lg:space-x-6">
-            {/* Left Section */}
-            <div className="flex flex-col w-full lg:w-1/3 space-y-4 relative">
-              <div className="flex flex-col h-full">
-                <div className="flex flex-col">
-                  <Searchbar value={search} onChange={(value) => setSearch(value)}/>
+    <div className="flex flex-col w-full h-screen bg-white">
+      <Navbar />
+      <div className="flex-1 p-4 bg-white dark:bg-black mt-9">
+        <div className="flex flex-row flex-1 mt-6">
+          {/* Left Section */}
+          <div className="flex flex-col w-1/3 space-y-4 relative">
+            <div className="flex flex-col h-full">
+
+              {/* Suchleiste und Add Button*/}
+              <div className="flex flex-col">
+                <Searchbar value={search} onChange={(value) => setSearch(value)} />
+                <button
+                  className="mb-4 rounded bg-green-100 dark:bg-green-500 border border-gray-300"
+                  onClick={() => createAudit(user, setAudits)}
+                >
+                  Audit erstellen
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4">
+  {displayedAudits.length > 0 ? (
+    displayedAudits.map((audit) => (
+      <div
+        key={audit.au_idx}
+        className={`flex border-b mt-4 border-gray-200 mx-3 justify-between items-center p-4 rounded-md 
+          ${audit.au_auditstatus === "geplant" ? "bg-blue-100 dark:bg-blue-600 hover:bg-blue-300 dark:hover:bg-blue-700" :
+            audit.au_auditstatus === "bereit" ? "bg-green-100 hover:bg-green-300 dark:bg-green-600 dark:hover:bg-green-700" :
+            audit.au_auditstatus === "begonnen" ? "bg-yellow-100 dark:bg-yellow-600 hover:bg-yellow-200 dark:hover:bg-yellow-700" :
+            audit.au_auditstatus === "findings_offen" ? "bg-red-200 dark:bg-red-600 hover:bg-red-300 dark:hover:bg-red-700" :
+            audit.au_auditstatus === "fertig" ? "bg-gray-100 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-700" : ""
+          } 
+          ${selectedAudit === audit.au_idx ? "text-gray-400 dark:text-gray-900" : ""}
+          mb-4 `}
+        onClick={() => handleAuditClick(audit.au_idx)}>
+        <div>
+          {audit.au_theme}
+        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDeleteAudit(audit.au_idx);
+          }}
+        >
+          ❌
+        </button>
+      </div>
+    ))
+  ) : (
+    <div className="text-center py-4 text-gray-600 dark:text-gray-300">
+      Keine Audits gefunden
+    </div>
+  )}
+</div>
+
+              {/* Pagination Buttons */}
+              <div className="p-4 bg-white dark:bg-black">
+                <div className="flex justify-between dark:bg-black">
                   <button
-                      className="mb-4 rounded bg-green-100 dark:bg-green-500 border border-gray-300"
-                      onClick={() => createAudit(user, setAudits)}
+                    onClick={handlePreviousPage}
+                    disabled={currentPage === 1}
+                    className={`px-4 py-2 rounded-md ${currentPage === 1 ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
+                      }`}
                   >
-                    Audit erstellen
+                    Zurück
                   </button>
-                </div>
-                <div className="flex-1 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4">
-                  {displayedAudits.map((audit) => (
-                      <div
-                          key={audit.au_idx}
-                          className={`flex border-b mt-4 border-gray-200 mx-3 justify-between items-center p-4 rounded-md 
-                  ${
-                              audit.au_auditstatus === "geplant"
-                                  ? "bg-blue-100 dark:bg-blue-600 hover:bg-blue-300 dark:hover:bg-blue-700"
-                                  : audit.au_auditstatus === "bereit"
-                                      ? "bg-green-100 hover:bg-green-300 dark:bg-green-600 dark:hover:bg-green-700"
-                                      : audit.au_auditstatus === "begonnen"
-                                          ? "bg-yellow-100 dark:bg-yellow-600 hover:bg-yellow-200 dark:hover:bg-yellow-700"
-                                          : audit.au_auditstatus === "findings_offen"
-                                              ? "bg-red-200 dark:bg-red-600 hover:bg-red-300 dark:hover:bg-red-700"
-                                              : audit.au_auditstatus === "fertig"
-                                                  ? "bg-gray-100 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-700"
-                                                  : ""
-                          } 
-                  ${selectedAudit === audit.au_idx ? "text-gray-400 dark:text-gray-900" : ""}
-                  mb-4 `}
-                          onClick={() => handleAuditClick(audit.au_idx)}
-                      >
-                        <div>{audit.au_theme}</div>
-                        <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteAudit(audit.au_idx);
-                            }}
-                        >
-                          ❌
-                        </button>
-                      </div>
-                  ))}
-                </div>
-                <div className="p-4 bg-white dark:bg-black">
-                  <div className="flex justify-between dark:bg-black">
-                    <button
-                        onClick={handlePreviousPage}
-                        disabled={currentPage === 1}
-                        className={`px-4 py-2 rounded-md ${
-                            currentPage === 1 ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
-                        }`}
-                    >
-                      Zurück
-                    </button>
-                    <button
-                        onClick={handleNextPage}
-                        disabled={currentPage >= totalPages}
-                        className={`px-4 py-2 rounded-md ${
-                            currentPage >= totalPages ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
-                        }`}
-                    >
-                      Weiter
-                    </button>
-                  </div>
+                  <button
+                    onClick={handleNextPage}
+                    disabled={currentPage >= totalPages}
+                    className={`px-4 py-2 rounded-md ${currentPage >= totalPages ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
+                      }`}
+                  >
+                    Weiter
+                  </button>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Right Section */}
-            <div className="w-full lg:w-2/3 h-full flex flex-col items-center justify-center p-6">
-              <div
-                  className="w-full max-w-screen-lg h-full bg-gray-200 dark:bg-gray-900 p-6 rounded-md flex flex-col justify-start">
-                <AuditVorschau audit={selectedAudit} allAudits={audits}/>
-                <QuestionVorschau auditId={selectedAudit} questions={questions}/>
-                {selectedAudit !== 0 ? (
-                    <div className="flex justify-center space-x-4 mt-4">
-                      {auditstatus === "geplant" || auditstatus === "bereit" ? (
-                          <button
-                              onClick={() =>
-                                  selectedAudit &&
-                                  (window.location.href = `/questionPage/${selectedAudit}`)
-                              }
-                              className="px-4 py-2 rounded-md text-white bg-purple-500"
-                          >
-                            Neue Question
-                          </button>
-                      ) : (
-                          ""
-                      )}
-                      <button
-                          onClick={() =>
-                              selectedAudit &&
-                              (window.location.href = `/auditbearbeiten/${selectedAudit}`)
-                          }
-                          className="px-4 py-2 rounded-md text-white bg-blue-500"
-                      >
-                        Bearbeiten
-                      </button>
-                      {auditstatus !== "geplant" ? (
-                          <button
-                              onClick={() => {
-                                if (selectedAudit) {
-                                  changeStatus(selectedAudit);
-                                }
-                              }}
-                              className="px-4 py-2 rounded-md text-white bg-green-500"
-                          >
-                            Durchführen
-                          </button>
-                      ) : (
-                          ""
-                      )}
-                    </div>
-                ) : (
-                    canCreateAudit && (
-                        <div className="flex justify-center mt-4">
-                          <button
-                              onClick={() => (window.location.href = "/neuesAuditErstellen")}
-                              className="px-4 py-2 rounded-md text-white bg-red-500"
-                          >
-                            Neues Audit erstellen
-                          </button>
-                        </div>
-                    )
-                )}
-              </div>
+          {/* Right Section */}
+          <div className="w-full h-full flex flex-col items-center justify-center p-6">
+            <div className="w-3/4 max-w-screen-lg h-3/4 bg-gray-200 dark:bg-gray-900 p-6 rounded-md flex flex-col justify-start">
+              <AuditVorschau audit={selectedAudit} allAudits={audits} />
+              <QuestionVorschau auditId={selectedAudit} questions={questions} />
+
+              {/* Buttons unter dem grauen Fenster */}
+              {selectedAudit !== 0 ? (
+                <div className="flex justify-center space-x-4 mt-4">
+                  {auditstatus === "geplant" || auditstatus === "bereit" ? (
+                  <button
+                    onClick={() =>
+                      selectedAudit &&
+                      (window.location.href = `/questionPage/${selectedAudit}`)
+                    }
+                    className="px-4 py-2 rounded-md text-white bg-purple-500"
+                  >
+                    Neue Frage
+                  </button>
+                  ) : ""}
+                  <button
+                    onClick={() =>
+                      selectedAudit &&
+                      (window.location.href = `/auditbearbeiten/${selectedAudit}`)
+                    }
+                    className="px-4 py-2 rounded-md text-white bg-blue-500"
+                  >
+                    Bearbeiten
+                  </button>
+                  {auditstatus !== "geplant" ? (
+                  <button
+                    onClick={() => {
+                      if (selectedAudit) {
+                        changeStatus(selectedAudit);
+                      }
+                    }}
+                    className="px-4 py-2 rounded-md text-white bg-green-500"
+                  >
+                    Durchführen
+                  </button>) : ""}
+                </div>
+              ) : (
+                canCreateAudit && ( // Button nur anzeigen, wenn der Benutzer erstellberechtigt ist
+                  <div className="flex justify-center mt-4">
+                    <button
+                      onClick={() => window.location.href = '/neuesAuditErstellen'}
+                      className="px-4 py-2 rounded-md text-white bg-red-500"
+                    >
+                      Neues Audit erstellen
+                    </button>
+                  </div>
+                )
+              )}
             </div>
           </div>
         </div>
       </div>
+    </div>
   );
 }
