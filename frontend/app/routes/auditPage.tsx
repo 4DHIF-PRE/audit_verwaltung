@@ -412,9 +412,11 @@ export default function AuditPage() {
                     .map((question) => (
                       <div
                         key={question.qu_idx}
-                        className="border-b border-gray-300 dark:border-gray-600 py-2"
+                        className={`border-b border-gray-300 dark:border-gray-600 py-2 ${
+                          question.qu_audited ? "bg-green-100 dark:bg-green-700" : "bg-red-100 dark:bg-red-700"
+                        }`}
                       >
-                        Frage {question.qu_idx}:{" "}
+                        <span className="font-bold">Frage {question.qu_idx}:</span>{" "}
                         {question.qu_audited ? "Auditiert" : "Nicht auditiert"}
                       </div>
                     ))
