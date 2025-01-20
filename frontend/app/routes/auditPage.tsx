@@ -462,6 +462,7 @@ export default function AuditPage() {
                       <div>
                         {audit.au_theme}
                       </div>
+                      {(audit.au_auditstatus === "bereit" || audit.au_auditstatus === "geplant") && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -470,6 +471,7 @@ export default function AuditPage() {
                       >
                         ❌
                       </button>
+                      )}
                     </div>
                   ))
                 ) : (
