@@ -1,24 +1,34 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Form } from "@remix-run/react";
+import {LogOut, Moon, Sun} from "lucide-react";
 
 export function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const navigate = useNavigate();
+    const [isDarkMode, setIsDarkMode] = useState(false);
+
+    useEffect(() => {
+        const currentTheme = localStorage.getItem("theme");
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+        if (currentTheme) {
+            setIsDarkMode(currentTheme === "dark");
+        } else {
+            setIsDarkMode(prefersDark);
+        }
+
+        document.documentElement.classList.toggle("dark", isDarkMode);
+    }, [isDarkMode]);
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
     };
 
     const toggleTheme = () => {
-        const htmlElement = document.documentElement;
-        if (htmlElement.classList.contains("dark")) {
-            htmlElement.classList.remove("dark");
-            localStorage.setItem("theme", "light");
-        } else {
-            htmlElement.classList.add("dark");
-            localStorage.setItem("theme", "dark");
-        }
+        setIsDarkMode((prev) => {
+            const newTheme = !prev;
+            localStorage.setItem("theme", newTheme ? "dark" : "light");
+            return newTheme;
+        });
     };
 
     return (
@@ -71,7 +81,7 @@ export function Navbar() {
                                 onClick={toggleTheme}
                                 className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-800 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
                             >
-                                Toggle Theme
+                                {isDarkMode ? <Moon /> : <Sun />}
                             </button>
                         </li>
                         <li>
@@ -80,21 +90,7 @@ export function Navbar() {
                                     type="submit"
                                     className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-red-800 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
                                 >
-                                    <svg
-                                        className="h-8 w-8"
-                                        width="18"
-                                        height="18"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth="2"
-                                        stroke="currentColor"
-                                        fill="none"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    >
-                                        <path stroke="none" d="M0 0h24v24H0z" />
-                                        <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" />
-                                        <path d="M7 12h14l-3 -3m0 6l3 -3" />
-                                    </svg>
+                                    <LogOut />
                                 </button>
                             </Form>
                         </li>
