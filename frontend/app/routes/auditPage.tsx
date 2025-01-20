@@ -10,6 +10,7 @@ import { RolesUser } from "../types/RolesUser";
 import { UserDetails } from "../types/UserDetails";
 import { json, LoaderFunction } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
+import {Button} from "~/components/ui/button";
 import jsPDF from "jspdf";
 
 
@@ -453,14 +454,16 @@ export default function AuditPage() {
                   <option value="begonnen">Begonnen</option>
                   <option value="fertig">Fertig</option>
                     </select> 
-                <button
-                  className="mb-4 rounded bg-green-100 dark:bg-green-500 border border-gray-300"
+                <Button 
+                variant="default"
+                size="lg"
+                 // className="mb-4 rounded bg-green-100 hover:bg-green-200 dark:bg-green-500 border border-gray-300 dark:hover:bg-green-600"
                   onClick={() => createAudit(user, setAudits)}
                 >
                   Audit erstellen
-                </button>
+                </Button>
               </div>
-              
+
               <div className="flex-1 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4">
                 {displayedAudits.length > 0 ? (
                   displayedAudits.map((audit) => (
@@ -504,15 +507,16 @@ export default function AuditPage() {
                   <button
                     onClick={handlePreviousPage}
                     disabled={currentPage === 1}
-                    className={`px-4 py-2 rounded-md ${currentPage === 1 ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
+                    className={`px-4 py-2 rounded-md ${currentPage === 1 ? "bg-gray-300 hover:bg-gray-400 dark:bg-gray-800 dark:hover:bg-gray-900" : "bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-800"
                       }`}
                   >
                     Zurück
                   </button>
                   <button
+                
                     onClick={handleNextPage}
                     disabled={currentPage >= totalPages}
-                    className={`px-4 py-2 rounded-md ${currentPage >= totalPages ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
+                    className={`px-4 py-2 rounded-md ${currentPage >= totalPages ? "bg-gray-300 hover:bg-gray-400 dark:bg-gray-800 dark:hover:bg-gray-900" : "bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-800"
                       }`}
                   >
                     Weiter
@@ -526,7 +530,6 @@ export default function AuditPage() {
           <div className="w-full h-full flex flex-col items-center justify-center p-6">
             <div className="w-3/4 max-w-screen-lg h-3/4 bg-gray-200 dark:bg-gray-900 p-6 rounded-md flex flex-col justify-start">
               <AuditVorschau audit={selectedAudit} allAudits={audits} />
-  
               {/* Scrollbare Fragenliste */}
               <div className="flex-1 overflow-y-auto border border-gray-300 dark:border-gray-700 bg-gray-200 dark:bg-gray-900 rounded-md p-4 max-h-80">
                 {selectedAudit !== 0 && questions.length > 0 ? (
@@ -559,7 +562,7 @@ export default function AuditPage() {
                         selectedAudit &&
                         (window.location.href = `/questionPage/${selectedAudit}`)
                       }
-                      className="px-4 py-2 rounded-md text-white bg-purple-500"
+                      className="px-4 py-2 rounded-md text-white bg-purple-500 hover:bg-purple-600"
                     >
                       Neue Frage
                     </button>
@@ -569,7 +572,7 @@ export default function AuditPage() {
                       selectedAudit &&
                       (window.location.href = `/auditbearbeiten/${selectedAudit}`)
                     }
-                    className="px-4 py-2 rounded-md text-white bg-blue-500"
+                    className="px-4 py-2 rounded-md text-white bg-blue-500 hover:bg-blue-600"
                   >
                     Bearbeiten
                   </button>
@@ -581,7 +584,7 @@ export default function AuditPage() {
                         changeStatus(selectedAudit);
                       }
                     }}
-                    className="px-4 py-2 rounded-md text-white bg-green-500"
+                    className="px-4 py-2 rounded-md text-white bg-green-500 hover:bg-green-600"
                   >
                     Durchführen
                   </button>
@@ -593,7 +596,7 @@ export default function AuditPage() {
                         window.location.href = `/gruppe5/${selectedAudit}`;
                       }
                     }}
-                    className="px-4 py-2 rounded-md text-white bg-red-600"
+                    className="px-4 py-2 rounded-md text-white bg-red-600 hover:bg-red-700"
                   >
                     Findings
                   </button>) : ""}
@@ -617,7 +620,7 @@ export default function AuditPage() {
             </div>
             <button
                 onClick={() => exportAllAuditsAndFindingsToPDF(audits, findings)}
-                className="px-4 py-2 rounded-md bg-sky-300 dark:bg-sky-500 dark:text-white mt-4">
+                className="px-4 py-2 rounded-md bg-sky-300 hover:bg-sky-400 dark:bg-sky-500 dark:hover:bg-sky-600 dark:text-white mt-4">
                 Export Audit Details as PDF
             </button>
           </div>
