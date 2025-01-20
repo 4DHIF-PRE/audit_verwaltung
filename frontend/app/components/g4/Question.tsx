@@ -184,6 +184,7 @@ export default function Question({ question }: { question: QuestionInt }) {
         }
         if (result.ok) {
           console.log("Finding saved successfully!");
+          alert("Finding saved successfully!");
         }
       }
       // Evaluate result of saving finding when attachment uploads are skipped.
@@ -305,12 +306,32 @@ export default function Question({ question }: { question: QuestionInt }) {
           console.log("List of API files empty, unable to download remote file.");
         else {
           const fileReturned = attachments.fileName.find(file => file.fa_filename === fileToDownload)
+          console.log(attachments.fileName);
+          console.log(fileReturned);
 
           if(typeof fileReturned !== 'undefined' && fileReturned != null){
             // fileReturned shouldn't be null or undefined if the file you're trying to delete is in the database. 
             /* By design, the first file that was found with a matching file name will be removed.
             */
-           console.log("Preparing to download...");
+           console.log("Preparing to fetch file for download...");
+
+           const fileResult = await fetch(`http://localhost:3000/api/finding/attachments/${fileReturned.fa_id}`)
+           if(fileResult.ok){
+            // Limitation: downloads first found file with the given file name.
+
+            console.log("File retrieved, preparing download...");
+           }
+          /* const filesReturned = attachments.fileName.map(
+            (fileObj: { fa_file: { data: number[] }; fa_filename: string }) => {
+              const bufferData = new Uint8Array(fileObj.fa_file.data); // Convert data array to Uint8Array
+              const blob = new Blob([bufferData]); // Create a Blob
+              const filetoAdd = new File([blob], fileObj.fa_filename); // Create a File from the Blob
+              return filetoAdd;
+            }
+          ); */
+          }
+          else{
+            
           }
         }
       }
