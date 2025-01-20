@@ -817,6 +817,7 @@ export async function createFinding(findingData: {
 
 export async function updateFinding(updateData: {
     f_id: number;
+    f_level: Number;
     f_auditor_comment: string;
     f_finding_comment: string;
     f_creation_date: Date;
@@ -834,7 +835,7 @@ export async function updateFinding(updateData: {
 
     const results = await connection.execute(
       `UPDATE f_findings
-             SET f_comment = '${updateData.f_auditor_comment}', f_finding_comment = '${updateData.f_finding_comment}', f_creation_date = '${creationDate}', f_timeInDays = ${updateData.f_timeInDays}, f_status = '${updateData.f_status}'
+             SET f_level = ${updateData.f_level}, f_comment = '${updateData.f_auditor_comment}', f_finding_comment = '${updateData.f_finding_comment}', f_creation_date = '${creationDate}', f_timeInDays = ${updateData.f_timeInDays}, f_status = '${updateData.f_status}'
              WHERE f_id = ${updateData.f_id}`
         );
     } catch (error) {
@@ -879,6 +880,26 @@ export async function getFindingsByID(auditId: number): Promise<any | Error> {
         connection.release(); // Ensure connection is released
     }
 }
+
+export async function getFindingsByAudit(auditId: number): Promise<any | Error> {
+    const connection = await connectionPool.getConnection();
+    try {
+        const query = `
+            SELECT *
+            FROM f_findings
+            WHERE f_au_audit_idx = ?;
+        `;
+        const [results] = await connection.execute(query, [auditId]);
+        console.log(`Findings für Audit ${auditId}:`, results); // Debugging
+        return results;
+    } catch (error) {
+        console.error("Fehler beim Abrufen der Findings für ein Audit:", error);
+        return new Error("Error fetching findings for audit");
+    } finally {
+        connection.release();
+    }
+}
+
 
 export async function getAuditsWithFindings(): Promise<any[] | Error> {
     const connection = await connectionPool.getConnection();
@@ -1462,18 +1483,5 @@ export async function GetRolesUser() {
   } finally {
     pool.release();
   }
-}
-
-export async function GetAllUser(){
-    const query = 'SELECT * FROM u_user';
-    const pool = await connectionPool.getConnection();
-    try{
-        const [rows] = await pool.execute(query);
-        return rows;
-    }catch(error){
-        return new Error(`Failed to retrieve users: ${error.message}`);
-    }finally{
-        pool.release();
-    }
 }
 

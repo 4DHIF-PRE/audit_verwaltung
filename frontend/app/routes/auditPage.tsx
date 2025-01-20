@@ -50,7 +50,7 @@ export const loader: LoaderFunction = async ({ request }) => {
     auditsData = await auditRes.json();
   }
 
-  const findingsRes = await fetch("http://localhost:3000/findings", {
+  const findingsRes = await fetch("http://localhost:3000/findings/getall", {
     method: "GET",
     headers: { "Content-Type": "application/json" },
     signal: controller.signal,
@@ -101,6 +101,8 @@ export default function AuditPage() {
     setAudits(loaderData.audits); 
     setFindings(loaderData.findings);
   }, [loaderData]);
+
+  
 
   useEffect(() => {
     if (selectedAudit === 0) {
@@ -349,24 +351,34 @@ export default function AuditPage() {
           doc.addPage();
           yPosition = 10;
         }
+
+        const formattedDate = new Date(audit.au_audit_date).toLocaleDateString("de-DE", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+      });
   
         // Audit-Details hinzufügen
         doc.setFontSize(14);
         doc.text(`Audit ${auditIndex + 1}: ${audit.au_theme}`, 10, yPosition);
         doc.setFontSize(12);
-        doc.text(`Datum: ${audit.au_audit_date}`, 10, yPosition + 10);
+        doc.text(`Datum: ${formattedDate}`, 10, yPosition + 10);
         doc.text(`Ort: ${audit.au_place}`, 10, yPosition + 20);
-        doc.text(`Leitender Auditor: ${audit.au_leadauditor_idx}`, 10, yPosition + 30);
-        yPosition += 40;
+        doc.text(`Status: ${audit.au_auditstatus || "Unbekannt"}`, 10, yPosition + 30); // Status hinzufügen
+        doc.text(`Leitender Auditor: ${audit.au_leadauditor_idx}`, 10, yPosition + 40);
+        yPosition += 50;
   
         // Debug: Zeige Audit-ID
         console.log(`Audit-ID: ${audit.au_idx}`);
   
         // Findings für das aktuelle Audit hinzufügen
         const auditFindings = findings.filter(finding => {
-          console.log(`Checking Finding: ${finding.f_au_audit_idx} === ${audit.au_idx}`);
+          console.log(
+              `Checking Finding: ${finding.f_au_audit_idx} (Type: ${typeof finding.f_au_audit_idx}) === ${audit.au_idx} (Type: ${typeof audit.au_idx})`
+          );
           return finding.f_au_audit_idx === audit.au_idx;
-        });
+      });
+
   
         if (auditFindings.length > 0) {
           doc.text("Findings:", 10, yPosition);
@@ -377,15 +389,24 @@ export default function AuditPage() {
               doc.addPage();
               yPosition = 10;
             }
+
+            const findingDate = finding.f_creation_date
+                        ? new Date(finding.f_creation_date).toLocaleDateString("de-DE", {
+                              year: "numeric",
+                              month: "2-digit",
+                              day: "2-digit",
+                          })
+                        : "Keine Angabe";
   
-            doc.text(`${index + 1}. Frage-ID: ${finding.f_qu_question_idx || "Keine"}`, 10, yPosition);
-            doc.text(`   Level: ${finding.f_level || "Nicht angegeben"}`, 10, yPosition + 10);
-            doc.text(`   Status: ${finding.f_status}`, 10, yPosition + 20);
-            doc.text(`   Kommentar: ${finding.f_auditor_comment || "Keine"}`, 10, yPosition + 30);
-            doc.text(`   Maßnahme: ${finding.f_finding_comment || "Keine"}`, 10, yPosition + 40);
-            doc.text(`   Erstellt am: ${finding.f_creation_date}`, 10, yPosition + 50);
+                        doc.setFontSize(10);
+                        doc.text(`${index + 1}.`, 10, yPosition);
+                        doc.text(`   Level: ${finding.f_level || "Nicht angegeben"}`, 15, yPosition);
+                        doc.text(`   Status: ${finding.f_status || "Nicht angegeben"}`, 15, yPosition + 5);
+                        doc.text(`   Kommentar: ${finding.f_comment || "Keine"}`, 15, yPosition + 10);
+                        doc.text(`   Maßnahme: ${finding.f_finding_comment || "Keine"}`, 15, yPosition + 15);
+                        doc.text(`   Erstellt am: ${findingDate}`, 15, yPosition + 20);
   
-            yPosition += 60;
+            yPosition += 35;
           });
         } else {
           doc.text("Keine Findings für dieses Audit.", 10, yPosition);
