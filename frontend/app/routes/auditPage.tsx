@@ -151,7 +151,6 @@ export default function AuditPage() {
       au_audit_date: today,
       au_number_of_days: 1,
       au_leadauditor_idx: user.u_userId,
-      au_leadauditee_idx: user.u_userId,
       au_auditstatus: "geplant",
       au_place: "Ort",
       au_theme: "Kein Thema",
@@ -444,12 +443,13 @@ export default function AuditPage() {
               {/* Suchleiste und Add Button */}
               <div className="flex flex-col">
                 <Searchbar value={search} onChange={(value) => setSearch(value)} />
-                 <select className="border p-2 rounded-md mb-4"
+                 <select className="border p-2 rounded-md mb-4 dark:bg-black"
                  value={filter}
                  onChange={(e)=> setFilter(e.target.value)}>
                    <option value="">Wählen Sie einen Filter aus</option>
                    <option value="geplant">Geplant</option>
                    <option value="bereit">Bereit</option>
+                   <option value="findings_offen">Findings Offen</option>
                   <option value="begonnen">Begonnen</option>
                   <option value="fertig">Fertig</option>
                     </select> 
