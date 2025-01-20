@@ -240,7 +240,6 @@ export default function Question({ question }: { question: QuestionInt }) {
     try {
       
       if(removeButton){
-        console.log("Button exists.");
         removeButton.disabled = true;
       }
     
@@ -271,6 +270,7 @@ export default function Question({ question }: { question: QuestionInt }) {
               /* By design, the first file that was found with a matching file name will be removed.
               */
               const deleteResult = await fetch(`http://localhost:3000/api/finding/attachments/${fileReturned.fa_id}/delete`)
+              if(deleteResult.ok) alert("File removed successfully!")
             }
           }
         }
@@ -282,11 +282,39 @@ export default function Question({ question }: { question: QuestionInt }) {
     }
   };
 
-  const handleDownload = async (filetoRemove: string) => {
+  const handleDownload = async (fileToDownload: string) => {
+    const downloadButton = document.getElementById(`downloadFile-${fileToDownload}`)
+    if(downloadButton) downloadButton.disabled = true;
     try {
+      if (findingId !== -1) {
+        const attachmentsResponse = await fetch(
+          `http://localhost:3000/api/finding/attachments/${findingId}/filenames`
+        );
+        const attachments = await attachmentsResponse.json();
+        // console.log(attachments);
+        // Get list of existing file names
+        const existingFileNames = Array.isArray(attachments.fileName)
+          ? attachments.fileName.map((file) => file.fa_filename)
+          : [];
+        if (existingFileNames.length === 0)
+          console.log("List of API files empty, unable to download remote file.");
+        else {
+          const fileReturned = attachments.fileName.find(file => file.fa_filename === fileToDownload)
+
+          if(typeof fileReturned !== 'undefined' && fileReturned != null){
+            // fileReturned shouldn't be null or undefined if the file you're trying to delete is in the database. 
+            /* By design, the first file that was found with a matching file name will be removed.
+            */
+           console.log("Preparing to download...");
+          }
+        }
+      }
     } catch (error) {
       console.error("Error occured while downloading file: ", error);
     } finally {
+      if(downloadButton){
+        downloadButton.disabled = false;
+      } 
     }
   };
 
