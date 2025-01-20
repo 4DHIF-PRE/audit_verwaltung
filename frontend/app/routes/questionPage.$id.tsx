@@ -191,12 +191,15 @@ export default function AuditPage() {
             <option value="gm">GM</option>
           </select>
         </div>
-        <div className="border border-gray-400 rounded-md w-full max-h-64 overflow-y-auto dark:border-gray-600">
-          {filteredLaws.map((law) => (
+        <div className="flex-1 overflow-auto border border-gray-400 rounded-md w-full max-h-64 overflow-y-auto dark:border-gray-600">
+          {filteredLaws.length === 0 ? (
+            <div className=" text-center font-bold text-2xl text-gray-600 dark:text-gray-300">
+              Keine Gesetze gefunden
+            </div>) :(
+          filteredLaws.map((law) => (
             <div
               key={law.la_idx}
-              className="flex items-center justify-between border-b border-gray-300 p-2 dark:border-gray-600"
-            >
+              className="flex items-center justify-between border-b border-gray-300 p-2 dark:border-gray-600">
               <div className="font-bold text-gray-700 dark:text-white">
                 {law.la_text}
               </div>
@@ -207,7 +210,8 @@ export default function AuditPage() {
                 className="w-5 h-5"
               />
             </div>
-          ))}
+            )))}
+            
         </div>
         <div className="flex justify-center">
           <button
