@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 // Interfaces
 export interface QuestionInt {
@@ -26,9 +26,14 @@ export default function Question({ question }: { question: QuestionInt }) {
   const [fileData, setFileData] = useState<File[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [findingId, setFindingId] = useState(-1);
+  const fetchedOnceRef = useRef(false);
+
 
   // Load data from API
   useEffect(() => {
+    if (fetchedOnceRef.current) return; 
+
+    fetchedOnceRef.current = true;
     const loadData = async () => {
       setLoading(true);
       console.log("onload");
