@@ -88,6 +88,7 @@ export default function AuditPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedAudit, setSelectedAudit] = useState<number>(0);
   const [canCreateAudit, setCanCreateAudit] = useState(false);
+  const [filter, setFilter] = useState("");
   const auditsPerPage = 5;
   const totalPages = Math.ceil(audits.length / auditsPerPage);
 
@@ -222,7 +223,14 @@ export default function AuditPage() {
 
   const filteredAudits = audits.filter(
     (audit) =>
-      audit.au_theme.toLowerCase().includes(search.toLowerCase()) 
+    {
+      const auditText = audit.au_theme.toLowerCase();
+      const searchTextLower = search.toLowerCase().trim();
+
+      const matchesSearch = auditText.includes(searchTextLower);
+      const matchesType = filter === "" || audit.au_auditstatus === filter;
+      return matchesSearch && matchesType;
+    }
   );
 
   const handleNextPage = () => {
@@ -432,10 +440,19 @@ export default function AuditPage() {
         <div className="flex flex-row flex-1 mt-6">
           {/* Left Section */}
           <div className="flex flex-col w-1/3 space-y-4 relative">
-            <div className="flex flex-col h-[580px]">
+            <div className="flex flex-col h-[630px]">
               {/* Suchleiste und Add Button */}
               <div className="flex flex-col">
                 <Searchbar value={search} onChange={(value) => setSearch(value)} />
+                 <select className="border p-2 rounded-md mb-4"
+                 value={filter}
+                 onChange={(e)=> setFilter(e.target.value)}>
+                   <option value="">Wählen Sie einen Filter aus</option>
+                   <option value="geplant">Geplant</option>
+                   <option value="bereit">Bereit</option>
+                  <option value="begonnen">Begonnen</option>
+                  <option value="fertig">Fertig</option>
+                    </select> 
                 <button
                   className="mb-4 rounded bg-green-100 dark:bg-green-500 border border-gray-300"
                   onClick={() => createAudit(user, setAudits)}
@@ -443,7 +460,7 @@ export default function AuditPage() {
                   Audit erstellen
                 </button>
               </div>
-  
+              
               <div className="flex-1 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4">
                 {displayedAudits.length > 0 ? (
                   displayedAudits.map((audit) => (
