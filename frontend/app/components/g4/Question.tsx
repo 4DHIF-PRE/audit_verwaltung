@@ -75,8 +75,8 @@ export default function Question({ question }: { question: QuestionInt }) {
             `http://localhost:3000/api/finding/attachments/${finding.f_id}/filenames`
           );
           const attachments = await attachmentsResponse.json();
-          console.log("attach");
-          console.log(attachments);
+          //console.log("attach");
+          //console.log(attachments);
 
           /*if (attachments.fileName) {
           const filesReturned = attachments.fileName.map(
@@ -97,7 +97,7 @@ export default function Question({ question }: { question: QuestionInt }) {
           const filenames = attachments.fileName.map(
             (file: { fa_filename: string }) => file.fa_filename
           );
-          console.log(filenames);
+          //console.log(filenames);
           setFiles((prevFiles) =>
             Array.from(new Set([...prevFiles, ...filenames]))
           );
