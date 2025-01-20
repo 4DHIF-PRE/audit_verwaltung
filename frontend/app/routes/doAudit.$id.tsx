@@ -19,6 +19,7 @@ export interface AuditInt {
   au_audit_date: string;
   au_number_of_days: number;
   au_leadauditor_idx: number;
+  au_leadauditee_idx: number;
   au_auditstatus: string;
   au_place: string;
   au_theme: string;
@@ -62,7 +63,7 @@ export default function App() {
   },  [id]);
 
   const handleSave = async() => {
-
+    
 
     window.location.href = `/gruppe5`
   }
@@ -89,14 +90,15 @@ export default function App() {
           )}
         </div>
       </main>
-
+            
       <button
         id="saveAudit"
         type="button"
+        hidden
         onClick={handleSave}
         className="bg-red-500 hover:bg-red-600 text-white font-medium rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 pt-2 pb-2 pl-5 pr-5"
       >
-        Audit speichern
+        Audit fertigstellen
       </button>
     </div>
   );
