@@ -432,7 +432,7 @@ export default function AuditPage() {
         <div className="flex flex-row flex-1 mt-6">
           {/* Left Section */}
           <div className="flex flex-col w-1/3 space-y-4 relative">
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col h-[580px]">
               {/* Suchleiste und Add Button */}
               <div className="flex flex-col">
                 <Searchbar value={search} onChange={(value) => setSearch(value)} />
