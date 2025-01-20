@@ -558,8 +558,8 @@ export default function AuditPage() {
                     Findings
                   </button>) : ""}
                 </div>
-              ) : (
-                canCreateAudit && ( // Button nur anzeigen, wenn der Benutzer erstellberechtigt ist
+              ) : ( ""
+                /*{canCreateAudit ? ( // Button nur anzeigen, wenn der Benutzer erstellberechtigt ist
                   <div className="flex justify-center mt-4">
                     <button
                       onClick={() => {
@@ -571,9 +571,9 @@ export default function AuditPage() {
                     >
                       Durchführen
                     </button>
-                  ) : null}
-                </div>
-              ) : null}
+                  ) : ""}
+                </div>*/
+              )}
             </div>
             <button
                 onClick={() => exportAllAuditsAndFindingsToPDF(audits, findings)}
