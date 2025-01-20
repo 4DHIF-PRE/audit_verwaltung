@@ -1485,3 +1485,15 @@ export async function GetRolesUser() {
   }
 }
 
+export async function GetAllUser(){
+    const query = 'SELECT * FROM u_user';
+    const pool = await connectionPool.getConnection();
+    try{
+        const [rows] = await pool.execute(query);
+        return rows;
+    }catch(error){
+        return new Error(`Failed to retrieve users: ${error.message}`);
+    }finally{
+        pool.release();
+    }
+}
