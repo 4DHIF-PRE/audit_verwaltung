@@ -82,13 +82,13 @@ export default function App() {
       {/* Main Content */}
       <div className="flex flex-col flex-grow h-full">
         {/* Sticky Filter */}
-        <div className="sticky top-[4rem] bg-white dark:bg-black z-10 shadow-md p-4">
+        <div className="sticky mt-6 bg-white dark:bg-black z-10 shadow-md p-4">
           <AuditFilter  />
         </div>
 
         {/* Scrollable Questions */}
-        <main className="flex-grow overflow-y-auto p-10 bg-white dark:bg-black">
-          <div className="mt-5 px-10">
+        <main className="flex-grow overflow-y-auto pl-10 pr-10 bg-white dark:bg-black">
+          <div className="px-10">
             {questions.length > 0 ? (
               questions.map((question) => (
                 <div className="mt-3" key={question.qu_idx}>
