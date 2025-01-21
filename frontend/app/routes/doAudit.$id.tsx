@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Navbar } from "../components/Navbar";
 import AuditFilter from "../components/g4/Filter";
 import Question from "../components/g4/Question";
 import { useParams } from "@remix-run/react";
+
 
 // Interfaces
 export interface QuestionInt {
@@ -18,6 +19,7 @@ export interface AuditInt {
   au_audit_date: string;
   au_number_of_days: number;
   au_leadauditor_idx: number;
+  au_leadauditee_idx: number;
   au_auditstatus: string;
   au_place: string;
   au_theme: string;
@@ -28,12 +30,18 @@ export default function App() {
   const { id } = useParams();
   const [audit, setAudit] = useState<AuditInt>();
   const [questions, setQuestions] = useState<QuestionInt[]>([]);
+  const [questionsfiltern, setQuestionsfiltern] = useState<QuestionInt[]>([]);
   const [loading, setLoading] = useState(true);
+  const fetchedOnceRef = useRef(false);
 
   // Load audit data and corresponding questions
   useEffect(() => {
     const loadAuditData = async () => {
+      if (fetchedOnceRef.current) return; 
+
+    fetchedOnceRef.current = true;
       setLoading(true);
+      console.log("loadinf");
 
       try {
         // Fetch audit data from the API (replace URL with your API endpoint)
@@ -45,6 +53,7 @@ export default function App() {
         const questionsResponse = await fetch(`http://localhost:3000/audit/questions/${id}`);//${currentAudit?.au_idx}
         const auditQuestions = await questionsResponse.json();
         setQuestions(auditQuestions);
+        setQuestionsfiltern(auditQuestions)
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -53,45 +62,57 @@ export default function App() {
     };
 
     loadAuditData();
-  }, []);
+  },  [id]);
 
-  const handleSave = async() => {
+  const handleSave = async () => {
+    window.location.href = `/gruppe5`;
+  };
 
-
-    window.location.href = `/gruppe5`
-  }
-
-  if (loading) {
+  if (loading&&!fetchedOnceRef) {
     return <div>Loading...</div>;
   }
 
   return (
     <div className="flex flex-col h-screen">
-      <Navbar />
-      <main className="flex-grow p-10 bg-white dark:bg-black">
-        <AuditFilter />
-        <div className="mt-5 px-10">
-          {/* Render questions */}
-          {questions.length > 0 ? (
-            questions.map((question) => (
-              <div className="mt-3" key={question.qu_idx}>
-                <Question question={question} />
-              </div>
-            ))
-          ) : (
-            <div>No questions found for this audit.</div>
-          )}
-        </div>
-      </main>
+      {/* Navbar */}
+      <div className="sticky top-0 z-20">
+        <Navbar />
+      </div>
 
-      <button
-        id="saveAudit"
-        type="button"
-        onClick={handleSave}
-        className="bg-red-500 hover:bg-red-600 text-white font-medium rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 pt-2 pb-2 pl-5 pr-5"
-      >
-        Audit speichern
-      </button>
+      {/* Main Content */}
+      <div className="flex flex-col flex-grow h-full">
+        {/* Sticky Filter */}
+        <div className="sticky mt-6 bg-white dark:bg-black z-10 shadow-md p-4">
+          <AuditFilter  />
+        </div>
+
+        {/* Scrollable Questions */}
+        <main className="flex-grow overflow-y-auto pl-10 pr-10 bg-white dark:bg-black">
+          <div className="px-10">
+            {questions.length > 0 ? (
+              questions.map((question) => (
+                <div className="mt-3" key={question.qu_idx}>
+                  <Question question={question} />
+                </div>
+              ))
+            ) : (
+              <div>No questions found for this audit.</div>
+            )}
+          </div>
+        </main>
+
+        {/* Sticky Save Button */}
+        <div className="sticky bottom-0 bg-white dark:bg-black z-10 shadow-md p-4">
+          <button
+            id="saveAudit"
+            type="button"
+            onClick={handleSave}
+            className="w-full bg-red-500 hover:bg-red-600 text-white font-medium rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 pt-2 pb-2"
+          >
+            Audit speichern
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
