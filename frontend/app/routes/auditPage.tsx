@@ -2,14 +2,15 @@ import { useEffect, useState } from "react";
 import { Navbar } from "~/components/Navbar";
 import AuditVorschau from "~/components/ui/AuditVorschau";
 import Searchbar from "../components/Searchbar";
-import { AuditDetails } from "../types/AuditDetails";
-import { FindingDetails } from "../types/FindingDetails";
+import { AuditDetails } from "~/types/AuditDetails";
+import { FindingDetails } from "~/types/FindingDetails";
 import QuestionVorschau from "../components/ui/QuestionVorschau";
-import { QuestionInt } from "../types/QuestionInt";
-import { RolesUser } from "../types/RolesUser";
-import { UserDetails } from "../types/UserDetails";
+import { QuestionInt } from "~/types/QuestionInt";
+import { RolesUser } from "~/types/RolesUser";
+import { UserDetails } from "~/types/UserDetails";
 import { json, LoaderFunction } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
+import {Footer} from "~/components/Footer";
 import {Button} from "~/components/ui/button";
 import jsPDF from "jspdf";
 
@@ -627,6 +628,7 @@ export default function AuditPage() {
           </div>
         </div>
       </div>
+      <Footer/>
     </div>
   );
   

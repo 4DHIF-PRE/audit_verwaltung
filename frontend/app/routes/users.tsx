@@ -87,17 +87,18 @@ export default function Users() {
     };
 
     return (<BaseLayout>
-            <div className="container mx-auto p-4">
-                <h1 className="text-2xl font-bold mb-4">Users</h1>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full bg-white border border-gray-300">
+            <div className="flex flex-col h-screen container mx-auto p-4">
+                <br/>
+                <h1 className="text-2xl font-bold mb-4 mt-9">Users</h1>
+                <div className="overflow-x-auto rounded-md">
+                    <table className="table-auto min-w-full bg-white border">
                         <thead>
-                        <tr className="dark:bg-gray-100 dark:text-black">
+                        <tr className="dark:bg-gray-100 dark:text-black text-left">
                             <th className="py-2 px-4 border-b">First Name</th>
                             <th className="py-2 px-4 border-b">Last Name</th>
                             <th className="py-2 px-4 border-b">Email</th>
                             <th className="py-2 px-4 border-b">DeleteAt</th>
-                            <th className="py-2 px-4 border-b">Action</th>
+                            <th className="py-2 px-4 border-b boder-l text-center">Action</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -106,7 +107,7 @@ export default function Users() {
                                 <td className="py-2 px-4 border-b">{user.u_lastname}</td>
                                 <td className="py-2 px-4 border-b">{user.u_email}</td>
                                 <td className="py-2 px-4 border-b">{user.u_deletedAt}</td>
-                                <td className="py-2 px-4 border-b">
+                                <td className="py-2 px-4 border-b border-l text-center">
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             {!user.u_deletedAt ? (<Button
@@ -154,9 +155,7 @@ export default function Users() {
                                                     Are you absolutely sure?
                                                 </AlertDialogTitle>
                                                 <AlertDialogDescription>
-                                                    This action cannot be undone. This will permanently
-                                                    delete the user account and remove their data from
-                                                    our servers.
+                                                    Are you sure you want to restore this User?
                                                 </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
