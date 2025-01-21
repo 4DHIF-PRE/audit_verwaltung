@@ -10,6 +10,7 @@ import { RolesUser } from "../types/RolesUser";
 import { UserDetails } from "../types/UserDetails";
 import { json, LoaderFunction } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
+import {Button} from "~/components/ui/button";
 import jsPDF from "jspdf";
 
 
@@ -88,6 +89,7 @@ export default function AuditPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedAudit, setSelectedAudit] = useState<number>(0);
   const [canCreateAudit, setCanCreateAudit] = useState(false);
+  const [filter, setFilter] = useState("");
   const auditsPerPage = 5;
   const totalPages = Math.ceil(audits.length / auditsPerPage);
 
@@ -150,7 +152,6 @@ export default function AuditPage() {
       au_audit_date: today,
       au_number_of_days: 1,
       au_leadauditor_idx: user.u_userId,
-      au_leadauditee_idx: user.u_userId,
       au_auditstatus: "geplant",
       au_place: "Ort",
       au_theme: "Kein Thema",
@@ -222,7 +223,14 @@ export default function AuditPage() {
 
   const filteredAudits = audits.filter(
     (audit) =>
-      audit.au_theme.toLowerCase().includes(search.toLowerCase()) 
+    {
+      const auditText = audit.au_theme.toLowerCase();
+      const searchTextLower = search.toLowerCase().trim();
+
+      const matchesSearch = auditText.includes(searchTextLower);
+      const matchesType = filter === "" || audit.au_auditstatus === filter;
+      return matchesSearch && matchesType;
+    }
   );
 
   const handleNextPage = () => {
@@ -432,18 +440,30 @@ export default function AuditPage() {
         <div className="flex flex-row flex-1 mt-6">
           {/* Left Section */}
           <div className="flex flex-col w-1/3 space-y-4 relative">
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col h-[630px]">
               {/* Suchleiste und Add Button */}
               <div className="flex flex-col">
                 <Searchbar value={search} onChange={(value) => setSearch(value)} />
-                <button
-                  className="mb-4 rounded bg-green-100 dark:bg-green-500 border border-gray-300"
+                 <select className="border p-2 rounded-md mb-4 dark:bg-black"
+                 value={filter}
+                 onChange={(e)=> setFilter(e.target.value)}>
+                   <option value="">Wählen Sie einen Filter aus</option>
+                   <option value="geplant">Geplant</option>
+                   <option value="bereit">Bereit</option>
+                   <option value="findings_offen">Findings Offen</option>
+                  <option value="begonnen">Begonnen</option>
+                  <option value="fertig">Fertig</option>
+                    </select> 
+                <Button 
+                variant="default"
+                size="lg"
+                 // className="mb-4 rounded bg-green-100 hover:bg-green-200 dark:bg-green-500 border border-gray-300 dark:hover:bg-green-600"
                   onClick={() => createAudit(user, setAudits)}
                 >
                   Audit erstellen
-                </button>
+                </Button>
               </div>
-  
+
               <div className="flex-1 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4">
                 {displayedAudits.length > 0 ? (
                   displayedAudits.map((audit) => (
@@ -462,6 +482,7 @@ export default function AuditPage() {
                       <div>
                         {audit.au_theme}
                       </div>
+                      {(audit.au_auditstatus === "bereit" || audit.au_auditstatus === "geplant") && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -470,6 +491,7 @@ export default function AuditPage() {
                       >
                         ❌
                       </button>
+                      )}
                     </div>
                   ))
                 ) : (
@@ -485,15 +507,16 @@ export default function AuditPage() {
                   <button
                     onClick={handlePreviousPage}
                     disabled={currentPage === 1}
-                    className={`px-4 py-2 rounded-md ${currentPage === 1 ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
+                    className={`px-4 py-2 rounded-md ${currentPage === 1 ? "bg-gray-300 hover:bg-gray-400 dark:bg-gray-800 dark:hover:bg-gray-900" : "bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-800"
                       }`}
                   >
                     Zurück
                   </button>
                   <button
+                
                     onClick={handleNextPage}
                     disabled={currentPage >= totalPages}
-                    className={`px-4 py-2 rounded-md ${currentPage >= totalPages ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
+                    className={`px-4 py-2 rounded-md ${currentPage >= totalPages ? "bg-gray-300 hover:bg-gray-400 dark:bg-gray-800 dark:hover:bg-gray-900" : "bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-800"
                       }`}
                   >
                     Weiter
@@ -507,8 +530,8 @@ export default function AuditPage() {
           <div className="w-full h-full flex flex-col items-center justify-center p-6">
             <div className="w-3/4 max-w-screen-lg h-3/4 bg-gray-200 dark:bg-gray-900 p-6 rounded-md flex flex-col justify-start">
               <AuditVorschau audit={selectedAudit} allAudits={audits} />
-  
-              {/* Scrollbare Fragenliste */}
+              <QuestionVorschau auditId={selectedAudit} questions={questions} />
+              {/* Scrollbare Fragenliste */}{/*
               <div className="flex-1 overflow-y-auto border border-gray-300 dark:border-gray-700 bg-gray-200 dark:bg-gray-900 rounded-md p-4 max-h-80">
                 {selectedAudit !== 0 && questions.length > 0 ? (
                   questions
@@ -529,7 +552,7 @@ export default function AuditPage() {
                     Keine Fragen für dieses Audit gefunden
                   </div>
                 )}
-              </div>
+              </div>*/}
   
               {/* Buttons unter der Fragenliste */}
               {selectedAudit !== 0 ? (
@@ -540,7 +563,7 @@ export default function AuditPage() {
                         selectedAudit &&
                         (window.location.href = `/questionPage/${selectedAudit}`)
                       }
-                      className="px-4 py-2 rounded-md text-white bg-purple-500"
+                      className="px-4 py-2 rounded-md text-white bg-purple-500 hover:bg-purple-600"
                     >
                       Neue Frage
                     </button>
@@ -550,7 +573,7 @@ export default function AuditPage() {
                       selectedAudit &&
                       (window.location.href = `/auditbearbeiten/${selectedAudit}`)
                     }
-                    className="px-4 py-2 rounded-md text-white bg-blue-500"
+                    className="px-4 py-2 rounded-md text-white bg-blue-500 hover:bg-blue-600"
                   >
                     Bearbeiten
                   </button>
@@ -562,7 +585,7 @@ export default function AuditPage() {
                         changeStatus(selectedAudit);
                       }
                     }}
-                    className="px-4 py-2 rounded-md text-white bg-green-500"
+                    className="px-4 py-2 rounded-md text-white bg-green-500 hover:bg-green-600"
                   >
                     Durchführen
                   </button>
@@ -574,7 +597,7 @@ export default function AuditPage() {
                         window.location.href = `/gruppe5/${selectedAudit}`;
                       }
                     }}
-                    className="px-4 py-2 rounded-md text-white bg-red-600"
+                    className="px-4 py-2 rounded-md text-white bg-red-600 hover:bg-red-700"
                   >
                     Findings
                   </button>) : ""}
@@ -598,7 +621,7 @@ export default function AuditPage() {
             </div>
             <button
                 onClick={() => exportAllAuditsAndFindingsToPDF(audits, findings)}
-                className="px-4 py-2 rounded-md bg-sky-300 dark:bg-sky-500 dark:text-white mt-4">
+                className="px-4 py-2 rounded-md bg-sky-300 hover:bg-sky-400 dark:bg-sky-500 dark:hover:bg-sky-600 dark:text-white mt-4">
                 Export Audit Details as PDF
             </button>
           </div>

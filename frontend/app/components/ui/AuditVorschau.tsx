@@ -9,25 +9,8 @@ interface Props {
   allAudits: AuditDetails[];
 }
 
-// export const loader : LoaderFunction = async ({}) => {
-//   const userRes = await fetch('http://localhost:3000/getalluser', {
-//     method: 'GET',
-//     headers: {'Content-Type': 'application/json',},
-//   });
-
-//   if (!userRes.ok) {
-//     throw new Error('Failed to fetch users');
-//   }
-
-//  let userData: UserDetails[] = [];
-//  if(userRes.ok){
-//   userData = await userRes.json();
-//  }
-//  return json({ users: userData });
-// };
 
 export default function AuditVorschau({ audit, allAudits }: Props) {
- //const { users } = useLoaderData<{ users: UserDetails[] }>();
  const [users, setUsers] = useState<UserDetails[]>([]);
   const [selectedAuditDetails, setSelectedAuditDetails] = useState<AuditDetails | null>(null);
 
