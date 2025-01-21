@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Navbar } from "../components/Navbar";
 import AuditFilter from "../components/g4/Filter";
 import Question from "../components/g4/Question";
 import { useParams } from "@remix-run/react";
+
 
 // Interfaces
 export interface QuestionInt {
@@ -18,6 +19,7 @@ export interface AuditInt {
   au_audit_date: string;
   au_number_of_days: number;
   au_leadauditor_idx: number;
+  au_leadauditee_idx: number;
   au_auditstatus: string;
   au_place: string;
   au_theme: string;
@@ -30,11 +32,16 @@ export default function App() {
   const [questions, setQuestions] = useState<QuestionInt[]>([]);
   const [questionsfiltern, setQuestionsfiltern] = useState<QuestionInt[]>([]);
   const [loading, setLoading] = useState(true);
+  const fetchedOnceRef = useRef(false);
 
   // Load audit data and corresponding questions
   useEffect(() => {
     const loadAuditData = async () => {
+      if (fetchedOnceRef.current) return; 
+
+    fetchedOnceRef.current = true;
       setLoading(true);
+      console.log("loadinf");
 
       try {
         // Fetch audit data from the API (replace URL with your API endpoint)
@@ -55,13 +62,13 @@ export default function App() {
     };
 
     loadAuditData();
-  }, []);
+  },  [id]);
 
   const handleSave = async () => {
     window.location.href = `/gruppe5`;
   };
 
-  if (loading) {
+  if (loading&&!fetchedOnceRef) {
     return <div>Loading...</div>;
   }
 
