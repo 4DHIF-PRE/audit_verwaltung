@@ -2,7 +2,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import { validateEmail, validateName, validatePassword } from './util/validation.util.js';
 //Mein Lieblings-Import
-import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings, getFindingByQuestionID, getAuditQuestions, createFinding, updateFinding, deleteFinding, getFindingsByID, uploadAttachment, getFileNameByFindingId, getFilesByFindingId, deleteFileByFindingAttachmentId, getFileByFindingAttachmentId, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion, GetQuestionByAuditAndLaw, UpdateAuditStatus, GetFindingWorkOnById, CreateFindingWorkOn, GetWorkOnById, GetRolesUser, AddRoleForAudit, GetAllUser } from './database.js';
+import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings, getFindingByQuestionID, getAuditQuestions, createFinding, updateFinding, deleteFinding, getFindingsByID, uploadAttachment, getFileNameByFindingId, getFilesByFindingId, deleteFileByFindingAttachmentId, getFileByFindingAttachmentId, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion, GetQuestionByAuditAndLaw, UpdateAuditStatus, GetFindingWorkOnById, CreateFindingWorkOn, GetWorkOnById, GetRolesUser, AddRoleForAudit, GetAllUser, getFindingsByAudit } from './database.js';
 
 import { sendMailDefault, sendMailInvite } from './mailService.js';
 import cors from 'cors'
@@ -870,5 +870,17 @@ expressApp.get('/getalluser', async (req, res) => {
         res.status(400).json({message: result.message});
     }else{
         res.status(200).json(result);
+    }
+});
+
+expressApp.get('/getFindingsById/:id', async (req, res) => {
+    const auditid = req.params.id;
+    const result = await getFindingsByAudit(auditid);
+    if(result instanceof Error){
+        res.status(400).json({message: result.message});
+        return;
+    }else{
+        res.status(200).json(result);
+        return;
     }
 });

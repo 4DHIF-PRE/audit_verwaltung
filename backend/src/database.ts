@@ -881,24 +881,37 @@ export async function getFindingsByID(auditId: number): Promise<any | Error> {
     }
 }
 
-export async function getFindingsByAudit(auditId: number): Promise<any | Error> {
+export async function getFindingsByAudit(auditId): Promise<string| Error> {
     const connection = await connectionPool.getConnection();
     try {
+        await connection.beginTransaction();
+
         const query = `
             SELECT *
             FROM f_findings
             WHERE f_au_audit_idx = ?;
         `;
-        const [results] = await connection.execute(query, [auditId]);
-        console.log(`Findings für Audit ${auditId}:`, results); // Debugging
+        const [results]: [any, mysql.FieldPacket[]] = await connection.execute(query, [auditId]);
+
+        if (results.length === 0) {
+            await connection.commit();
+            return;
+        }
+
+        await connection.commit();
+        console.log("Sigma")
         return results;
     } catch (error) {
-        console.error("Fehler beim Abrufen der Findings für ein Audit:", error);
+        console.error("Error fetching findings for audit:", error);
+        await connection.rollback();
         return new Error("Error fetching findings for audit");
     } finally {
         connection.release();
     }
 }
+
+
+
 
 
 export async function getAuditsWithFindings(): Promise<any[] | Error> {
