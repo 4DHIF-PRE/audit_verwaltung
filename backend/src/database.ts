@@ -881,6 +881,26 @@ export async function getFindingsByID(auditId: number): Promise<any | Error> {
     }
 }
 
+export async function getFindingsByAudit(auditId: number): Promise<any | Error> {
+    const connection = await connectionPool.getConnection();
+    try {
+        const query = `
+            SELECT *
+            FROM f_findings
+            WHERE f_au_audit_idx = ?;
+        `;
+        const [results] = await connection.execute(query, [auditId]);
+        console.log(`Findings für Audit ${auditId}:`, results); // Debugging
+        return results;
+    } catch (error) {
+        console.error("Fehler beim Abrufen der Findings für ein Audit:", error);
+        return new Error("Error fetching findings for audit");
+    } finally {
+        connection.release();
+    }
+}
+
+
 export async function getAuditsWithFindings(): Promise<any[] | Error> {
     const connection = await connectionPool.getConnection();
     try {
@@ -891,7 +911,7 @@ export async function getAuditsWithFindings(): Promise<any[] | Error> {
             ORDER BY au.au_idx, f.f_idx;
         `);
         console.log("Audits mit Findings:", results); // Debugging
-        return results;
+        // return results;
     } catch (error) {
         console.error("Fehler beim Abrufen von Audits mit Findings:", error);
         return new Error("Error fetching audits with findings");
@@ -1465,3 +1485,15 @@ export async function GetRolesUser() {
   }
 }
 
+export async function GetAllUser(){
+    const query = 'SELECT * FROM u_user';
+    const pool = await connectionPool.getConnection();
+    try{
+        const [rows] = await pool.execute(query);
+        return rows;
+    }catch(error){
+        return new Error(`Failed to retrieve users: ${error.message}`);
+    }finally{
+        pool.release();
+    }
+}

@@ -125,7 +125,7 @@ export default function Setup() {
   };
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-grow h-screen flex-col dark:bg-black">
       <Navbar />
       <div className="flex justify-between px-10 mt-10 pt-5">
         <div className="w-full max-w-md mt-2">
