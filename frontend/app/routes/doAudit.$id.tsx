@@ -28,6 +28,7 @@ export default function App() {
   const { id } = useParams();
   const [audit, setAudit] = useState<AuditInt>();
   const [questions, setQuestions] = useState<QuestionInt[]>([]);
+  const [questionsfiltern, setQuestionsfiltern] = useState<QuestionInt[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Load audit data and corresponding questions
@@ -45,6 +46,7 @@ export default function App() {
         const questionsResponse = await fetch(`http://localhost:3000/audit/questions/${id}`);//${currentAudit?.au_idx}
         const auditQuestions = await questionsResponse.json();
         setQuestions(auditQuestions);
+        setQuestionsfiltern(auditQuestions)
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -55,11 +57,9 @@ export default function App() {
     loadAuditData();
   }, []);
 
-  const handleSave = async() => {
-
-
-    window.location.href = `/gruppe5`
-  }
+  const handleSave = async () => {
+    window.location.href = `/gruppe5`;
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -67,31 +67,45 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen">
-      <Navbar />
-      <main className="flex-grow p-10 bg-white dark:bg-black">
-        <AuditFilter />
-        <div className="mt-5 px-10">
-          {/* Render questions */}
-          {questions.length > 0 ? (
-            questions.map((question) => (
-              <div className="mt-3" key={question.qu_idx}>
-                <Question question={question} />
-              </div>
-            ))
-          ) : (
-            <div>No questions found for this audit.</div>
-          )}
-        </div>
-      </main>
+      {/* Navbar */}
+      <div className="sticky top-0 z-20">
+        <Navbar />
+      </div>
 
-      <button
-        id="saveAudit"
-        type="button"
-        onClick={handleSave}
-        className="bg-red-500 hover:bg-red-600 text-white font-medium rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 pt-2 pb-2 pl-5 pr-5"
-      >
-        Audit speichern
-      </button>
+      {/* Main Content */}
+      <div className="flex flex-col flex-grow h-full">
+        {/* Sticky Filter */}
+        <div className="sticky top-[4rem] bg-white dark:bg-black z-10 shadow-md p-4">
+          <AuditFilter  />
+        </div>
+
+        {/* Scrollable Questions */}
+        <main className="flex-grow overflow-y-auto p-10 bg-white dark:bg-black">
+          <div className="mt-5 px-10">
+            {questions.length > 0 ? (
+              questions.map((question) => (
+                <div className="mt-3" key={question.qu_idx}>
+                  <Question question={question} />
+                </div>
+              ))
+            ) : (
+              <div>No questions found for this audit.</div>
+            )}
+          </div>
+        </main>
+
+        {/* Sticky Save Button */}
+        <div className="sticky bottom-0 bg-white dark:bg-black z-10 shadow-md p-4">
+          <button
+            id="saveAudit"
+            type="button"
+            onClick={handleSave}
+            className="w-full bg-red-500 hover:bg-red-600 text-white font-medium rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 pt-2 pb-2"
+          >
+            Audit speichern
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
