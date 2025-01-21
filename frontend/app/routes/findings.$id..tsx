@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useParams} from "@remix-run/react";
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Navbar } from '~/components/Navbar';
 
 export default function Setup() {
+  const { auditid } = useParams();
   const [findings, setFindings] = useState([]);
   const [audits, setAudits] = useState([]);
   const [selectedFinding, setSelectedFinding] = useState(null);
@@ -12,7 +14,7 @@ export default function Setup() {
 
   useEffect(() => {
     async function fetchFindings() {
-      const response = await showAllFindings();
+      const response = await showAllFindings(auditid);
       if (response.status === 404) {
         console.log("404 - Not Found");
       } else {
@@ -208,29 +210,29 @@ export default function Setup() {
           <div className="flex-1 ml-10 m-2">
   {selectedFinding && (
     <Card className={`p-6 rounded-lg shadow-md w-full h-auto border-4 ${getBorderColor(selectedFinding.f_status)}`}>
-      <h2 className="text-3xl font-bold mb-4">Kommentare</h2>
-
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-3xl font-bold">Kommentare</h2>
+        <button
+          onClick={handleRefreshComments}
+          className="text-blue-500 hover:text-blue-700 py-1 px-3 rounded bg-transparent border border-blue-500"
+        >
+          Kommentare aktualisieren
+        </button>
+      </div>
       <div className="comments-section overflow-y-auto max-h-[400px] mb-4 p-4 border rounded bg-gray-50">
         {workonComments.length > 0 ? (
           workonComments.map((comment, index) => (
             <div key={index} className="comment-item mb-2 p-3 rounded-md bg-white shadow">
               <p className="text-gray-800">{comment.fw_kommentar}</p>
-              <span className="text-sm text-gray-500">
-                {new Date().toLocaleDateString()} {/* Optional: Zeitstempel */}
-              </span>
+              {/*<span className="text-sm text-gray-500">
+                {new Date().toLocaleDateString()}
+              </span>*/}
             </div>
           ))
         ) : (
           <p className="text-gray-500">Keine Kommentare vorhanden.</p>
         )}
       </div>
-
-      <button
-        onClick={handleRefreshComments}
-        className="text-blue-500 hover:text-blue-700 py-1 px-3 rounded bg-transparent border border-blue-500 mb-4"
-      >
-        Kommentare aktualisieren
-      </button>
 
       <form onSubmit={handleCommentSubmit} className="flex flex-col">
         <textarea
@@ -282,8 +284,8 @@ export async function getWorkonComments(id) {
 }
 
 
-export async function showAllFindings() {
-  const response = await fetch('http://localhost:3000/findings/getall', {
+export async function showAllFindings(id) {
+  const response = await fetch(`http://localhost:3000/getFindingsById/${id}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',

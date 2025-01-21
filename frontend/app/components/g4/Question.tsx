@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 // Interfaces
 export interface QuestionInt {
@@ -25,10 +25,15 @@ export default function Question({ question }: { question: QuestionInt }) {
   const [files, setFiles] = useState<string[]>([]); // Store filenames as strings
   const [fileData, setFileData] = useState<File[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const[findingId, setFindingId] = useState(-1);
+  const [findingId, setFindingId] = useState(-1);
+  const fetchedOnceRef = useRef(false);
+
 
   // Load data from API
   useEffect(() => {
+    if (fetchedOnceRef.current) return; 
+
+    fetchedOnceRef.current = true;
     const loadData = async () => {
       setLoading(true);
       console.log("onload");
@@ -38,7 +43,7 @@ export default function Question({ question }: { question: QuestionInt }) {
           `http://localhost:3000/api/questions/${question.qu_idx}/finding`
         );
         const finding = await findingResponse.json(); // Expecting a single finding object
-        
+
         // Log the findings to inspect the data structure
 
         if (finding) {
@@ -58,30 +63,26 @@ export default function Question({ question }: { question: QuestionInt }) {
             });
           }
 
-          // Set finding details
-          if (finding.f_level !== undefined) {
-            setSelectedStatus(finding.f_level.toString());
+          if (finding.f_status !== undefined) {
+            setSelectedStatus(finding.f_status.toString());
           }
-          setAuditorComment(finding.f_comment || ""); // Use nullish coalescing to handle null values
+          setAuditorComment(finding.f_comment || "");
           setFindingComment(finding.f_finding_comment || "");
         } else {
           console.log("No finding available.");
-          // Handle case when no finding is returned
           setSelectedStatus("");
           setAuditorComment("");
           setFindingComment("");
         }
         if (finding) {
-        // Fetch the attachments/files data
-       
-        const attachmentsResponse = await fetch(
-          `http://localhost:3000/api/finding/attachments/${finding.f_id}/filenames`
-        );
-        const attachments = await attachmentsResponse.json();
-        console.log("attach");
-        console.log(attachments);
+          const attachmentsResponse = await fetch(
+            `http://localhost:3000/api/finding/attachments/${finding.f_id}/filenames`
+          );
+          const attachments = await attachmentsResponse.json();
+          //console.log("attach");
+          //console.log(attachments);
 
-        /*if (attachments.fileName) {
+          /*if (attachments.fileName) {
           const filesReturned = attachments.fileName.map(
             (fileObj: { fa_file: { data: number[] }; fa_filename: string }) => {
               const bufferData = new Uint8Array(fileObj.fa_file.data); // Convert data array to Uint8Array
@@ -96,14 +97,15 @@ export default function Question({ question }: { question: QuestionInt }) {
           console.error("Unexpected response format:", attachments);
         }*/
 
-        // Extract filenames from the API response
-        const filenames = attachments.fileName.map(
-          (file: { fa_filename: string }) => file.fa_filename
-        );
-        console.log(filenames);
-        setFiles((prevFiles) => Array.from(new Set([...prevFiles, ...filenames])));
-      }
-        
+          // Extract filenames from the API response
+          const filenames = attachments.fileName.map(
+            (file: { fa_filename: string }) => file.fa_filename
+          );
+          //console.log(filenames);
+          setFiles((prevFiles) =>
+            Array.from(new Set([...prevFiles, ...filenames]))
+          );
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -116,20 +118,21 @@ export default function Question({ question }: { question: QuestionInt }) {
 
   const handleSave = async () => {
     try {
-      if(findingId == -1) setFindingId(10); 
+      document.getElementById("saveQuestion").style.visibility = "hidden";
+      if (findingId == -1) setFindingId(10);
       console.log(findingId);
+
       const findingResponse = await fetch(
         `http://localhost:3000/api/questions/${question.qu_idx}/finding`
       );
-      const finding = await findingResponse.json(); // Expecting a single finding object
+      const finding = await findingResponse.json();
       const updatedFinding = {
         f_id: finding.f_id,
-        f_level: selectedStatus,
         f_auditor_comment: auditorComment.replace(/;/g, ""),
         f_finding_comment: findingComment.replace(/;/g, ""),
         f_creation_date: finding.f_creation_date,
         f_timeInDays: finding.f_timeInDays,
-        f_status: finding.f_status.replace(/;/g, ""),
+        f_status: selectedStatus,
       };
 
       const alteredFinding = JSON.parse(
@@ -137,7 +140,6 @@ export default function Question({ question }: { question: QuestionInt }) {
           return typeof value === "string" ? value.replace(/;/g, "") : value;
         })
       );
-
 
       const result = await fetch(`http://localhost:3000/audit/finding`, {
         method: "PUT",
@@ -150,10 +152,10 @@ export default function Question({ question }: { question: QuestionInt }) {
       const attachments = await attachmentsResponse.json();
       console.log(attachments);
       const existingFileNames = Array.isArray(attachments.fileName)
-      ? attachments.fileName.map(file => file.fa_filename)
-      : [];
-      if(existingFileNames.length === 0) console.log("List of API files is empty.");
-
+        ? attachments.fileName.map((file) => file.fa_filename)
+        : [];
+      if (existingFileNames.length === 0)
+        console.log("List of API files is empty.");
 
       // Upload new files not already in existingFileNames
       const filesToUpload = fileData.filter(
@@ -179,11 +181,10 @@ export default function Question({ question }: { question: QuestionInt }) {
               body: formData,
             }
           );
-
-         
         }
-        if(result.ok){
-          console.log ("Finding saved successfully!");
+        if (result.ok) {
+          console.log("Finding saved successfully!");
+          alert("Finding saved successfully!");
         }
       }
       // Evaluate result of saving finding when attachment uploads are skipped.
@@ -192,12 +193,12 @@ export default function Question({ question }: { question: QuestionInt }) {
       else {
         console.log("Failed to save finding: ", result);
         alert("Failed to save finding! No new attachments were saved.");
-
       }
     } catch (error) {
       console.log("Error occured while attempting to save finding: ", error);
     } finally {
       console.log("Finished accessing API.");
+      document.getElementById("saveQuestion").style.visibility = "visible";
     }
   };
 
@@ -213,34 +214,134 @@ export default function Question({ question }: { question: QuestionInt }) {
     //console.log(filenames);
     setFiles((prevFiles) => Array.from(new Set([...prevFiles, ...filenames])));
     console.log(files);
-    setFileData((prevFiles) => Array.from(new Set([...prevFiles, ...Array.from(droppedFiles)])));
+    setFileData((prevFiles) =>
+      Array.from(new Set([...prevFiles, ...Array.from(droppedFiles)]))
+    );
   };
-
 
   //maby add a dupicat restriction on name?
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { files } = event.target;
-console.log(files)
-    if (files) {
+    const { filesChanged } = event.target;
+    console.log(filesChanged);
+    if (filesChanged) {
       // Extract filenames from the selected files and update state with strings
-      const fileList = Array.from(files);
-      const filenames = Array.from(files).map((file) =>
+      const fileList = Array.from(filesChanged);
+      const filenames = Array.from(filesChanged).map((file) =>
         file.name.replace(/;/g, "")
       );
       //filenames.concat(files);
       //console.log(tmp);
-      setFiles((prevFiles) => Array.from(new Set([...prevFiles, ...filenames])));
-      
-      setFileData((prevFiles) => Array.from(new Set([...prevFiles, ...fileList])));
+      setFiles((prevFiles) =>
+        Array.from(new Set([...prevFiles, ...filenames]))
+      );
+      console.log(files);
+      setFileData((prevFiles) =>
+        Array.from(new Set([...prevFiles, ...fileList]))
+      );
     }
   };
 
-  const handleRemoveFile = (fileToRemove: string) => {
-    setFiles(files.filter((file) => file !== fileToRemove));
-    console.log(files);
-    setFileData((prevFiles) =>
-      prevFiles.filter((file) => file.name !== fileToRemove)
-    );
+  const handleRemoveFile = async (fileToRemove: string) => {
+    const removeButton = document.getElementById(`removeFile-${fileToRemove}`);
+    try {
+      
+      if(removeButton){
+        removeButton.disabled = true;
+      }
+    
+      if (confirm(`Remove file ${fileToRemove}? This cannot be undone!`)) {
+        setFiles(files.filter((file) => file !== fileToRemove));
+       // console.log(files);
+        setFileData((prevFiles) =>
+          prevFiles.filter((file) => file.name !== fileToRemove)
+        );
+
+        if (findingId !== -1) {
+          const attachmentsResponse = await fetch(
+            `http://localhost:3000/api/finding/attachments/${findingId}/filenames`
+          );
+          const attachments = await attachmentsResponse.json();
+          // console.log(attachments);
+          // Get list of existing file names
+          const existingFileNames = Array.isArray(attachments.fileName)
+            ? attachments.fileName.map((file) => file.fa_filename)
+            : [];
+          if (existingFileNames.length === 0)
+            console.log("List of API files is empty.");
+          else {
+            const fileReturned = attachments.fileName.find(file => file.fa_filename === fileToRemove)
+
+            if(typeof fileReturned !== 'undefined' && fileReturned != null){
+              // fileReturned shouldn't be null or undefined if the file you're trying to delete is in the database. 
+              /* By design, the first file that was found with a matching file name will be removed.
+              */
+              const deleteResult = await fetch(`http://localhost:3000/api/finding/attachments/${fileReturned.fa_id}/delete`)
+              if(deleteResult.ok) alert("File removed successfully!")
+            }
+          }
+        }
+      } else console.log("File delete aborted.");
+    } catch (error) {
+      console.log(error);
+    } finally {
+    if(removeButton) removeButton.disabled = false;
+    }
+  };
+
+  const handleDownload = async (fileToDownload: string) => {
+    const downloadButton = document.getElementById(`downloadFile-${fileToDownload}`)
+    if(downloadButton) downloadButton.disabled = true;
+    try {
+      if (findingId !== -1) {
+        const attachmentsResponse = await fetch(
+          `http://localhost:3000/api/finding/attachments/${findingId}/filenames`
+        );
+        const attachments = await attachmentsResponse.json();
+        // console.log(attachments);
+        // Get list of existing file names
+        const existingFileNames = Array.isArray(attachments.fileName)
+          ? attachments.fileName.map((file) => file.fa_filename)
+          : [];
+        if (existingFileNames.length === 0)
+          console.log("List of API files empty, unable to download remote file.");
+        else {
+          const fileReturned = attachments.fileName.find(file => file.fa_filename === fileToDownload)
+          console.log(attachments.fileName);
+          console.log(fileReturned);
+
+          if(typeof fileReturned !== 'undefined' && fileReturned != null){
+            // fileReturned shouldn't be null or undefined if the file you're trying to delete is in the database. 
+            /* By design, the first file that was found with a matching file name will be removed.
+            */
+           console.log("Preparing to fetch file for download...");
+
+           const fileResult = await fetch(`http://localhost:3000/api/finding/attachments/${fileReturned.fa_id}`)
+           if(fileResult.ok){
+            // Limitation: downloads first found file with the given file name.
+
+            console.log("File retrieved, preparing download...");
+           }
+          /* const filesReturned = attachments.fileName.map(
+            (fileObj: { fa_file: { data: number[] }; fa_filename: string }) => {
+              const bufferData = new Uint8Array(fileObj.fa_file.data); // Convert data array to Uint8Array
+              const blob = new Blob([bufferData]); // Create a Blob
+              const filetoAdd = new File([blob], fileObj.fa_filename); // Create a File from the Blob
+              return filetoAdd;
+            }
+          ); */
+          }
+          else{
+            
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error occured while downloading file: ", error);
+    } finally {
+      if(downloadButton){
+        downloadButton.disabled = false;
+      } 
+    }
   };
 
   const toggleCollapse = () => {
@@ -249,11 +350,11 @@ console.log(files)
 
   // Background color logic
   let bgColorClass = "bg-gray-100 dark:bg-gray-800";
-  if (selectedStatus === "1") {
+  if (selectedStatus === "richtig") {
     bgColorClass = "bg-green-100 dark:bg-green-800";
-  } else if (selectedStatus === "3") {
+  } else if (selectedStatus === "kritisch") {
     bgColorClass = "bg-red-100 dark:bg-red-800";
-  } else if (selectedStatus === "2") {
+  } else if (selectedStatus === "dokumentiert") {
     bgColorClass = "bg-yellow-100 dark:bg-yellow-800";
   }
 
@@ -275,7 +376,7 @@ console.log(files)
         {/* Toggle Button mit Icon */}
         <button
           onClick={toggleCollapse}
-          className="flex items-center space-x-2 text-black font-medium rounded-md shadow focus:outline-none pt-2 pb-2 pl-4 pr-4"
+          className="flex items-center space-x-2 text-black font-medium rounded-md focus:outline-none pt-2 pb-2 pl-4 pr-4"
         >
           <img
             src="../assets/klappicon.png"
@@ -299,10 +400,10 @@ console.log(files)
               value={selectedStatus}
               className="border rounded-lg p-2.5 text-gray-700 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             >
-              <option value="0">Frage bewerten</option>
-              <option value="1">Keine Findings</option>
-              <option value="2">Nur dokumentiert</option>
-              <option value="3">Kritisches Finding</option>
+              <option value="offen">Frage bewerten</option>
+              <option value="richtig">Keine Findings</option>
+              <option value="dokumentiert">Nur dokumentiert</option>
+              <option value="kritisch">Kritisches Finding</option>
             </select>
           </form>
 
@@ -319,7 +420,8 @@ console.log(files)
             ></textarea>
           </div>
 
-          {(selectedStatus === "2" || selectedStatus === "3") && (
+          {(selectedStatus === "dokumentiert" ||
+            selectedStatus === "kritisch") && (
             <div className="mb-4">
               <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                 Finding Kommentar
@@ -380,13 +482,29 @@ console.log(files)
                 key={index}
                 className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-md"
               >
-                <span className="text-gray-900 dark:text-white">{file}</span>
-                <button
-                  onClick={() => handleRemoveFile(file)}
-                  className="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded-md focus:outline-none"
-                >
-                  Remove
-                </button>
+                <span className="text-gray-900 dark:text-white flex-1 truncate">
+                  {file}
+                </span>
+
+                <div className="flex space-x-2">
+                  <button
+                    id={`downloadFile-${file}`}
+                    type="button"
+                    onClick={() => handleDownload(file)}
+                    className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1 px-3 rounded-md focus:outline-none"
+                  >
+                    Download
+                  </button>
+
+                  <button
+                    id={`removeFile-${file}`}
+                    type= "button"
+                    onClick={() => handleRemoveFile(file)}
+                    className="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded-md focus:outline-none"
+                  >
+                    Remove
+                  </button>
+                </div>
               </div>
             ))}
           </div>

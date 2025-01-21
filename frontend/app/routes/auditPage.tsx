@@ -3,6 +3,7 @@ import { Navbar } from "~/components/Navbar";
 import AuditVorschau from "~/components/ui/AuditVorschau";
 import Searchbar from "../components/Searchbar";
 import { AuditDetails } from "~/types/AuditDetails";
+import { FindingDetails } from "~/types/FindingDetails";
 import QuestionVorschau from "../components/ui/QuestionVorschau";
 import { QuestionInt } from "~/types/QuestionInt";
 import { RolesUser } from "~/types/RolesUser";
@@ -10,6 +11,8 @@ import { UserDetails } from "~/types/UserDetails";
 import { json, LoaderFunction } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import {Footer} from "~/components/Footer";
+import {Button} from "~/components/ui/button";
+import jsPDF from "jspdf";
 
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -49,6 +52,17 @@ export const loader: LoaderFunction = async ({ request }) => {
     auditsData = await auditRes.json();
   }
 
+  const findingsRes = await fetch("http://localhost:3000/findings/getall", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    signal: controller.signal,
+  });
+  let findingsData = [];
+  if (findingsRes.ok) {
+    findingsData = await findingsRes.json();
+  }
+  
+
   const auditsForUser = userData.roles
     .map(role => role.audit);
 
@@ -58,13 +72,15 @@ export const loader: LoaderFunction = async ({ request }) => {
     user: userData,
     roles: rolesData,
     audits: filteredAudits,
+    findings: findingsData,
   });
 };
 
 
 export default function AuditPage() {
-  const loaderData = useLoaderData<{ audits: AuditDetails[] }>();
+  const loaderData = useLoaderData<{ audits: AuditDetails[]; findings: FindingDetails[]; }>();
   const [audits, setAudits] = useState<AuditDetails[]>([]);
+  const [findings, setFindings] = useState<FindingDetails[]>([]);
   const [auditstatus, setAuditstatus] = useState<string>("");
   const loaderData2 = useLoaderData<{ user: UserDetails}>();
   const [user, setUser] = useState<UserDetails>();
@@ -74,6 +90,7 @@ export default function AuditPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedAudit, setSelectedAudit] = useState<number>(0);
   const [canCreateAudit, setCanCreateAudit] = useState(false);
+  const [filter, setFilter] = useState("");
   const auditsPerPage = 5;
   const totalPages = Math.ceil(audits.length / auditsPerPage);
 
@@ -85,13 +102,18 @@ export default function AuditPage() {
 
   useEffect(() => {
     setAudits(loaderData.audits); 
+    setFindings(loaderData.findings);
   }, [loaderData]);
+
+  
 
   useEffect(() => {
     if (selectedAudit === 0) {
       setQuestions([]);
       return;
     }
+
+    
 
     const controller = new AbortController();
 
@@ -138,8 +160,7 @@ export default function AuditPage() {
     };
 
     console.log(newAudit.au_theme);
-    
-
+  
     try {
       const response = await fetch("http://localhost:3000/audit", {
         method: "POST",
@@ -203,8 +224,14 @@ export default function AuditPage() {
 
   const filteredAudits = audits.filter(
     (audit) =>
-      audit.au_theme.toLowerCase().includes(search.toLowerCase()) ||
-      audit.au_idx.toString().includes(search)
+    {
+      const auditText = audit.au_theme.toLowerCase();
+      const searchTextLower = search.toLowerCase().trim();
+
+      const matchesSearch = auditText.includes(searchTextLower);
+      const matchesType = filter === "" || audit.au_auditstatus === filter;
+      return matchesSearch && matchesType;
+    }
   );
 
   const handleNextPage = () => {
@@ -320,6 +347,93 @@ export default function AuditPage() {
     }
   };
 
+  const exportAllAuditsAndFindingsToPDF = async (audits: any[], findings: any[]) => {
+    try {
+      if (audits.length === 0) {
+        throw new Error("Keine Audits gefunden.");
+      }
+  
+      // PDF-Dokument initialisieren
+      const doc = new jsPDF();
+      let yPosition = 10;
+  
+      audits.forEach((audit, auditIndex) => {
+        if (yPosition > 270) {
+          doc.addPage();
+          yPosition = 10;
+        }
+
+        const formattedDate = new Date(audit.au_audit_date).toLocaleDateString("de-DE", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+      });
+  
+        // Audit-Details hinzufügen
+        doc.setFontSize(14);
+        doc.text(`Audit ${auditIndex + 1}: ${audit.au_theme}`, 10, yPosition);
+        doc.setFontSize(12);
+        doc.text(`Datum: ${formattedDate}`, 10, yPosition + 10);
+        doc.text(`Ort: ${audit.au_place}`, 10, yPosition + 20);
+        doc.text(`Status: ${audit.au_auditstatus || "Unbekannt"}`, 10, yPosition + 30); // Status hinzufügen
+        doc.text(`Leitender Auditor: ${audit.au_leadauditor_idx}`, 10, yPosition + 40);
+        yPosition += 50;
+  
+        // Debug: Zeige Audit-ID
+        console.log(`Audit-ID: ${audit.au_idx}`);
+  
+        // Findings für das aktuelle Audit hinzufügen
+        const auditFindings = findings.filter(finding => {
+          console.log(
+              `Checking Finding: ${finding.f_au_audit_idx} (Type: ${typeof finding.f_au_audit_idx}) === ${audit.au_idx} (Type: ${typeof audit.au_idx})`
+          );
+          return finding.f_au_audit_idx === audit.au_idx;
+      });
+
+  
+        if (auditFindings.length > 0) {
+          doc.text("Findings:", 10, yPosition);
+          yPosition += 10;
+  
+          auditFindings.forEach((finding, index) => {
+            if (yPosition > 270) {
+              doc.addPage();
+              yPosition = 10;
+            }
+
+            const findingDate = finding.f_creation_date
+                        ? new Date(finding.f_creation_date).toLocaleDateString("de-DE", {
+                              year: "numeric",
+                              month: "2-digit",
+                              day: "2-digit",
+                          })
+                        : "Keine Angabe";
+  
+                        doc.setFontSize(10);
+                        doc.text(`${index + 1}.`, 10, yPosition);
+                        doc.text(`   Level: ${finding.f_level || "Nicht angegeben"}`, 15, yPosition);
+                        doc.text(`   Status: ${finding.f_status || "Nicht angegeben"}`, 15, yPosition + 5);
+                        doc.text(`   Kommentar: ${finding.f_comment || "Keine"}`, 15, yPosition + 10);
+                        doc.text(`   Maßnahme: ${finding.f_finding_comment || "Keine"}`, 15, yPosition + 15);
+                        doc.text(`   Erstellt am: ${findingDate}`, 15, yPosition + 20);
+  
+            yPosition += 35;
+          });
+        } else {
+          doc.text("Keine Findings für dieses Audit.", 10, yPosition);
+          yPosition += 20;
+        }
+      });
+  
+      // PDF speichern
+      doc.save(`All_Audits_and_Findings.pdf`);
+    } catch (error) {
+      console.error("Fehler beim Exportieren der Audit-Details:", error);
+      alert("Fehler beim Exportieren der Audit-Details.");
+    }
+  };
+  
+
   return (
     <div className="flex flex-col w-full h-screen bg-white">
       <Navbar />
@@ -327,64 +441,83 @@ export default function AuditPage() {
         <div className="flex flex-row flex-1 mt-6">
           {/* Left Section */}
           <div className="flex flex-col w-1/3 space-y-4 relative">
-            <div className="flex flex-col h-full">
-
-              {/* Suchleiste und Add Button*/}
+            <div className="flex flex-col h-[630px]">
+              {/* Suchleiste und Add Button */}
               <div className="flex flex-col">
                 <Searchbar value={search} onChange={(value) => setSearch(value)} />
-                <button
-                  className="mb-4 rounded bg-green-100 dark:bg-green-500 border border-gray-300"
+                 <select className="border p-2 rounded-md mb-4 dark:bg-black"
+                 value={filter}
+                 onChange={(e)=> setFilter(e.target.value)}>
+                   <option value="">Wählen Sie einen Filter aus</option>
+                   <option value="geplant">Geplant</option>
+                   <option value="bereit">Bereit</option>
+                   <option value="findings_offen">Findings Offen</option>
+                  <option value="begonnen">Begonnen</option>
+                  <option value="fertig">Fertig</option>
+                    </select> 
+                <Button 
+                variant="default"
+                size="lg"
+                 // className="mb-4 rounded bg-green-100 hover:bg-green-200 dark:bg-green-500 border border-gray-300 dark:hover:bg-green-600"
                   onClick={() => createAudit(user, setAudits)}
                 >
                   Audit erstellen
-                </button>
+                </Button>
               </div>
 
-              <div className="flex-1 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4" >
-                {displayedAudits.map((audit) => (
-                  <div
-                    key={audit.au_idx}
-                    className={`flex border-b mt-4 border-gray-200 mx-3 justify-between items-center p-4 rounded-md 
+              <div className="flex-1 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4">
+                {displayedAudits.length > 0 ? (
+                  displayedAudits.map((audit) => (
+                    <div
+                      key={audit.au_idx}
+                      className={`flex border-b mt-4 border-gray-200 mx-3 justify-between items-center p-4 rounded-md 
                       ${audit.au_auditstatus === "geplant" ? "bg-blue-100 dark:bg-blue-600 hover:bg-blue-300 dark:hover:bg-blue-700" :
                         audit.au_auditstatus === "bereit" ? "bg-green-100 hover:bg-green-300 dark:bg-green-600 dark:hover:bg-green-700" :
                         audit.au_auditstatus === "begonnen" ? "bg-yellow-100 dark:bg-yellow-600 hover:bg-yellow-200 dark:hover:bg-yellow-700" :
                         audit.au_auditstatus === "findings_offen" ? "bg-red-200 dark:bg-red-600 hover:bg-red-300 dark:hover:bg-red-700" :
                         audit.au_auditstatus === "fertig" ? "bg-gray-100 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-700" : ""
                       } 
-                      ${selectedAudit === audit.au_idx ? "text-gray-400 dark:text-gray-900" : ""}
-                      mb-4 `}
-                    onClick={() => handleAuditClick(audit.au_idx)}>
-                    <div>
-
-                      {audit.au_theme}
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteAudit(audit.au_idx);
-                      }}
+                      ${selectedAudit === audit.au_idx ? "text-gray-400 dark:text-gray-900" : ""} mb-4 `}
+                      onClick={() => handleAuditClick(audit.au_idx)}
                     >
-                      ❌
-                    </button>
+                      <div>
+                        {audit.au_theme}
+                      </div>
+                      {(audit.au_auditstatus === "bereit" || audit.au_auditstatus === "geplant") && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteAudit(audit.au_idx);
+                        }}
+                      >
+                        ❌
+                      </button>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-gray-600 dark:text-gray-300">
+                    Keine Audits gefunden
                   </div>
-                ))}
+                )}
               </div>
-
+  
               {/* Pagination Buttons */}
               <div className="p-4 bg-white dark:bg-black">
                 <div className="flex justify-between dark:bg-black">
                   <button
                     onClick={handlePreviousPage}
                     disabled={currentPage === 1}
-                    className={`px-4 py-2 rounded-md ${currentPage === 1 ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
+                    className={`px-4 py-2 rounded-md ${currentPage === 1 ? "bg-gray-300 hover:bg-gray-400 dark:bg-gray-800 dark:hover:bg-gray-900" : "bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-800"
                       }`}
                   >
                     Zurück
                   </button>
                   <button
+                
                     onClick={handleNextPage}
                     disabled={currentPage >= totalPages}
-                    className={`px-4 py-2 rounded-md ${currentPage >= totalPages ? "bg-gray-300 dark:bg-gray-900" : "bg-gray-200 dark:bg-gray-700"
+                    className={`px-4 py-2 rounded-md ${currentPage >= totalPages ? "bg-gray-300 hover:bg-gray-400 dark:bg-gray-800 dark:hover:bg-gray-900" : "bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-800"
                       }`}
                   >
                     Weiter
@@ -393,36 +526,59 @@ export default function AuditPage() {
               </div>
             </div>
           </div>
-
+  
           {/* Right Section */}
           <div className="w-full h-full flex flex-col items-center justify-center p-6">
             <div className="w-3/4 max-w-screen-lg h-3/4 bg-gray-200 dark:bg-gray-900 p-6 rounded-md flex flex-col justify-start">
               <AuditVorschau audit={selectedAudit} allAudits={audits} />
               <QuestionVorschau auditId={selectedAudit} questions={questions} />
-
-              {/* Buttons unter dem grauen Fenster */}
+              {/* Scrollbare Fragenliste */}{/*
+              <div className="flex-1 overflow-y-auto border border-gray-300 dark:border-gray-700 bg-gray-200 dark:bg-gray-900 rounded-md p-4 max-h-80">
+                {selectedAudit !== 0 && questions.length > 0 ? (
+                  questions
+                    .filter((question) => question.qu_audit_idx === selectedAudit) // Nur Fragen des ausgewählten Audits
+                    .map((question) => (
+                      <div
+                        key={question.qu_idx}
+                        className={`border-b border-gray-300 dark:border-gray-600 py-2 ${
+                          question.qu_audited ? "bg-green-100 dark:bg-green-700" : "bg-red-100 dark:bg-red-700"
+                        }`}
+                      >
+                        <span className="font-bold">Frage {question.qu_idx}:</span>{" "}
+                        {question.qu_audited ? "Auditiert" : "Nicht auditiert"}
+                      </div>
+                    ))
+                ) : (
+                  <div className="text-center py-4 text-gray-600 dark:text-gray-300">
+                    Keine Fragen für dieses Audit gefunden
+                  </div>
+                )}
+              </div>*/}
+  
+              {/* Buttons unter der Fragenliste */}
               {selectedAudit !== 0 ? (
                 <div className="flex justify-center space-x-4 mt-4">
                   {auditstatus === "geplant" || auditstatus === "bereit" ? (
-                  <button
-                    onClick={() =>
-                      selectedAudit &&
-                      (window.location.href = `/questionPage/${selectedAudit}`)
-                    }
-                    className="px-4 py-2 rounded-md text-white bg-purple-500"
-                  >
-                    Neue Question
-                  </button>
-                  ) : ""}
+                    <button
+                      onClick={() =>
+                        selectedAudit &&
+                        (window.location.href = `/questionPage/${selectedAudit}`)
+                      }
+                      className="px-4 py-2 rounded-md text-white bg-purple-500 hover:bg-purple-600"
+                    >
+                      Neue Frage
+                    </button>
+                  ) : null}
                   <button
                     onClick={() =>
                       selectedAudit &&
                       (window.location.href = `/auditbearbeiten/${selectedAudit}`)
                     }
-                    className="px-4 py-2 rounded-md text-white bg-blue-500"
+                    className="px-4 py-2 rounded-md text-white bg-blue-500 hover:bg-blue-600"
                   >
                     Bearbeiten
                   </button>
+                  
                   {auditstatus !== "geplant" ? (
                   <button
                     onClick={() => {
@@ -430,28 +586,50 @@ export default function AuditPage() {
                         changeStatus(selectedAudit);
                       }
                     }}
-                    className="px-4 py-2 rounded-md text-white bg-green-500"
+                    className="px-4 py-2 rounded-md text-white bg-green-500 hover:bg-green-600"
                   >
                     Durchführen
+                  </button>
+                ) : ""}
+                {auditstatus === "findings_offen" ? (
+                <button
+                    onClick={() => {
+                      if (selectedAudit) {
+                        window.location.href = `/gruppe5/${selectedAudit}`;
+                      }
+                    }}
+                    className="px-4 py-2 rounded-md text-white bg-red-600 hover:bg-red-700"
+                  >
+                    Findings
                   </button>) : ""}
                 </div>
-              ) : (
-                canCreateAudit && ( // Button nur anzeigen, wenn der Benutzer erstellberechtigt ist
+              ) : ( ""
+                /*{canCreateAudit ? ( // Button nur anzeigen, wenn der Benutzer erstellberechtigt ist
                   <div className="flex justify-center mt-4">
                     <button
-                      onClick={() => window.location.href = '/neuesAuditErstellen'}
-                      className="px-4 py-2 rounded-md text-white bg-red-500"
+                      onClick={() => {
+                        if (selectedAudit) {
+                          changeStatus(selectedAudit);
+                        }
+                      }}
+                      className="px-4 py-2 rounded-md text-white bg-green-500"
                     >
-                      Neues Audit erstellen
+                      Durchführen
                     </button>
-                  </div>
-                )
+                  ) : ""}
+                </div>*/
               )}
             </div>
+            <button
+                onClick={() => exportAllAuditsAndFindingsToPDF(audits, findings)}
+                className="px-4 py-2 rounded-md bg-sky-300 hover:bg-sky-400 dark:bg-sky-500 dark:hover:bg-sky-600 dark:text-white mt-4">
+                Export Audit Details as PDF
+            </button>
           </div>
         </div>
       </div>
       <Footer/>
     </div>
   );
+  
 }
