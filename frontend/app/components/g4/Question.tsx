@@ -25,7 +25,7 @@ export default function Question({ question }: { question: QuestionInt }) {
   const [files, setFiles] = useState<string[]>([]); // Store filenames as strings
   const [fileData, setFileData] = useState<File[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const[findingId, setFindingId] = useState(-1);
+  const [findingId, setFindingId] = useState(-1);
 
   // Load data from API
   useEffect(() => {
@@ -38,7 +38,7 @@ export default function Question({ question }: { question: QuestionInt }) {
           `http://localhost:3000/api/questions/${question.qu_idx}/finding`
         );
         const finding = await findingResponse.json(); // Expecting a single finding object
-        
+
         // Log the findings to inspect the data structure
 
         if (finding) {
@@ -58,30 +58,27 @@ export default function Question({ question }: { question: QuestionInt }) {
             });
           }
 
-          // Set finding details
-          if (finding.f_level !== undefined) {
-            setSelectedStatus(finding.f_level.toString());
+          if (finding.f_status !== undefined) {
+            setSelectedStatus(finding.f_status.toString());
           }
-          setAuditorComment(finding.f_comment || ""); // Use nullish coalescing to handle null values
+          setAuditorComment(finding.f_comment || "");
           setFindingComment(finding.f_finding_comment || "");
         } else {
           console.log("No finding available.");
-          // Handle case when no finding is returned
           setSelectedStatus("");
           setAuditorComment("");
           setFindingComment("");
         }
         if (finding) {
-        // Fetch the attachments/files data
-       
-        const attachmentsResponse = await fetch(
-          `http://localhost:3000/api/finding/attachments/${finding.f_id}/filenames`
-        );
-        const attachments = await attachmentsResponse.json();
-        console.log("attach");
-        console.log(attachments);
 
-        /*if (attachments.fileName) {
+          const attachmentsResponse = await fetch(
+            `http://localhost:3000/api/finding/attachments/${finding.f_id}/filenames`
+          );
+          const attachments = await attachmentsResponse.json();
+          console.log("attach");
+          console.log(attachments);
+
+          /*if (attachments.fileName) {
           const filesReturned = attachments.fileName.map(
             (fileObj: { fa_file: { data: number[] }; fa_filename: string }) => {
               const bufferData = new Uint8Array(fileObj.fa_file.data); // Convert data array to Uint8Array
@@ -96,14 +93,15 @@ export default function Question({ question }: { question: QuestionInt }) {
           console.error("Unexpected response format:", attachments);
         }*/
 
-        // Extract filenames from the API response
-        const filenames = attachments.fileName.map(
-          (file: { fa_filename: string }) => file.fa_filename
-        );
-        console.log(filenames);
-        setFiles((prevFiles) => Array.from(new Set([...prevFiles, ...filenames])));
-      }
-        
+          // Extract filenames from the API response
+          const filenames = attachments.fileName.map(
+            (file: { fa_filename: string }) => file.fa_filename
+          );
+          console.log(filenames);
+          setFiles((prevFiles) =>
+            Array.from(new Set([...prevFiles, ...filenames]))
+          );
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -116,20 +114,19 @@ export default function Question({ question }: { question: QuestionInt }) {
 
   const handleSave = async () => {
     try {
-      if(findingId == -1) setFindingId(10); 
+      if (findingId == -1) setFindingId(10);
       console.log(findingId);
       const findingResponse = await fetch(
         `http://localhost:3000/api/questions/${question.qu_idx}/finding`
       );
-      const finding = await findingResponse.json(); // Expecting a single finding object
+      const finding = await findingResponse.json();
       const updatedFinding = {
         f_id: finding.f_id,
-        f_level: selectedStatus,
         f_auditor_comment: auditorComment.replace(/;/g, ""),
         f_finding_comment: findingComment.replace(/;/g, ""),
         f_creation_date: finding.f_creation_date,
         f_timeInDays: finding.f_timeInDays,
-        f_status: finding.f_status.replace(/;/g, ""),
+        f_status: selectedStatus,
       };
 
       const alteredFinding = JSON.parse(
@@ -137,7 +134,6 @@ export default function Question({ question }: { question: QuestionInt }) {
           return typeof value === "string" ? value.replace(/;/g, "") : value;
         })
       );
-
 
       const result = await fetch(`http://localhost:3000/audit/finding`, {
         method: "PUT",
@@ -150,10 +146,10 @@ export default function Question({ question }: { question: QuestionInt }) {
       const attachments = await attachmentsResponse.json();
       console.log(attachments);
       const existingFileNames = Array.isArray(attachments.fileName)
-      ? attachments.fileName.map(file => file.fa_filename)
-      : [];
-      if(existingFileNames.length === 0) console.log("List of API files is empty.");
-
+        ? attachments.fileName.map((file) => file.fa_filename)
+        : [];
+      if (existingFileNames.length === 0)
+        console.log("List of API files is empty.");
 
       // Upload new files not already in existingFileNames
       const filesToUpload = fileData.filter(
@@ -179,11 +175,9 @@ export default function Question({ question }: { question: QuestionInt }) {
               body: formData,
             }
           );
-
-         
         }
-        if(result.ok){
-          console.log ("Finding saved successfully!");
+        if (result.ok) {
+          console.log("Finding saved successfully!");
         }
       }
       // Evaluate result of saving finding when attachment uploads are skipped.
@@ -192,7 +186,6 @@ export default function Question({ question }: { question: QuestionInt }) {
       else {
         console.log("Failed to save finding: ", result);
         alert("Failed to save finding! No new attachments were saved.");
-
       }
     } catch (error) {
       console.log("Error occured while attempting to save finding: ", error);
@@ -213,9 +206,10 @@ export default function Question({ question }: { question: QuestionInt }) {
     //console.log(filenames);
     setFiles((prevFiles) => Array.from(new Set([...prevFiles, ...filenames])));
     console.log(files);
-    setFileData((prevFiles) => Array.from(new Set([...prevFiles, ...Array.from(droppedFiles)])));
+    setFileData((prevFiles) =>
+      Array.from(new Set([...prevFiles, ...Array.from(droppedFiles)]))
+    );
   };
-
 
   //maby add a dupicat restriction on name?
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -249,11 +243,11 @@ console.log(files)
 
   // Background color logic
   let bgColorClass = "bg-gray-100 dark:bg-gray-800";
-  if (selectedStatus === "1") {
+  if (selectedStatus === "richtig") {
     bgColorClass = "bg-green-100 dark:bg-green-800";
-  } else if (selectedStatus === "3") {
+  } else if (selectedStatus === "kritisch") {
     bgColorClass = "bg-red-100 dark:bg-red-800";
-  } else if (selectedStatus === "2") {
+  } else if (selectedStatus === "dokumentiert") {
     bgColorClass = "bg-yellow-100 dark:bg-yellow-800";
   }
 
@@ -275,7 +269,7 @@ console.log(files)
         {/* Toggle Button mit Icon */}
         <button
           onClick={toggleCollapse}
-          className="flex items-center space-x-2 text-black font-medium rounded-md shadow focus:outline-none pt-2 pb-2 pl-4 pr-4"
+          className="flex items-center space-x-2 text-black font-medium rounded-md focus:outline-none pt-2 pb-2 pl-4 pr-4"
         >
           <img
             src="../assets/klappicon.png"
@@ -299,10 +293,10 @@ console.log(files)
               value={selectedStatus}
               className="border rounded-lg p-2.5 text-gray-700 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             >
-              <option value="0">Frage bewerten</option>
-              <option value="1">Keine Findings</option>
-              <option value="2">Nur dokumentiert</option>
-              <option value="3">Kritisches Finding</option>
+              <option value="offen">Frage bewerten</option>
+              <option value="richtig">Keine Findings</option>
+              <option value="dokumentiert">Nur dokumentiert</option>
+              <option value="kritisch">Kritisches Finding</option>
             </select>
           </form>
 
@@ -319,7 +313,7 @@ console.log(files)
             ></textarea>
           </div>
 
-          {(selectedStatus === "2" || selectedStatus === "3") && (
+          {(selectedStatus === "dokumentiert" || selectedStatus === "kritisch") && (
             <div className="mb-4">
               <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                 Finding Kommentar
