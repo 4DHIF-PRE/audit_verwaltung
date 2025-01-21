@@ -3,6 +3,7 @@ import {json, LoaderFunctionArgs} from "@remix-run/node";
 import {useLoaderData} from "@remix-run/react";
 import React, {useEffect, useState} from "react";
 import {Button} from "~/components/ui/button";
+import {Footer} from "~/components/Footer";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -87,6 +88,7 @@ export default function Users() {
     };
 
     return (<BaseLayout>
+    <div className="flex flex-col h-screen">
             <div className="flex flex-col h-screen container mx-auto p-4">
                 <br/>
                 <h1 className="text-2xl font-bold mb-4 mt-9">Users</h1>
@@ -178,5 +180,8 @@ export default function Users() {
                     </table>
                 </div>
             </div>
-        </BaseLayout>);
+        <Footer/>
+        </div>
+        </BaseLayout>
+        );
 }

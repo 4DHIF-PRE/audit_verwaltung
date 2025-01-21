@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Navbar } from '~/components/Navbar';
+import {Footer} from "~/components/Footer";
 
 export default function Setup() {
   const [findings, setFindings] = useState([]);
@@ -206,53 +207,55 @@ export default function Setup() {
           </div>
 
           <div className="flex-1 ml-10 m-2">
-  {selectedFinding && (
-    <Card className={`p-6 rounded-lg shadow-md w-full h-auto border-4 ${getBorderColor(selectedFinding.f_status)}`}>
-      <h2 className="text-3xl font-bold mb-4">Kommentare</h2>
+            {selectedFinding && (
+              <Card className={`p-6 rounded-lg shadow-md w-full h-auto border-4 ${getBorderColor(selectedFinding.f_status)}`}>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-3xl font-bold">Kommentare</h2>
+                  <button
+                    onClick={handleRefreshComments}
+                    className="text-blue-500 hover:text-blue-700 py-1 px-3 rounded bg-transparent border border-blue-500"
+                  >
+                    Kommentare aktualisieren
+                  </button>
+                </div>
 
-      <div className="comments-section overflow-y-auto max-h-[400px] mb-4 p-4 border rounded bg-gray-50">
-        {workonComments.length > 0 ? (
-          workonComments.map((comment, index) => (
-            <div key={index} className="comment-item mb-2 p-3 rounded-md bg-white shadow">
-              <p className="text-gray-800">{comment.fw_kommentar}</p>
-              <span className="text-sm text-gray-500">
-                {new Date().toLocaleDateString()} {/* Optional: Zeitstempel */}
-              </span>
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-500">Keine Kommentare vorhanden.</p>
-        )}
-      </div>
+                <div className="comments-section overflow-y-auto max-h-[400px] mb-4 p-4 border rounded bg-gray-50">
+                  {workonComments.length > 0 ? (
+                    workonComments.map((comment, index) => (
+                      <div key={index} className="comment-item mb-2 p-3 rounded-md bg-white shadow">
+                        <p className="text-gray-800">{comment.fw_kommentar}</p>
+                        {/*<span className="text-sm text-gray-500">
+                          {new Date().toLocaleDateString()}
+                        </span>*/}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500">Keine Kommentare vorhanden.</p>
+                  )}
+                </div>
 
-      <button
-        onClick={handleRefreshComments}
-        className="text-blue-500 hover:text-blue-700 py-1 px-3 rounded bg-transparent border border-blue-500 mb-4"
-      >
-        Kommentare aktualisieren
-      </button>
-
-      <form onSubmit={handleCommentSubmit} className="flex flex-col">
-        <textarea
-          className="w-full p-2 border rounded-md dark:text-black mb-2"
-          placeholder="Kommentar hinzufügen..."
-          value={comment}
-          onChange={handleCommentChange}
-          rows={2}
-        />
-        <button
-          type="submit"
-          className="self-end text-white bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded"
-        >
-          Kommentar senden
-        </button>
-      </form>
-    </Card>
-  )}
-</div>
+                <form onSubmit={handleCommentSubmit} className="flex flex-col">
+                  <textarea
+                    className="w-full p-2 border rounded-md dark:text-black mb-2"
+                    placeholder="Kommentar hinzufügen..."
+                    value={comment}
+                    onChange={handleCommentChange}
+                    rows={2}
+                  />
+                  <button
+                    type="submit"
+                    className="self-end text-white bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded"
+                  >
+                    Kommentar senden
+                  </button>
+                </form>
+              </Card>
+            )}
+          </div>
 
         </div>
       </div>
+      <Footer/>
     </div>
   );
 }
