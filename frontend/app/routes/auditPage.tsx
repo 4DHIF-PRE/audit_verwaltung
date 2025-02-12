@@ -13,10 +13,9 @@ import { useLoaderData } from "@remix-run/react";
 import {Footer} from "~/components/Footer";
 import {Button} from "~/components/ui/button";
 import jsPDF from "jspdf";
-
+import { useNavigate } from "react-router-dom";
 
 export const loader: LoaderFunction = async ({ request }) => {
-
   const cookie = request.headers.get("cookie");
   const controller = new AbortController();
   request.signal.addEventListener("abort", () => controller.abort());
@@ -94,6 +93,8 @@ export default function AuditPage() {
   const auditsPerPage = 5;
   const totalPages = Math.ceil(audits.length / auditsPerPage);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     setUser(loaderData2.user); 
   }, [loaderData2]);
@@ -159,8 +160,6 @@ export default function AuditPage() {
       au_typ: "audit",
     };
   
-    console.log(newAudit.au_theme);
-  
     fetch("http://localhost:3000/audit", {
       method: "POST",
       headers: {
@@ -189,20 +188,12 @@ export default function AuditPage() {
             userId: user.u_userId,
             auditId: createdAudit.au_idx,
           }),
-        });
+        }).then(() => createdAudit.au_idx);
       })
-      .then((roleResponse) => {
-        if (!roleResponse.ok) {
-          return roleResponse.json().then((error) => {
-            alert(`Fehler beim Hinzufügen der Rolle: ${JSON.stringify(error)}`);
-            throw new Error("Rolle konnte nicht hinzugefügt werden");
-          });
-        }
-        return roleResponse.json();
-      })
-      .then(() => {
-        // @ts-ignore
-        setAudits((prevAudits) => [...prevAudits, newAudit]);
+      .then((auditId) => {
+        setAudits((prevAudits) => [...prevAudits, { ...newAudit, au_idx: auditId }]);
+  
+        navigate(`/auditbearbeiten/${auditId}`); 
       })
       .catch((error) => {
         console.error("Fehler beim Erstellen des Audits:", error);
@@ -540,31 +531,8 @@ export default function AuditPage() {
             <div className="w-3/4 max-w-screen-lg h-3/4 bg-gray-200 dark:bg-gray-900 p-6 rounded-md flex flex-col justify-start">
               <AuditVorschau audit={selectedAudit} allAudits={audits} />
               <QuestionVorschau auditId={selectedAudit} questions={questions}/>
-              {/* Scrollbare Fragenliste */}{/*
-              <div className="flex-1 overflow-y-auto border border-gray-300 dark:border-gray-700 bg-gray-200 dark:bg-gray-900 rounded-md p-4 max-h-80">
-                {selectedAudit !== 0 && questions.length > 0 ? (
-                  questions
-                    .filter((question) => question.qu_audit_idx === selectedAudit) // Nur Fragen des ausgewählten Audits
-                    .map((question) => (
-                      <div
-                        key={question.qu_idx}
-                        className={`border-b border-gray-300 dark:border-gray-600 py-2 ${
-                          question.qu_audited ? "bg-green-100 dark:bg-green-700" : "bg-red-100 dark:bg-red-700"
-                        }`}
-                      >
-                        <span className="font-bold">Frage {question.qu_idx}:</span>{" "}
-                        {question.qu_audited ? "Auditiert" : "Nicht auditiert"}
-                      </div>
-                    ))
-                ) : (
-                  <div className="text-center py-4 text-gray-600 dark:text-gray-300">
-                    Keine Fragen für dieses Audit gefunden
-                  </div>
-                )}
-              </div>*/}
   
               {/* Buttons unter der Fragenliste */}
-              {selectedAudit !== 0 ? (
                 <div className="flex justify-center space-x-4 mt-4">
                   {auditstatus === "geplant" || auditstatus === "bereit" ? (
                     <button
@@ -611,22 +579,6 @@ export default function AuditPage() {
                     Findings
                   </button>) : ""}
                 </div>
-              ) : ( ""
-                /*{canCreateAudit ? ( // Button nur anzeigen, wenn der Benutzer erstellberechtigt ist
-                  <div className="flex justify-center mt-4">
-                    <button
-                      onClick={() => {
-                        if (selectedAudit) {
-                          changeStatus(selectedAudit);
-                        }
-                      }}
-                      className="px-4 py-2 rounded-md text-white bg-green-500"
-                    >
-                      Durchführen
-                    </button>
-                  ) : ""}
-                </div>*/
-              )}
             </div>
             <button
                 onClick={() => exportAllAuditsAndFindingsToPDF(audits, findings)}

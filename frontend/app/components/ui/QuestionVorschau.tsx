@@ -86,7 +86,7 @@ export default function QuestionVorschau({ auditId, questions }: Props) {
                 {auditStatus === "begonnen" || auditStatus === "fertig" ? (
                   <th>Finding Stufe</th>
                 ) : null}
-                <th>Möglichkeiten</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
