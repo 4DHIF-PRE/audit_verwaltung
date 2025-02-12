@@ -144,7 +144,7 @@ export default function AuditPage() {
   }, [selectedAudit]);
   
 
-  const createAudit = async (
+  const createAudit = (
     user: UserDetails,
     setAudits: React.Dispatch<React.SetStateAction<AuditDetails[]>>
   ) => {
@@ -158,50 +158,57 @@ export default function AuditPage() {
       au_theme: "Kein Thema",
       au_typ: "audit",
     };
-
+  
     console.log(newAudit.au_theme);
   
-    try {
-      const response = await fetch("http://localhost:3000/audit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newAudit),
+    fetch("http://localhost:3000/audit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newAudit),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((error) => {
+            alert(`Fehler beim Erstellen des Audits: ${JSON.stringify(error)}`);
+            throw new Error("Audit konnte nicht erstellt werden");
+          });
+        }
+        return response.json();
+      })
+      .then((createdAudit) => {
+        console.log(user.u_userId + " " + createdAudit.au_idx);
+  
+        return fetch("http://localhost:3000/rolesuser", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user.u_userId,
+            auditId: createdAudit.au_idx,
+          }),
+        });
+      })
+      .then((roleResponse) => {
+        if (!roleResponse.ok) {
+          return roleResponse.json().then((error) => {
+            alert(`Fehler beim Hinzufügen der Rolle: ${JSON.stringify(error)}`);
+            throw new Error("Rolle konnte nicht hinzugefügt werden");
+          });
+        }
+        return roleResponse.json();
+      })
+      .then(() => {
+        // @ts-ignore
+        setAudits((prevAudits) => [...prevAudits, newAudit]);
+      })
+      .catch((error) => {
+        console.error("Fehler beim Erstellen des Audits:", error);
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        alert(`Fehler beim Erstellen des Audits: ${JSON.stringify(error)}`);
-        return;
-      }
-  
-      const createdAudit = await response.json();
-
-      console.log(user.u_userId + " " + createdAudit.au_idx)
-  
-      const roleResponse = await fetch("http://localhost:3000/rolesuser", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: user.u_userId,
-          auditId: createdAudit.au_idx,
-        }),
-      });
-  
-      if (!roleResponse.ok) {
-        const error = await roleResponse.json();
-        alert(`Fehler beim Hinzufügen der Rolle: ${JSON.stringify(error)}`);
-        return;
-      }
-  
-      setAudits((prevAudits) => [...prevAudits, createdAudit]);
-    } catch (error) {
-      console.error("Fehler beim Erstellen des Audits:", error);
-    }
   };
+  
 
   const handleDeleteAudit = async (auditId: number) => {
     try {
