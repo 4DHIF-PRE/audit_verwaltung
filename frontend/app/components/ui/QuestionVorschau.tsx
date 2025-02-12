@@ -58,7 +58,7 @@ export default function QuestionVorschau({ auditId, questions }: Props) {
         {auditId === 0 ? (
             <p className="text-sm sm:text-base">Wähle ein Audit aus, um Fragen zu sehen.</p>
         ) : filteredQuestions.length > 0 ? (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto max-h-[150px] overflow-y-auto">
               <table className="table-auto w-full text-sm sm:text-base">
                 <thead className="text-left">
                 <tr>

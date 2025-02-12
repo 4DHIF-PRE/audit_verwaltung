@@ -539,7 +539,7 @@ export default function AuditPage() {
           <div className="w-full h-full flex flex-col items-center justify-center p-6">
             <div className="w-3/4 max-w-screen-lg h-3/4 bg-gray-200 dark:bg-gray-900 p-6 rounded-md flex flex-col justify-start">
               <AuditVorschau audit={selectedAudit} allAudits={audits} />
-              <QuestionVorschau auditId={selectedAudit} questions={questions} />
+              <QuestionVorschau auditId={selectedAudit} questions={questions}/>
               {/* Scrollbare Fragenliste */}{/*
               <div className="flex-1 overflow-y-auto border border-gray-300 dark:border-gray-700 bg-gray-200 dark:bg-gray-900 rounded-md p-4 max-h-80">
                 {selectedAudit !== 0 && questions.length > 0 ? (
