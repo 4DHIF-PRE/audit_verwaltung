@@ -78,7 +78,7 @@ export default function QuestionVorschau({ auditId, questions }: Props) {
       ) : filteredQuestions.length > 0 ? (
         <div className="overflow-x-auto max-h-[150px] overflow-y-auto">
           <table className="table-auto w-full text-sm sm:text-base">
-            <thead className="text-left">
+            <thead className="text-center">
               <tr>
                 <th>Gesetzestext NR</th>
                 <th>Auditiert</th>
@@ -86,25 +86,26 @@ export default function QuestionVorschau({ auditId, questions }: Props) {
                 {auditStatus === "begonnen" || auditStatus === "fertig" ? (
                   <th>Finding Stufe</th>
                 ) : null}
-                <th></th>
               </tr>
             </thead>
             <tbody>
               {filteredQuestions.map((q) => (
-                <tr key={q.qu_idx} className="border-t">
+                <tr key={q.qu_idx} className="border-t text-center">
                   <td>{q.qu_law_idx}</td>
                   <td>{q.qu_audited ? "Ja" : "Nein"}</td>
                   <td>{q.qu_applicable ? "Ja" : "Nein"}</td>
                   {auditStatus === "begonnen" || auditStatus === "fertig" ? (
-                    <td>{q.qu_finding_level ?? "N/A"}</td>
+                    <td>{q.qu_finding_level ?? 0}</td>
                   ) : null}
                   <td>
+                  {auditStatus !== "begonnen" && auditStatus !== "fertig" && (
                     <button
                       className="text-red-500 hover:text-red-700"
                       onClick={() => deleteQuestion(q.qu_idx)}
                     >
                       ❌
                     </button>
+                  )}
                   </td>
                 </tr>
               ))}

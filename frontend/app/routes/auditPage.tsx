@@ -86,12 +86,9 @@ export default function AuditPage() {
 
   const [questions, setQuestions] = useState<QuestionInt[]>([]);
   const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
   const [selectedAudit, setSelectedAudit] = useState<number>(0);
   const [canCreateAudit, setCanCreateAudit] = useState(false);
   const [filter, setFilter] = useState("");
-  const auditsPerPage = 5;
-  const totalPages = Math.ceil(audits.length / auditsPerPage);
 
   const navigate = useNavigate();
 
@@ -232,25 +229,13 @@ export default function AuditPage() {
     }
   );
 
-  const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
-  };
-
   const handleAuditClick = (auditId: number) => {
     setSelectedAudit((prev) => (prev === auditId ? 0 : auditId));
     const selectedAuditStatus = audits.find(a => a.au_idx === auditId)?.au_auditstatus || "";
     setAuditstatus(selectedAuditStatus);
   };
   
-
-  const displayedAudits = filteredAudits.slice(
-    (currentPage - 1) * auditsPerPage,
-    currentPage * auditsPerPage
-  );
+  const displayedAudits = filteredAudits;
 
   const changeStatus = async (auditId: number) => {
     const audit = audits.find(a => a.au_idx === auditId);
@@ -499,29 +484,6 @@ export default function AuditPage() {
                     Keine Audits gefunden
                   </div>
                 )}
-              </div>
-  
-              {/* Pagination Buttons */}
-              <div className="p-4 bg-white dark:bg-black">
-                <div className="flex justify-between dark:bg-black">
-                  <button
-                    onClick={handlePreviousPage}
-                    disabled={currentPage === 1}
-                    className={`px-4 py-2 rounded-md ${currentPage === 1 ? "bg-gray-300 hover:bg-gray-400 dark:bg-gray-800 dark:hover:bg-gray-900" : "bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-800"
-                      }`}
-                  >
-                    Zurück
-                  </button>
-                  <button
-                
-                    onClick={handleNextPage}
-                    disabled={currentPage >= totalPages}
-                    className={`px-4 py-2 rounded-md ${currentPage >= totalPages ? "bg-gray-300 hover:bg-gray-400 dark:bg-gray-800 dark:hover:bg-gray-900" : "bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-800"
-                      }`}
-                  >
-                    Weiter
-                  </button>
-                </div>
               </div>
             </div>
           </div>
