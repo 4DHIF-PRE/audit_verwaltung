@@ -8,6 +8,25 @@ interface Props {
 
 export default function QuestionVorschau({ auditId, questions }: Props) {
   const [updatedQuestions, setUpdatedQuestions] = useState<QuestionInt[]>(questions);
+  const [auditStatus, setAuditStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAuditStatus = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/audit/${auditId}`);
+        const data = await response.json();
+        if (data && data.au_auditstatus) {
+          setAuditStatus(data.au_auditstatus);
+        }
+      } catch (error) {
+        console.error("Error fetching audit status:", error);
+      }
+    };
+
+    if (auditId) {
+      fetchAuditStatus();
+    }
+  }, [auditId]);
 
   const filteredQuestions = updatedQuestions.filter((q) => q.qu_audit_idx === auditId);
 
@@ -48,50 +67,53 @@ export default function QuestionVorschau({ auditId, questions }: Props) {
     }
   };
 
-  // Update the state when the questions prop changes
   useEffect(() => {
     setUpdatedQuestions(questions);
   }, [questions]);
 
   return (
-      <div className="flex-1 ml-6 p-4 rounded-md">
-        {auditId === 0 ? (
-            <p className="text-sm sm:text-base">Wähle ein Audit aus, um Fragen zu sehen.</p>
-        ) : filteredQuestions.length > 0 ? (
-            <div className="overflow-x-auto max-h-[150px] overflow-y-auto">
-              <table className="table-auto w-full text-sm sm:text-base">
-                <thead className="text-left">
-                <tr>
-                  <th>Gesetzestext NR</th>
-                  <th>Auditiert</th>
-                  <th>Anwendbar</th>
+    <div className="flex-1 ml-6 p-4 rounded-md">
+      {auditId === 0 ? (
+        <p className="text-sm sm:text-base">Wähle ein Audit aus, um Fragen zu sehen.</p>
+      ) : filteredQuestions.length > 0 ? (
+        <div className="overflow-x-auto max-h-[150px] overflow-y-auto">
+          <table className="table-auto w-full text-sm sm:text-base">
+            <thead className="text-left">
+              <tr>
+                <th>Gesetzestext NR</th>
+                <th>Auditiert</th>
+                <th>Anwendbar</th>
+                {auditStatus === "begonnen" || auditStatus === "fertig" ? (
                   <th>Finding Stufe</th>
-                  <th>Möglichkeiten</th>
+                ) : null}
+                <th>Möglichkeiten</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredQuestions.map((q) => (
+                <tr key={q.qu_idx} className="border-t">
+                  <td>{q.qu_law_idx}</td>
+                  <td>{q.qu_audited ? "Ja" : "Nein"}</td>
+                  <td>{q.qu_applicable ? "Ja" : "Nein"}</td>
+                  {auditStatus === "begonnen" || auditStatus === "fertig" ? (
+                    <td>{q.qu_finding_level ?? "N/A"}</td>
+                  ) : null}
+                  <td>
+                    <button
+                      className="text-red-500 hover:text-red-700"
+                      onClick={() => deleteQuestion(q.qu_idx)}
+                    >
+                      ❌
+                    </button>
+                  </td>
                 </tr>
-                </thead>
-                <tbody>
-                {filteredQuestions.map((q) => (
-                    <tr key={q.qu_idx} className="border-t">
-                      <td>{q.qu_law_idx}</td>
-                      <td>{q.qu_audited ? "Ja" : "Nein"}</td>
-                      <td>{q.qu_applicable ? "Ja" : "Nein"}</td>
-                      <td>{q.qu_finding_level ?? "N/A"}</td>
-                      <td>
-                        <button
-                            className="text-red-500 hover:text-red-700"
-                            onClick={() => deleteQuestion(q.qu_idx)}
-                        >
-                          ❌
-                        </button>
-                      </td>
-                    </tr>
-                ))}
-                </tbody>
-              </table>
-            </div>
-        ) : (
-            <p className="text-sm sm:text-base">Keine Fragen für dieses Audit gefunden.</p>
-        )}
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="text-sm sm:text-base">Keine Fragen für dieses Audit gefunden.</p>
+      )}
+    </div>
   );
 }
