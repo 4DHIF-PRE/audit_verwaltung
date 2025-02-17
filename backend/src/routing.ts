@@ -222,21 +222,16 @@ expressApp.post('/registration/createInvitation', async (req, res) => {
 });
 
 expressApp.get('/registration/viewTokens', async (req, res) => {
-    const sessionId = req.cookies[cookieName];
+    try {
+        const result = await GetAllRegistrationTokens();
 
-    if (!sessionId) {
-        res.status(400).json({ message: "Invalid sessionId" });
-        return;
-    }
-
-    const result = await GetAllRegistrationTokens(sessionId);
-
-    if (result instanceof Error) {
-        res.status(400).json({ message: result.message });
-        return;
-    } else {
-        res.status(200).json(result);
-        return;
+        if (result.success === false) {
+            res.status(500).json(result);
+        } else {
+            res.status(200).json(result);
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 });
 
