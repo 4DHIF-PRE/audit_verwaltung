@@ -294,8 +294,12 @@ export default function Question({ question }: { question: QuestionInt }) {
   };
 
   const handleDownload = async (fileToDownload: string) => {
-    const downloadButton = document.getElementById(`downloadFile-${fileToDownload}`)
-    if(downloadButton) downloadButton.disabled = true;
+    const downloadButton = document.getElementById(
+      `removeFile-${fileToDownload}`
+    );
+    if (downloadButton) {
+      downloadButton.disabled = true;
+    }
     try {
       if (findingId !== -1) {
         const attachmentsResponse = await fetch(
@@ -308,44 +312,98 @@ export default function Question({ question }: { question: QuestionInt }) {
           ? attachments.fileName.map((file) => file.fa_filename)
           : [];
         if (existingFileNames.length === 0)
-          console.log("List of API files empty, unable to download remote file.");
+          console.log("List of API files is empty.");
         else {
-          const fileReturned = attachments.fileName.find(file => file.fa_filename === fileToDownload)
-          console.log(attachments.fileName);
-          console.log(fileReturned);
+          const fileReturned = attachments.fileName.find(
+            (file) => file.fa_filename === fileToDownload
+          );
 
-          if(typeof fileReturned !== 'undefined' && fileReturned != null){
-            // fileReturned shouldn't be null or undefined if the file you're trying to delete is in the database. 
-            /* By design, the first file that was found with a matching file name will be removed.
-            */
-           console.log("Preparing to fetch file for download...");
+          if (fileReturned) {
+            // fileReturned shouldn't be null or undefined if the file you're trying to delete is in the database.
+            /* By design, the first file that was found with a matching file name will be downloaded.
+             */
+            console.log("Preparing to fetch file for download...");
+            const fileResult = await fetch(
+              `http://localhost:3000/api/finding/attachments/${fileReturned.fa_id}`
+            );
+            const fileData = await fileResult.json();
+            if (
+              fileResult.ok &&
+              fileData.fileName &&
+              fileData.fileName.length > 0
+            ) {
+              console.log("File retrieved, preparing download...");
 
-           const fileResult = await fetch(`http://localhost:3000/api/finding/attachments/${fileReturned.fa_id}`)
-           if(fileResult.ok){
-            // Limitation: downloads first found file with the given file name.
+              const fileObject = fileData.fileName[0];
+              const bufferData = new Uint8Array(fileObject.fa_file.data); // Binary data
+              const fullBlob = new Blob([bufferData]); // Create a blob
 
-            console.log("File retrieved, preparing download...");
-           }
-          /* const filesReturned = attachments.fileName.map(
-            (fileObj: { fa_file: { data: number[] }; fa_filename: string }) => {
-              const bufferData = new Uint8Array(fileObj.fa_file.data); // Convert data array to Uint8Array
-              const blob = new Blob([bufferData]); // Create a Blob
-              const filetoAdd = new File([blob], fileObj.fa_filename); // Create a File from the Blob
-              return filetoAdd;
+              const reader = new FileReader();
+              reader.onload = function () {
+                const arrayBuffer = reader.result as ArrayBuffer;
+                const byteArray = new Uint8Array(arrayBuffer);
+
+                // Locate the first instance of "\r\n\r\n" (header-body separator)
+                const separator = new TextEncoder().encode("\r\n\r\n");
+                let startIndex = -1;
+
+                for (let i = 0; i < byteArray.length - separator.length; i++) {
+                  if (
+                    separator.every(
+                      (byte, index) => byteArray[i + index] === byte
+                    )
+                  ) {
+                    startIndex = i + separator.length;
+                    break;
+                  }
+                }
+
+                if (startIndex !== -1) {
+                  console.log("Found header separator at byte:", startIndex);
+
+                  // Extract the actual file content after headers
+                  const cleanContent = byteArray.slice(startIndex);
+
+                  // Preserve the original file type (if detected)
+                  const detectedType =
+                    fileObject.fa_filename.split(".").pop() ||
+                    "application/octet-stream";
+                  const cleanBlob = new Blob([cleanContent], {
+                    type: detectedType,
+                  });
+
+                  // Create download link
+                  const url = window.URL.createObjectURL(cleanBlob);
+                  const downloadLink = document.createElement("a");
+                  downloadLink.href = url;
+                  downloadLink.download = fileObject.fa_filename;
+                  document.body.appendChild(downloadLink);
+                  downloadLink.click();
+
+                  // Cleanup
+                  document.body.removeChild(downloadLink);
+                  window.URL.revokeObjectURL(url);
+                } else {
+                  console.error(
+                    "Could not locate file content in the multipart data."
+                  );
+                }
+              };
+
+              reader.readAsArrayBuffer(fullBlob);
+            } else {
+              console.error(
+                "Failed to retrieve file content or file data structure is unexpected."
+              );
             }
-          ); */
           }
-          else{
-            
-          }
+          else console.warn("File not found on the server. Are you trying to download a local file?")
         }
       }
     } catch (error) {
-      console.error("Error occured while downloading file: ", error);
+      console.error("Error occurred while downloading file:", error);
     } finally {
-      if(downloadButton){
-        downloadButton.disabled = false;
-      } 
+      if (downloadButton) downloadButton.disabled = false;
     }
   };
 
