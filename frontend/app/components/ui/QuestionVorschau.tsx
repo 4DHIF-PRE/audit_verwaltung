@@ -55,7 +55,7 @@ export default function QuestionVorschau({ auditId, questions }: Props) {
       }
 
       setUpdatedQuestions((prevQuestions) =>
-        prevQuestions.filter((q) => q.qu_idx !== questionId)
+          prevQuestions.filter((q) => q.qu_idx !== questionId)
       );
     } catch (error) {
       if ((error as Error).name === "AbortError") {
@@ -72,49 +72,49 @@ export default function QuestionVorschau({ auditId, questions }: Props) {
   }, [questions]);
 
   return (
-    <div className="flex-1 ml-6 p-4 rounded-md">
-      {auditId === 0 ? (
-        <p className="text-sm sm:text-base">Wähle ein Audit aus, um Fragen zu sehen.</p>
-      ) : filteredQuestions.length > 0 ? (
-        <div className="overflow-x-auto max-h-[150px] overflow-y-auto">
-          <table className="table-auto w-full text-sm sm:text-base">
-            <thead className="text-center">
-              <tr>
-                <th>Gesetzestext NR</th>
-                <th>Auditiert</th>
-                <th>Anwendbar</th>
-                {auditStatus === "begonnen" || auditStatus === "fertig" ? (
-                  <th>Finding Stufe</th>
-                ) : null}
-              </tr>
-            </thead>
-            <tbody>
-              {filteredQuestions.map((q) => (
-                <tr key={q.qu_idx} className="border-t text-center">
-                  <td>{q.qu_law_idx}</td>
-                  <td>{q.qu_audited ? "Ja" : "Nein"}</td>
-                  <td>{q.qu_applicable ? "Ja" : "Nein"}</td>
+      <div className="flex-1 ml-6 p-4 rounded-md mb-16">
+        {auditId === 0 ? (
+            <p className="text-sm sm:text-base">Wähle ein Audit aus, um Fragen zu sehen.</p>
+        ) : filteredQuestions.length > 0 ? (
+            <div className="overflow-x-auto max-h-[150px] overflow-y-auto">
+              <table className="table-auto w-full text-sm sm:text-base">
+                <thead className="text-center">
+                <tr>
+                  <th>Gesetzestext NR</th>
+                  <th>Auditiert</th>
+                  <th>Anwendbar</th>
                   {auditStatus === "begonnen" || auditStatus === "fertig" ? (
-                    <td>{q.qu_finding_level ?? 0}</td>
+                      <th>Finding Stufe</th>
                   ) : null}
-                  <td>
-                  {auditStatus !== "begonnen" && auditStatus !== "fertig" && (
-                    <button
-                      className="text-red-500 hover:text-red-700"
-                      onClick={() => deleteQuestion(q.qu_idx)}
-                    >
-                      ❌
-                    </button>
-                  )}
-                  </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <p className="text-sm sm:text-base">Keine Fragen für dieses Audit gefunden.</p>
-      )}
-    </div>
+                </thead>
+                <tbody>
+                {filteredQuestions.map((q) => (
+                    <tr key={q.qu_idx} className="border-t text-center">
+                      <td>{q.qu_law_idx}</td>
+                      <td>{q.qu_audited ? "Ja" : "Nein"}</td>
+                      <td>{q.qu_applicable ? "Ja" : "Nein"}</td>
+                      {auditStatus === "begonnen" || auditStatus === "fertig" ? (
+                          <td>{q.qu_finding_level ?? 0}</td>
+                      ) : null}
+                      <td>
+                        {auditStatus !== "begonnen" && auditStatus !== "fertig" && (
+                            <button
+                                className="text-red-500 hover:text-red-700"
+                                onClick={() => deleteQuestion(q.qu_idx)}
+                            >
+                              ❌
+                            </button>
+                        )}
+                      </td>
+                    </tr>
+                ))}
+                </tbody>
+              </table>
+            </div>
+        ) : (
+            <p className="text-sm sm:text-base">Keine Fragen für dieses Audit gefunden.</p>
+        )}
+      </div>
   );
 }

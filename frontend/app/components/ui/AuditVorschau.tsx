@@ -62,39 +62,66 @@ export default function AuditVorschau({ audit, allAudits }: Props) {
     //return date.toLocaleDateString();
   };
 
+    const addDaysToDate = (dateString, days) => {
+        const date = new Date(dateString);
+        date.setDate(date.getDate() + days);
+        return date;
+    };
+
   return (
-    <div className="flex-1 ml-6 p-4 rounded-md left">
-      {selectedAuditDetails ? (
-        <div>
-          <h2 className="text-2xl font-bold mb-4">
-            {selectedAuditDetails.au_theme}
-          </h2>
-          <p>
-            <strong>Datum:</strong>{" "}
-            {formatDate(selectedAuditDetails.au_audit_date)}
-          </p>
-          <p>
-            <strong>Auditor:</strong>{" "}
-              {getAuditorName(selectedAuditDetails.au_leadauditor_idx)}
-          </p>
-          <p>
-            <strong>Status:</strong> {selectedAuditDetails.au_auditstatus.charAt(0).toUpperCase() + selectedAuditDetails.au_auditstatus.slice(1)}
-          </p>
-          <p>
-            <strong>Ort:</strong> {selectedAuditDetails.au_place}
-          </p>
-          <p>
-            <strong>Thema:</strong> {selectedAuditDetails.au_theme}
-          </p>
-          <p>
-            <strong>Typ:</strong> {selectedAuditDetails.au_typ.charAt(0).toUpperCase() + selectedAuditDetails.au_typ.slice(1)}
-          </p>
-        </div>
-      ) : (
-        <span className="text-xl text-gray-500 dark:text-white">
+      <div className="flex-1 ml-6 p-4 rounded-md">
+          {selectedAuditDetails ? (
+              <div>
+                  <h2 className="text-2xl font-bold mb-8 underline">
+                      {selectedAuditDetails.au_theme}
+                  </h2>
+
+                  <div className="grid grid-cols-2 gap-4">
+                      {/* Left Column */}
+                      <div>
+                          <h2 className="text-lg font-bold mb-8">
+                              {"Dauer: "}
+                              {selectedAuditDetails.au_number_of_days}{" "}
+                              {selectedAuditDetails.au_number_of_days === 1 ? "Tag" : "Tage"}
+                          </h2>
+                          <p>
+                              <strong>Startdatum:</strong>{" "}
+                              {formatDate(selectedAuditDetails.au_audit_date)}
+                          </p>
+                          <p>
+                              <strong>Enddatum:</strong>{" "}
+                              {formatDate(addDaysToDate(selectedAuditDetails.au_audit_date, selectedAuditDetails.au_number_of_days) + "")}
+                          </p>
+                          <p>
+                              <strong>Auditor:</strong>{" "}
+                              {getAuditorName(selectedAuditDetails.au_leadauditor_idx)}
+                          </p>
+
+                      </div>
+
+                      {/* Right Column */}
+                      <div>
+                          <h2 className="text-lg font-bold mb-8">
+                              <strong>Status:</strong>{" "}
+                              {selectedAuditDetails.au_auditstatus.charAt(0).toUpperCase() + selectedAuditDetails.au_auditstatus.slice(1)}
+                          </h2>
+                          <p>
+                              <strong>Ort:</strong> {selectedAuditDetails.au_place}
+                          </p>
+                          <p>
+                              <strong>Thema:</strong> {selectedAuditDetails.au_theme}
+                          </p>
+                          <p className="mb-8">
+                              <strong>Typ:</strong> {selectedAuditDetails.au_typ.charAt(0).toUpperCase() + selectedAuditDetails.au_typ.slice(1)}
+                          </p>
+                      </div>
+                  </div>
+              </div>
+          ) : (
+              <span className="text-xl text-gray-500 dark:text-white">
           Audit auswählen oder erstellen.
         </span>
-      )}
+          )}
     </div>
   );
 }

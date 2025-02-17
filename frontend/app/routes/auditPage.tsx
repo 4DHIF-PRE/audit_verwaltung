@@ -421,9 +421,9 @@ export default function AuditPage() {
     <div className="flex flex-col w-full h-screen bg-white">
       <Navbar />
       <div className="flex-1 p-4 bg-white dark:bg-black mt-9">
-        <div className="flex flex-row flex-1 mt-6">
+        <div className="flex flex-col lg:flex-row flex-1 mt-6 space-y-6 lg:space-y-0 lg:space-x-6">
           {/* Left Section */}
-          <div className="flex flex-col w-1/3 space-y-4 relative">
+          <div className="flex flex-col w-full lg:w-1/3 space-y-4 relative">
             <div className="flex flex-col h-[630px]">
               {/* Suchleiste und Add Button */}
               <div className="flex flex-col">
@@ -448,8 +448,9 @@ export default function AuditPage() {
                   Audit erstellen
                 </Button>
               </div>
-
-              <div className="flex-1 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4">
+            <div className="flex flex-col h-full">
+              <div className="flex-1 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4
+    max-h-[50vh] sm:max-h-[calc(100vh-100px)] ">
                 {displayedAudits.length > 0 ? (
                   displayedAudits.map((audit) => (
                     <div
@@ -486,11 +487,12 @@ export default function AuditPage() {
                 )}
               </div>
             </div>
+            </div>
           </div>
   
           {/* Right Section */}
-          <div className="w-full h-full flex flex-col items-center justify-center p-6">
-            <div className="w-3/4 max-w-screen-lg h-3/4 bg-gray-200 dark:bg-gray-900 p-6 rounded-md flex flex-col justify-start">
+          <div className="w-full lg:w-2/3 h-full flex flex-col items-center justify-center p-6">
+            <div className="w-full max-w-screen-lg h-full bg-gray-200 dark:bg-gray-900 p-6 rounded-md flex flex-col justify-start">
               <AuditVorschau audit={selectedAudit} allAudits={audits} />
               <QuestionVorschau auditId={selectedAudit} questions={questions}/>
   
