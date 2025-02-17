@@ -5,9 +5,19 @@ export default function AuditFilter({ SetQuestions, questionsFiltern }) {
   const [gesetz, setGesetz] = useState("");
   const [auditNumber, setAuditNumber] = useState("");
   
- function Suchen() {
+ async function Suchen() {
+  try{
+    
   
-  //console.log(questionsFiltern);
+
+    
+    
+
+  }
+  catch(error){
+    console.error("Error fetching data:", error);
+  }
+  console.log(questionsFiltern);
   //console.log("Gesetz:", gesetz);
   //console.log("Fragennummer:", auditNumber);
 }
