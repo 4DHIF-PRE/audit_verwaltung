@@ -1,25 +1,18 @@
 import React, { useState } from "react";
-//import {questions,questionsfiltern} from "../../routes/doAudit.$id"
+import {QuestionInt} from "../../routes/doAudit.$id"
 
 export default function AuditFilter({ SetQuestions, questionsFiltern }) {
   const [gesetz, setGesetz] = useState("");
   const [auditNumber, setAuditNumber] = useState("");
   
  async function Suchen() {
-  try{
-    
+  const newFiltered = questionsFiltern.filter((question) => {
+    if (!gesetz) return true;
+    return question.qu_law_law?.toLowerCase().includes(gesetz.toLowerCase());
+  });
+  SetQuestions(newFiltered);
   
-
-    
-    
-
-  }
-  catch(error){
-    console.error("Error fetching data:", error);
-  }
-  console.log(questionsFiltern);
-  //console.log("Gesetz:", gesetz);
-  //console.log("Fragennummer:", auditNumber);
+  console.log(newFiltered);
 }
   return (
     <div className="flex justify-center items-center h-250 w-150">

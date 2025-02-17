@@ -5,6 +5,8 @@ export interface QuestionInt {
   qu_idx: number;
   qu_audit_idx: number;
   qu_law_idx: number;
+  qu_law_text: string;
+  qu_law_law: string;
   qu_audited: boolean;
   qu_applicable: boolean;
   qu_finding_level: number;
@@ -62,6 +64,9 @@ export default function Question({ question }: { question: QuestionInt }) {
               text: lawDetails.la_text,
             });
           }
+          question.qu_law_law=lawDetails.la_law;
+          question.qu_law_text=lawDetails.la_text;
+
 
           if (finding.f_status !== undefined) {
             setSelectedStatus(finding.f_status.toString());
