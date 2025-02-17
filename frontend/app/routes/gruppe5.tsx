@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Navbar } from '~/components/Navbar';
-import {Footer} from "~/components/Footer";
+import { Footer } from '~/components/Footer';
 
 export default function Setup() {
   const [findings, setFindings] = useState([]);
@@ -10,6 +10,12 @@ export default function Setup() {
   const [showMore, setShowMore] = useState(false);
   const [comment, setComment] = useState("");
   const [workonComments, setWorkonComments] = useState([]);
+  const [statusFilter, setStatusFilter] = useState({
+    offen: true,
+    dokumentiert: true,
+    richtig: true,
+    kritisch: true
+  });
 
   useEffect(() => {
     async function fetchFindings() {
@@ -121,9 +127,22 @@ export default function Setup() {
 
     setComment("");
   };
+
   const handleRefreshComments = () => {
     fetchWorkonComments();
   };
+
+  const handleFilterChange = (e) => {
+    const { name, checked } = e.target;
+    setStatusFilter((prevFilter) => ({
+      ...prevFilter,
+      [name]: checked,
+    }));
+  };
+
+  const filteredFindings = findings.filter((finding) =>
+    statusFilter[finding.f_status]
+  );
 
   return (
     <div className="flex flex-grow h-screen flex-col dark:bg-black">
@@ -131,10 +150,30 @@ export default function Setup() {
       <div className="flex justify-between px-10 mt-10 pt-5">
         <div className="w-full max-w-md mt-2">
           <h1 className="text-2xl font-bold mb-4">Findings</h1>
+          
+          {/* Filter Section */}
+          <div className="mb-4 p-4 border rounded bg-gray-50">
+            <h2 className="text-lg font-semibold mb-2">Status filtern:</h2>
+            <div className="flex space-x-4">
+              {['dokumentiert', 'richtig', 'kritisch'].map((status) => (
+                <label key={status} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name={status}
+                    checked={statusFilter[status]}
+                    onChange={handleFilterChange}
+                    className="mr-2"
+                  />
+                  {status}
+                </label>
+              ))}
+            </div>
+          </div>
+
           <div className="overflow-y-auto max-h-[750px] overflow-x-hidden">
             <ul className="space-y-4">
-              {findings.length > 0 ? (
-                  findings.map((finding) => (
+              {filteredFindings.length > 0 ? (
+                  filteredFindings.map((finding) => (
                       <Card
                           className={`w-full p-4 cursor-pointer border-l-8 dark:text-black ${getStatusColor(finding.f_status)}`}
                           key={finding.f_id}
@@ -157,7 +196,6 @@ export default function Setup() {
             </ul>
           </div>
         </div>
-
 
         <div className="flex-col container mt-2">
           <div className="flex-1 ml-10 m-2">
@@ -210,55 +248,47 @@ export default function Setup() {
             {selectedFinding && (
               <Card className={`p-6 rounded-lg shadow-md w-full h-auto border-4 ${getBorderColor(selectedFinding.f_status)}`}>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-3xl font-bold">Kommentare</h2>
+                  <h2 className="text-3xl font-bold">Work-on-Kommentare</h2>
                   <button
                     onClick={handleRefreshComments}
-                    className="text-blue-500 hover:text-blue-700 py-1 px-3 rounded bg-transparent border border-blue-500"
+                    className="px-4 py-2 rounded bg-gray-300 text-gray-800 hover:bg-gray-400"
                   >
-                    Kommentare aktualisieren
+                    Refresh
                   </button>
                 </div>
 
-                <div className="comments-section overflow-y-auto max-h-[400px] mb-4 p-4 border rounded bg-gray-50">
-                  {workonComments.length > 0 ? (
-                    workonComments.map((comment, index) => (
-                      <div key={index} className="comment-item mb-2 p-3 rounded-md bg-white shadow">
-                        <p className="text-gray-800">{comment.fw_kommentar}</p>
-                        {/*<span className="text-sm text-gray-500">
-                          {new Date().toLocaleDateString()}
-                        </span>*/}
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500">Keine Kommentare vorhanden.</p>
-                  )}
-                </div>
+                {workonComments.length > 0 ? (
+                  workonComments.map((comment, index) => (
+                    <p key={index} className="text-md mb-2">{comment.fw_kommentar}</p>
+                  ))
+                ) : (
+                  <p>No comments available for this finding.</p>
+                )}
 
-                <form onSubmit={handleCommentSubmit} className="flex flex-col">
+                <form onSubmit={handleCommentSubmit} className="mt-4">
                   <textarea
-                    className="w-full p-2 border rounded-md dark:text-black mb-2"
-                    placeholder="Kommentar hinzufügen..."
                     value={comment}
                     onChange={handleCommentChange}
-                    rows={2}
+                    className="w-full p-2 rounded border"
+                    placeholder="Add your comment..."
                   />
                   <button
                     type="submit"
-                    className="self-end text-white bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded"
+                    className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                   >
-                    Kommentar senden
+                    Add Comment
                   </button>
                 </form>
               </Card>
             )}
           </div>
-
         </div>
       </div>
-      <Footer/>
+      <Footer />
     </div>
   );
 }
+
 
 
 
