@@ -45,15 +45,13 @@ export default function App() {
 
     fetchedOnceRef.current = true;
       setLoading(true);
-      console.log("loadinf");
+      console.log("loading");
 
       try {
-        // Fetch audit data from the API (replace URL with your API endpoint)
         const auditResponse = await fetch(`http://localhost:3000/audit/${id}`);
         const currentAudit = await auditResponse.json();
         setAudit(currentAudit);
 
-        // Fetch corresponding questions for the audit (replace URL with your API endpoint)
         const questionsResponse = await fetch(`http://localhost:3000/audit/questions/${id}`);//${currentAudit?.au_idx}
         const auditQuestions = await questionsResponse.json();
         setQuestions(auditQuestions);
@@ -69,6 +67,13 @@ export default function App() {
   },  [id]);
 
   const handleSave = async () => {
+  const response = await fetch(`http://localhost:3000/audit/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ au_auditstatus: "findings_offen" })
+    });
     window.location.href = `/gruppe5`;
   };
 
@@ -113,7 +118,7 @@ export default function App() {
             onClick={handleSave}
             className="w-full bg-red-500 hover:bg-red-600 text-white font-medium rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 pt-2 pb-2"
           >
-            Audit speichern
+            Audit abschließen
           </button>
         </div>
       </div>
