@@ -26,15 +26,15 @@ export interface AuditInt {
   au_typ: string;
 }
 
-export const [questions, setQuestions] = useState<QuestionInt[]>([]);
-  export const [questionsfiltern, setQuestionsfiltern] = useState<QuestionInt[]>([]);
+
 export default function App() {
   const { id } = useParams();
   const [audit, setAudit] = useState<AuditInt>();
   
   const [loading, setLoading] = useState(true);
   const fetchedOnceRef = useRef(false);
-  
+   const [questions, setQuestions] = useState<QuestionInt[]>([]);
+   const [questionsfiltern, setQuestionsfiltern] = useState<QuestionInt[]>([]);
   
   
  
