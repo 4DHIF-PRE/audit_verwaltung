@@ -1,14 +1,15 @@
 import React, { useState } from "react";
 //import {questions,questionsfiltern} from "../../routes/doAudit.$id"
 
-export default function AuditFilter() {
+export default function AuditFilter({ SetQuestions, questionsFiltern }) {
   const [gesetz, setGesetz] = useState("");
   const [auditNumber, setAuditNumber] = useState("");
   
  function Suchen() {
   
-  console.log("Gesetz:", gesetz);
-    console.log("Fragennummer:", auditNumber);
+  //console.log(questionsFiltern);
+  //console.log("Gesetz:", gesetz);
+  //console.log("Fragennummer:", auditNumber);
 }
   return (
     <div className="flex justify-center items-center h-250 w-150">

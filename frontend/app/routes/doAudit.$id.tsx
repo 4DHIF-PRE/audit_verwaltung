@@ -87,7 +87,7 @@ export default function App() {
       <div className="flex flex-col flex-grow h-full">
         {/* Sticky Filter */}
         <div className="sticky mt-6 bg-white dark:bg-black z-10 shadow-md p-4">
-          <AuditFilter  />
+          <AuditFilter  SetQuestions={setQuestions} questionsFiltern={questionsfiltern}/>
         </div>
 
         {/* Scrollable Questions */}
