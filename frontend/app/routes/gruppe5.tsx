@@ -72,6 +72,7 @@ export default function Setup() {
     }
   };
 
+  //Dies ist nicht vollständig da es zu errors kommen kann
   const selectedAudit = selectedFinding
     ? audits.find((audit) => Number(audit.au_idx) === Number(selectedFinding.f_au_audit_idx))
     : null;
@@ -292,7 +293,7 @@ export default function Setup() {
 
 
 
-
+//funktioniert jetzt einwandfrei
 export async function postWorkonComment(id, commentData) {
   const response = await fetch(`http://localhost:3000/findings/workon/${id}`, {
     method: 'POST',
