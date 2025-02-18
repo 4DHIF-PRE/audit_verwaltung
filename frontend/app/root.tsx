@@ -27,8 +27,13 @@ export const loader: LoaderFunction = async ({ request }) => {
     const cookie = request.headers.get("cookie");
     const pathname = new URL(request.url).pathname;
     const publicRoutes = ["/login"];
+    const registerTokenPattern = /^\/sign-up\/[^/]+$/;
+
     if (cookie?.includes("gruppe2session") && publicRoutes.includes(pathname)) {
         return redirect("/");
+    }
+    if (!cookie?.includes("gruppe2session") && registerTokenPattern.test(pathname)) {
+        return null;
     }
 
     if (!cookie?.includes("gruppe2session") && !publicRoutes.includes(pathname)) {

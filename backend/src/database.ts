@@ -416,54 +416,26 @@ export async function CreateRegistrationToken(
     }
 }
 
-export async function GetAllRegistrationTokens(
-    sessionId: string
-): Promise<{} | Error> {
-    if (!sessionId)
-        return new Error("SessionId must not be null/undefined/empty");
-
-    const connection = await connectionPool.getConnection();
+export async function GetAllRegistrationTokens(): Promise<any> {
+    let connection;
 
     try {
+        connection = await connectionPool.getConnection();
         await connection.beginTransaction();
 
-        const [results, fields]: [any, mysql.FieldPacket[]] =
+        const [resultsTokens]: [any[], mysql.FieldPacket[]] =
             await connection.execute(
-                "SELECT `u_userId`, `u_deletedAt`, `us_expiresAt` FROM `view_u_user_frontend` inner join `us_usersession` on us_u_userId = u_userId WHERE `us_sessionId` = ?",
-                [sessionId]
+                "SELECT `rp_registrationId`, `rp_expiresAt`, `rp_firstname`, `rp_lastname`, `rp_email` FROM `rp_registration_process`"
             );
-        if (results.length === 0) {
-            return new Error("User with the provided sessionId was not found");
-        }
-        const queryUser: any = results[0];
-
-        if (queryUser.u_deletedAt) {
-            return new Error("User was deleted");
-        }
-
-        const timeNow = new Date(Date.now());
-
-        if (timeNow.getTime() >= queryUser.us_expiresAt.getTime()) {
-            return new Error("The provided sessionId has expired");
-        }
-
-        const [resultsTokens, fieldsTokens]: [any[], mysql.FieldPacket[]] =
-            await connection.execute(
-                "SELECT `rp_registrationId`, `rp_expiresAt`, `rp_firstname`, `rp_lastname`, `rp_email` FROM `rp_registration_process` WHERE `rp_u_userId` = ?",
-                [queryUser.u_userId]
-            );
-
-        console.log(resultsTokens);
-        console.log(fieldsTokens);
 
         await connection.commit();
         return resultsTokens;
     } catch (error) {
-        console.log(error);
-        await connection.rollback();
-        return error;
+        console.error("Database Error:", error);
+        if (connection) await connection.rollback();
+        return { success: false, message: (error as Error).message };
     } finally {
-        connection.release();
+        if (connection) connection.release();
     }
 }
 

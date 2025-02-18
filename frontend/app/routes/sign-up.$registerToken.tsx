@@ -2,42 +2,59 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/componen
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
-import { Link } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import * as React from "react";
-import {LoaderFunctionArgs, redirect} from "@remix-run/node";
+import { json, LoaderFunctionArgs, redirect } from "@remix-run/node";
+import { useState } from "react";
 
-export async function loader({params}: LoaderFunctionArgs) {
-    const temp = params.registerToken;
+export async function loader({ params }: LoaderFunctionArgs) {
+    const registerToken = params.registerToken;
 
-    if(temp==="1") {
-        return null;
+    const response = await fetch("http://localhost:3000/registration/viewTokens", {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+    const tokens = await response.json();
+
+    const tokenExists = tokens.some((token: any) => token.rp_registrationId === registerToken);
+
+    if (!tokenExists) {
+        return redirect("/login");
     }
-    return redirect("/");
+
+    return json({ ok: 200, registerToken });
 }
 
-
-
 export default function SignUp() {
-    const [formData, setFormData] = React.useState({
-        registrationToken: "Test",
-        u_firstname: "",
-        u_lastname: "",
-        u_email: "",
-        password: ""
+    const { registerToken } = useLoaderData<typeof loader>();
+
+    const [formData, setFormData] = useState({
+        registrationToken: registerToken,
+        password: "",
     });
 
-    const [error, setError] = React.useState("");
-    const [success, setSuccess] = React.useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
 
     async function handleSignUp(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
+
+        if (formData.password !== confirmPassword) {
+            setError("Passwords do not match");
+            return;
+        }
+
         console.log(formData);
         try {
-            const response = await fetch('http://localhost:3000/registration/register', {
-                method: 'POST',
+            const response = await fetch("http://localhost:3000/registration/register", {
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json'
+                    "Content-Type": "application/json",
                 },
+                // Der Body enthält nun auch den registrationToken
                 body: JSON.stringify(formData),
             });
 
@@ -46,7 +63,7 @@ export default function SignUp() {
             }
 
             const result = await response.json();
-            setSuccess("Sign up successful!"); // Display success message
+            setSuccess("Sign up successful!");
         } catch (error: any) {
             setError(error.message || "Something went wrong");
         }
@@ -55,7 +72,7 @@ export default function SignUp() {
     function handleInputChange(event: React.ChangeEvent<HTMLInputElement>) {
         setFormData({
             ...formData,
-            [event.target.id]: event.target.value
+            [event.target.id]: event.target.value,
         });
     }
 
@@ -66,47 +83,44 @@ export default function SignUp() {
                     <CardTitle>Sign up</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSignUp}>
-                        <div className="grid w-full items-center gap-4">
-                            <div className="flex flex-col space-y-1.5">
-                                <Label htmlFor="u_firstname">First Name</Label>
-                                <Input
-                                    autoComplete="given-name"
-                                    id="u_firstname"
-                                    placeholder="Enter your first name"
-                                    value={formData.u_firstname}
-                                    onChange={handleInputChange}
-                                />
-                                <Label htmlFor="u_lastname">Last Name</Label>
-                                <Input
-                                    autoComplete="family-name"
-                                    id="u_lastname"
-                                    placeholder="Enter your last name"
-                                    value={formData.u_lastname}
-                                    onChange={handleInputChange}
-                                />
-                                <Label htmlFor="u_email">Email</Label>
-                                <Input
-                                    autoComplete="email"
-                                    id="u_email"
-                                    placeholder="Enter your email address"
-                                    value={formData.u_email}
-                                    onChange={handleInputChange}
-                                />
-                                <Label htmlFor="password">Password</Label>
-                                <Input
-                                    autoComplete="new-password"
-                                    id="password"
-                                    placeholder="Enter your password"
-                                    type="password"
-                                    value={formData.password}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
+                    <form onSubmit={handleSignUp} className="space-y-4">
+                        {/* Das Passwort-Feld */}
+                        <div className="space-y-2">
+                            <Label htmlFor="password">Password</Label>
+                            <Input
+                                id="password"
+                                type="password"
+                                placeholder="Enter your password"
+                                value={formData.password}
+                                onChange={handleInputChange}
+                                className="shadow-sm"
+                            />
                         </div>
-                        {error && <p className="text-red-500 mt-2">{error}</p>}
-                        {success && <p className="text-green-500 mt-2">{success}</p>}
-                        <Button type="submit" className="w-full mt-4">Sign up</Button>
+                        {/* Bestätigung des Passworts */}
+                        <div className="space-y-2">
+                            <Label htmlFor="confirmPassword">Confirm Password</Label>
+                            <Input
+                                id="confirmPassword"
+                                type="password"
+                                placeholder="Confirm your password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className="shadow-sm"
+                            />
+                        </div>
+                        {error && (
+                            <div className="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 p-3 rounded-md">
+                                {error}
+                            </div>
+                        )}
+                        {success && (
+                            <div className="text-sm text-green-500 bg-green-50 dark:bg-green-900/20 p-3 rounded-md">
+                                {success}
+                            </div>
+                        )}
+                        <Button type="submit" className="w-full">
+                            Create Account
+                        </Button>
                     </form>
                 </CardContent>
                 <CardFooter className="flex flex-col justify-center items-center w-full">
