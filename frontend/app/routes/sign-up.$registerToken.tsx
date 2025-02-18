@@ -2,43 +2,37 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/componen
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
-import {Link, useLoaderData} from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import * as React from "react";
-import {json, LoaderFunctionArgs, redirect} from "@remix-run/node";
-import {useState} from "react";
+import { json, LoaderFunctionArgs, redirect } from "@remix-run/node";
+import { useState } from "react";
 
-export async function loader({params}: LoaderFunctionArgs) {
+export async function loader({ params }: LoaderFunctionArgs) {
     const registerToken = params.registerToken;
 
-    const response = await fetch('http://localhost:3000/registration/viewTokens', {
-        method: 'GET',
+    const response = await fetch("http://localhost:3000/registration/viewTokens", {
+        method: "GET",
         headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
         },
     });
-
     const tokens = await response.json();
 
+    const tokenExists = tokens.some((token: any) => token.rp_registrationId === registerToken);
 
-    const gibtEsDenTokenDennWirklichDasIstNaemlichEineSehrGuteFrageNichtWahr = tokens.some((token: any) => token.rp_registrationId === registerToken);
-
-    if (!gibtEsDenTokenDennWirklichDasIstNaemlichEineSehrGuteFrageNichtWahr) {
+    if (!tokenExists) {
         return redirect("/login");
     }
 
-    return json({ok: 200});
+    return json({ ok: 200, registerToken });
 }
 
-
-
 export default function SignUp() {
-    const { firstname, lastname, email } = useLoaderData<typeof loader>();
+    const { registerToken } = useLoaderData<typeof loader>();
 
     const [formData, setFormData] = useState({
-        firstname: firstname || "",
-        lastname: lastname || "",
-        email: email || "",
-        password: '',
+        registrationToken: registerToken,
+        password: "",
     });
 
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -55,11 +49,12 @@ export default function SignUp() {
 
         console.log(formData);
         try {
-            const response = await fetch('http://localhost:3000/registration/register', {
-                method: 'POST',
+            const response = await fetch("http://localhost:3000/registration/register", {
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json'
+                    "Content-Type": "application/json",
                 },
+                // Der Body enthält nun auch den registrationToken
                 body: JSON.stringify(formData),
             });
 
@@ -77,7 +72,7 @@ export default function SignUp() {
     function handleInputChange(event: React.ChangeEvent<HTMLInputElement>) {
         setFormData({
             ...formData,
-            [event.target.id]: event.target.value
+            [event.target.id]: event.target.value,
         });
     }
 
@@ -89,6 +84,7 @@ export default function SignUp() {
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSignUp} className="space-y-4">
+                        {/* Das Passwort-Feld */}
                         <div className="space-y-2">
                             <Label htmlFor="password">Password</Label>
                             <Input
@@ -100,6 +96,7 @@ export default function SignUp() {
                                 className="shadow-sm"
                             />
                         </div>
+                        {/* Bestätigung des Passworts */}
                         <div className="space-y-2">
                             <Label htmlFor="confirmPassword">Confirm Password</Label>
                             <Input

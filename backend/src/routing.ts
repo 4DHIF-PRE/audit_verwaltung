@@ -217,6 +217,7 @@ expressApp.post('/registration/createInvitation', async (req, res) => {
         return;
     } else {
         res.status(200).json(result);
+        sendMailInvite(req.body.rp_email, req.body.rp_firstname + " " + req.body.rp_lastname, "Test", result.registrationToken)
         return;
     }
 });

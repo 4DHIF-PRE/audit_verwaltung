@@ -53,7 +53,7 @@ export const sendMailInvite = async (to: string, fullName: string, adminName: st
         <p>Hello ${fullName},</p>
         <p>You have been invited to join our Platform.</p>
         <p>Click the following link if you want to create an account immediately:</p>
-        <a href="https://yourplatform.com/register/?q=${registrationToken}" style="
+        <a href="http://localhost:5173/sign-up/${registrationToken}" style="
             display: inline-block;
             padding: 10px 20px;
             font-size: 16px;
@@ -62,11 +62,11 @@ export const sendMailInvite = async (to: string, fullName: string, adminName: st
             text-decoration: none;
             border-radius: 5px;
             text-align: center;
-        ">Join!</a>
+        ">Join!</a> 
         <p>If this email wasn't meant for you, please ignore it.</p>
         <p>Can't wait to see you!</p>
     `;
-
+    // (daweil ok) UNBEDINGT ZU FRONTEND UMLEITEN NICHT BACKEND!!!!!
     logger.info(`Preparing to send Invite email to - ${to}`);
     await sendMail(to, subject, html);
 };
