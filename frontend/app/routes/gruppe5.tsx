@@ -151,19 +151,19 @@ export default function Setup() {
       <div className="flex justify-between px-10 mt-10 pt-5">
         <div className="w-full max-w-md mt-2">
           <h1 className="text-2xl font-bold mb-4">Findings</h1>
-          
+
           {/* Filter Section */}
-          <div className="mb-4 p-4 border rounded bg-gray-50">
-            <h2 className="text-lg font-semibold mb-2">Status filtern:</h2>
+          <div className="mb-4 p-4 border rounded bg-gray-50 dark:bg-gray-800">
+            <h2 className="text-lg font-semibold mb-2 text-black dark:text-white">Status filtern:</h2>
             <div className="flex space-x-4">
               {['dokumentiert', 'richtig', 'kritisch'].map((status) => (
-                <label key={status} className="flex items-center">
+                <label key={status} className="flex items-center text-black dark:text-gray-300">
                   <input
                     type="checkbox"
                     name={status}
                     checked={statusFilter[status]}
                     onChange={handleFilterChange}
-                    className="mr-2"
+                    className="mr-2 form-checkbox h-5 w-5 text-blue-600 dark:bg-gray-700 dark:border-gray-600"
                   />
                   {status}
                 </label>
@@ -171,28 +171,29 @@ export default function Setup() {
             </div>
           </div>
 
+
           <div className="overflow-y-auto max-h-[750px] overflow-x-hidden">
             <ul className="space-y-4">
               {filteredFindings.length > 0 ? (
-                  filteredFindings.map((finding) => (
-                      <Card
-                          className={`w-full p-4 cursor-pointer border-l-8 dark:text-black ${getStatusColor(finding.f_status)}`}
-                          key={finding.f_id}
-                          onClick={() => handleSelectFinding(finding)}
-                      >
-                        <CardHeader className="text-lg">
-                          <CardTitle>
-                            <p><strong>ID:</strong> {finding.f_id}</p>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p><strong>Erstelldatum:</strong> {finding.f_creation_date}</p>
-                          <p><strong>Status:</strong> {finding.f_status}</p>
-                        </CardContent>
-                      </Card>
-                  ))
+                filteredFindings.map((finding) => (
+                  <Card
+                    className={`w-full p-4 cursor-pointer border-l-8 dark:text-black ${getStatusColor(finding.f_status)}`}
+                    key={finding.f_id}
+                    onClick={() => handleSelectFinding(finding)}
+                  >
+                    <CardHeader className="text-lg">
+                      <CardTitle>
+                        <p><strong>ID:</strong> {finding.f_id}</p>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p><strong>Erstelldatum:</strong> {finding.f_creation_date}</p>
+                      <p><strong>Status:</strong> {finding.f_status}</p>
+                    </CardContent>
+                  </Card>
+                ))
               ) : (
-                  <p>Loading or no findings available</p>
+                <p>Loading or no findings available</p>
               )}
             </ul>
           </div>
@@ -201,22 +202,22 @@ export default function Setup() {
         <div className="flex-col container mt-2">
           <div className="flex-1 ml-10 m-2">
             {selectedFinding && (
-                <Card
-                    className={`p-6 rounded-lg shadow-md w-full h-auto border-4 ${getBorderColor(selectedFinding.f_status)}`}>
-                  <h2 className="text-3xl font-bold mb-4">Details zu Finding ID: {selectedFinding.f_id}</h2>
+              <Card
+                className={`p-6 rounded-lg shadow-md w-full h-auto border-4 ${getBorderColor(selectedFinding.f_status)}`}>
+                <h2 className="text-3xl font-bold mb-4">Details zu Finding ID: {selectedFinding.f_id}</h2>
 
-                  <p className="text-lg mb-2"><strong>Kommentar: </strong>
-                    {selectedFinding.f_comment && selectedFinding.f_comment.length > 0 ? (
-                        selectedFinding.f_comment
-                    ) : (
-                        <span> Kein Kommentar vorhanden.</span>
-                    )}
-                  </p>
+                <p className="text-lg mb-2"><strong>Kommentar: </strong>
+                  {selectedFinding.f_comment && selectedFinding.f_comment.length > 0 ? (
+                    selectedFinding.f_comment
+                  ) : (
+                    <span> Kein Kommentar vorhanden.</span>
+                  )}
+                </p>
 
-                  {showMore && (
-                      <div>
-                        <p className="text-lg mb-2"><strong>Erstelldatum:</strong> {selectedFinding.f_creation_date}</p>
-                        <p className="text-lg mb-2"><strong>Status:</strong> {selectedFinding.f_status}</p>
+                {showMore && (
+                  <div>
+                    <p className="text-lg mb-2"><strong>Erstelldatum:</strong> {selectedFinding.f_creation_date}</p>
+                    <p className="text-lg mb-2"><strong>Status:</strong> {selectedFinding.f_status}</p>
                     <p className="text-lg mb-2"><strong>Level:</strong> {selectedFinding.f_level}</p>
                     <div className="text-lg mb-2">
                       <strong>Audit:</strong>
@@ -270,7 +271,7 @@ export default function Setup() {
                   <textarea
                     value={comment}
                     onChange={handleCommentChange}
-                    className="w-full p-2 rounded border"
+                    className="w-full p-2 rounded border dark:bg-gray-700 dark:text-white" // Added dark mode styling
                     placeholder="Add your comment..."
                   />
                   <button
@@ -280,6 +281,7 @@ export default function Setup() {
                     Add Comment
                   </button>
                 </form>
+
               </Card>
             )}
           </div>
