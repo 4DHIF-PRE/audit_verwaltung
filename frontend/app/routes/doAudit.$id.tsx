@@ -10,6 +10,9 @@ export interface QuestionInt {
   qu_idx: number;
   qu_audit_idx: number;
   qu_law_idx: number;
+  qu_law_text: string;
+
+  qu_law_law: string;
   qu_audited: boolean;
   qu_applicable: boolean;
   qu_finding_level: number;
@@ -26,14 +29,21 @@ export interface AuditInt {
   au_typ: string;
 }
 
+
 export default function App() {
   const { id } = useParams();
   const [audit, setAudit] = useState<AuditInt>();
-  const [questions, setQuestions] = useState<QuestionInt[]>([]);
-  const [questionsfiltern, setQuestionsfiltern] = useState<QuestionInt[]>([]);
+  
   const [loading, setLoading] = useState(true);
   const fetchedOnceRef = useRef(false);
+   const [questions, setQuestions] = useState<QuestionInt[]>([]);
+   const [questionsfiltern, setQuestionsfiltern] = useState<QuestionInt[]>([]);
+   const questionRefs = useRef<(HTMLDivElement | null)[]>([]);
+   const [isSaveDisabled, setIsSaveDisabled] = useState(true);
 
+  
+  
+ 
   // Load audit data and corresponding questions
   useEffect(() => {
     const loadAuditData = async () => {
@@ -41,15 +51,13 @@ export default function App() {
 
     fetchedOnceRef.current = true;
       setLoading(true);
-      console.log("loadinf");
+      console.log("loading");
 
       try {
-        // Fetch audit data from the API (replace URL with your API endpoint)
         const auditResponse = await fetch(`http://localhost:3000/audit/${id}`);
         const currentAudit = await auditResponse.json();
         setAudit(currentAudit);
 
-        // Fetch corresponding questions for the audit (replace URL with your API endpoint)
         const questionsResponse = await fetch(`http://localhost:3000/audit/questions/${id}`);//${currentAudit?.au_idx}
         const auditQuestions = await questionsResponse.json();
         setQuestions(auditQuestions);
@@ -64,9 +72,57 @@ export default function App() {
     loadAuditData();
   },  [id]);
 
+  useEffect(() => {
+    checkCompletion();
+  }, [questions, isSaveDisabled]); 
+  
+
   const handleSave = async () => {
+  const response = await fetch(`http://localhost:3000/audit/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ au_auditstatus: "findings_offen" })
+    });
     window.location.href = `/gruppe5`;
+
+   
+
+    
+
   };
+
+
+ 
+  const checkCompletion = async ()=>{
+    let passt = true;
+    
+    questionRefs.current.forEach((questionDiv, index) => {
+    if (questionDiv) {
+      const auditorComment = questionDiv.querySelector<HTMLInputElement>("#auditorComment")?.value;
+      const findingComment = questionDiv.querySelector<HTMLInputElement>("#findingComment")?.value;
+      const status = questionDiv.querySelector<HTMLSelectElement>("#status")?.value;
+
+      if (!auditorComment || auditorComment.trim() === "") {
+        passt = false;
+      }
+
+      if ((status === "dokumentiert" || status === "kritisch") && (!findingComment || findingComment.trim() === "")) {
+        passt = false;
+      }
+
+    }
+  });
+
+
+
+  setIsSaveDisabled(!passt); 
+
+}
+
+
+  
 
   if (loading&&!fetchedOnceRef) {
     return <div>Loading...</div>;
@@ -83,18 +139,19 @@ export default function App() {
       <div className="flex flex-col flex-grow h-full">
         {/* Sticky Filter */}
         <div className="sticky mt-6 bg-white dark:bg-black z-10 shadow-md p-4">
-          <AuditFilter  />
+          <AuditFilter  SetQuestions={setQuestions} questionsFiltern={questionsfiltern}/>
         </div>
 
         {/* Scrollable Questions */}
         <main className="flex-grow overflow-y-auto pl-10 pr-10 bg-white dark:bg-black">
           <div className="px-10">
             {questions.length > 0 ? (
-              questions.map((question) => (
-                <div className="mt-3" key={question.qu_idx}>
-                  <Question question={question} />
+              questions.map((question, index) => (
+                <div key={question.qu_idx} ref={(el) => (questionRefs.current[index] = el)}>
+                  <Question question={question} onChange={checkCompletion} />
                 </div>
               ))
+              
             ) : (
               <div>No questions found for this audit.</div>
             )}
@@ -106,10 +163,11 @@ export default function App() {
           <button
             id="saveAudit"
             type="button"
+            disabled = {isSaveDisabled}
             onClick={handleSave}
             className="w-full bg-red-500 hover:bg-red-600 text-white font-medium rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 pt-2 pb-2"
           >
-            Audit speichern
+            Audit abschließen
           </button>
         </div>
       </div>

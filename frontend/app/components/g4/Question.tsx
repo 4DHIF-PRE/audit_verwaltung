@@ -5,6 +5,8 @@ export interface QuestionInt {
   qu_idx: number;
   qu_audit_idx: number;
   qu_law_idx: number;
+  qu_law_text: string;
+  qu_law_law: string;
   qu_audited: boolean;
   qu_applicable: boolean;
   qu_finding_level: number;
@@ -15,7 +17,12 @@ export interface FileInt {
   fa_file: File;
 }
 
-export default function Question({ question }: { question: QuestionInt }) {
+interface QuestionProps {
+  question: QuestionInt;
+  onChange: () => void;
+}
+
+export default function Question({ question, onChange }: { question: QuestionInt }) {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [auditorComment, setAuditorComment] = useState("");
   const [findingComment, setFindingComment] = useState("");
@@ -62,6 +69,9 @@ export default function Question({ question }: { question: QuestionInt }) {
               text: lawDetails.la_text,
             });
           }
+          question.qu_law_law=lawDetails.la_law;
+          question.qu_law_text=lawDetails.la_text;
+
 
           if (finding.f_status !== undefined) {
             setSelectedStatus(finding.f_status.toString());
@@ -115,6 +125,7 @@ export default function Question({ question }: { question: QuestionInt }) {
 
     loadData();
   }, [question]);
+
 
   const handleSave = async () => {
     try {
@@ -192,7 +203,7 @@ export default function Question({ question }: { question: QuestionInt }) {
         alert("Finding saved successfully! No new attachments to save.");
       else {
         console.log("Failed to save finding: ", result);
-        alert("Failed to save finding! No new attachments were saved.");
+        alert("Failed to save finding!");
       }
     } catch (error) {
       console.log("Error occured while attempting to save finding: ", error);
@@ -289,8 +300,12 @@ export default function Question({ question }: { question: QuestionInt }) {
   };
 
   const handleDownload = async (fileToDownload: string) => {
-    const downloadButton = document.getElementById(`downloadFile-${fileToDownload}`)
-    if(downloadButton) downloadButton.disabled = true;
+    const downloadButton = document.getElementById(
+      `removeFile-${fileToDownload}`
+    );
+    if (downloadButton) {
+      downloadButton.disabled = true;
+    }
     try {
       if (findingId !== -1) {
         const attachmentsResponse = await fetch(
@@ -303,44 +318,98 @@ export default function Question({ question }: { question: QuestionInt }) {
           ? attachments.fileName.map((file) => file.fa_filename)
           : [];
         if (existingFileNames.length === 0)
-          console.log("List of API files empty, unable to download remote file.");
+          console.log("List of API files is empty.");
         else {
-          const fileReturned = attachments.fileName.find(file => file.fa_filename === fileToDownload)
-          console.log(attachments.fileName);
-          console.log(fileReturned);
+          const fileReturned = attachments.fileName.find(
+            (file) => file.fa_filename === fileToDownload
+          );
 
-          if(typeof fileReturned !== 'undefined' && fileReturned != null){
-            // fileReturned shouldn't be null or undefined if the file you're trying to delete is in the database. 
-            /* By design, the first file that was found with a matching file name will be removed.
-            */
-           console.log("Preparing to fetch file for download...");
+          if (fileReturned) {
+            // fileReturned shouldn't be null or undefined if the file you're trying to delete is in the database.
+            /* By design, the first file that was found with a matching file name will be downloaded.
+             */
+            console.log("Preparing to fetch file for download...");
+            const fileResult = await fetch(
+              `http://localhost:3000/api/finding/attachments/${fileReturned.fa_id}`
+            );
+            const fileData = await fileResult.json();
+            if (
+              fileResult.ok &&
+              fileData.fileName &&
+              fileData.fileName.length > 0
+            ) {
+              console.log("File retrieved, preparing download...");
 
-           const fileResult = await fetch(`http://localhost:3000/api/finding/attachments/${fileReturned.fa_id}`)
-           if(fileResult.ok){
-            // Limitation: downloads first found file with the given file name.
+              const fileObject = fileData.fileName[0];
+              const bufferData = new Uint8Array(fileObject.fa_file.data); // Binary data
+              const fullBlob = new Blob([bufferData]); // Create a blob
 
-            console.log("File retrieved, preparing download...");
-           }
-          /* const filesReturned = attachments.fileName.map(
-            (fileObj: { fa_file: { data: number[] }; fa_filename: string }) => {
-              const bufferData = new Uint8Array(fileObj.fa_file.data); // Convert data array to Uint8Array
-              const blob = new Blob([bufferData]); // Create a Blob
-              const filetoAdd = new File([blob], fileObj.fa_filename); // Create a File from the Blob
-              return filetoAdd;
+              const reader = new FileReader();
+              reader.onload = function () {
+                const arrayBuffer = reader.result as ArrayBuffer;
+                const byteArray = new Uint8Array(arrayBuffer);
+
+                // Locate the first instance of "\r\n\r\n" (header-body separator)
+                const separator = new TextEncoder().encode("\r\n\r\n");
+                let startIndex = -1;
+
+                for (let i = 0; i < byteArray.length - separator.length; i++) {
+                  if (
+                    separator.every(
+                      (byte, index) => byteArray[i + index] === byte
+                    )
+                  ) {
+                    startIndex = i + separator.length;
+                    break;
+                  }
+                }
+
+                if (startIndex !== -1) {
+                  console.log("Found header separator at byte:", startIndex);
+
+                  // Extract the actual file content after headers
+                  const cleanContent = byteArray.slice(startIndex);
+
+                  // Preserve the original file type (if detected)
+                  const detectedType =
+                    fileObject.fa_filename.split(".").pop() ||
+                    "application/octet-stream";
+                  const cleanBlob = new Blob([cleanContent], {
+                    type: detectedType,
+                  });
+
+                  // Create download link
+                  const url = window.URL.createObjectURL(cleanBlob);
+                  const downloadLink = document.createElement("a");
+                  downloadLink.href = url;
+                  downloadLink.download = fileObject.fa_filename;
+                  document.body.appendChild(downloadLink);
+                  downloadLink.click();
+
+                  // Cleanup
+                  document.body.removeChild(downloadLink);
+                  window.URL.revokeObjectURL(url);
+                } else {
+                  console.error(
+                    "Could not locate file content in the multipart data."
+                  );
+                }
+              };
+
+              reader.readAsArrayBuffer(fullBlob);
+            } else {
+              console.error(
+                "Failed to retrieve file content or file data structure is unexpected."
+              );
             }
-          ); */
           }
-          else{
-            
-          }
+          else console.warn("File not found on the server. Are you trying to download a local file?")
         }
       }
     } catch (error) {
-      console.error("Error occured while downloading file: ", error);
+      console.error("Error occurred while downloading file:", error);
     } finally {
-      if(downloadButton){
-        downloadButton.disabled = false;
-      } 
+      if (downloadButton) downloadButton.disabled = false;
     }
   };
 
@@ -396,7 +465,10 @@ export default function Question({ question }: { question: QuestionInt }) {
             </label>
             <select
               id="status"
-              onChange={(e) => setSelectedStatus(e.target.value)}
+              onChange={(e) => {
+                setSelectedStatus(e.target.value);
+                onChange(); 
+              }}
               value={selectedStatus}
               className="border rounded-lg p-2.5 text-gray-700 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             >
@@ -414,7 +486,10 @@ export default function Question({ question }: { question: QuestionInt }) {
             <textarea
               id="auditorComment"
               value={auditorComment}
-              onChange={(e) => setAuditorComment(e.target.value)}
+              onChange={(e) => {
+                setAuditorComment(e.target.value); 
+                onChange();
+              }}
               className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               placeholder="Write your thoughts here..."
             ></textarea>
@@ -429,7 +504,10 @@ export default function Question({ question }: { question: QuestionInt }) {
               <textarea
                 id="findingComment"
                 value={findingComment}
-                onChange={(e) => setFindingComment(e.target.value)}
+                onChange={(e) => {
+                  setFindingComment(e.target.value); 
+                  onChange();
+                }}
                 className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder="Write your thoughts here..."
               ></textarea>
