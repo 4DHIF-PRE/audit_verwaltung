@@ -18,19 +18,25 @@ export default function Setup() {
     richtig: true,
     kritisch: true
   });
+  const [error, setError] = useState(null);  // Fehlerzustand hinzufügen
 
   useEffect(() => {
     async function fetchFindings() {
       const response = await showAllFindings(id);
       if (response.status === 404) {
-        console.log("404 - Not Found");
+        setError("Finding nicht gefunden");
+        setFindings([]);  // Leere Array setzen, falls kein Finding gefunden wird
+      } else if (!response.ok) {
+        setError("Fehler beim Laden der Findings");
+        setFindings([]);
       } else {
         const data = await response.json();
         setFindings(data);
+        setError(null);  // Fehler zurücksetzen, wenn die Daten erfolgreich geladen wurden
       }
     }
     fetchFindings();
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     async function fetchAudits() {
@@ -55,7 +61,7 @@ export default function Setup() {
         const data = await response.json();
         setWorkonComments(Array.isArray(data) ? data : [data]);
       } catch (error) {
-        console.error("Failed to fetch workon comments:", error);
+        console.error("Fehler beim Laden der Work-on-Kommentare:", error);
       }
     }
   };
@@ -121,10 +127,10 @@ export default function Setup() {
     try {
       const response = await postWorkonComment(selectedFinding.f_id, [{ comment }]);
       if (!response.ok) {
-        console.error('Failed to submit comment:', response.status);
+        console.error('Fehler beim Absenden des Kommentars:', response.status);
       }
     } catch (error) {
-      console.error('Error submitting comment:', error);
+      console.error('Fehler beim Absenden des Kommentars:', error);
     }
 
     setComment("");
@@ -142,9 +148,10 @@ export default function Setup() {
     }));
   };
 
-  const filteredFindings = findings.filter((finding) =>
-    statusFilter[finding.f_status]
-  );
+  // Überprüfen, ob findings ein Array ist, bevor der Filter angewendet wird
+  const filteredFindings = Array.isArray(findings)
+    ? findings.filter((finding) => statusFilter[finding.f_status])
+    : [];
 
   return (
     <div className="flex flex-col h-screen dark:bg-black">
@@ -155,6 +162,9 @@ export default function Setup() {
         {/* Findings Section */}
         <div className="w-full max-w-md mt-2 flex-shrink-0 overflow-hidden">
           <h1 className="text-2xl font-bold mb-4">Findings</h1>
+
+          {/* Fehleranzeige */}
+          {error && <div className="text-red-500 mb-4">{error}</div>}
 
           {/* Filter Section */}
           <div className="mb-4 p-4 border rounded bg-gray-50 dark:bg-gray-800">
@@ -175,7 +185,7 @@ export default function Setup() {
             </div>
           </div>
 
-          {/* Findings List - Scrollable */}
+          {/* Findings List */}
           <div className="h-full overflow-y-auto max-h-full">
             <ul className="space-y-4">
               {filteredFindings.length > 0 ? (
@@ -197,7 +207,7 @@ export default function Setup() {
                   </Card>
                 ))
               ) : (
-                <p>Loading or no findings available</p>
+                <p>Keine Findings verfügbar</p>
               )}
             </ul>
           </div>
@@ -208,7 +218,8 @@ export default function Setup() {
           {/* Finding Details */}
           {selectedFinding && (
             <Card
-              className={`p-6 rounded-lg shadow-md w-full h-auto border-4 mb-4 ${getBorderColor(selectedFinding.f_status)}`}>
+              className={`p-6 rounded-lg shadow-md w-full h-auto border-4 mb-4 ${getBorderColor(selectedFinding.f_status)}`}
+            >
               <h2 className="text-3xl font-bold mb-4">Details zu Finding ID: {selectedFinding.f_id}</h2>
 
               <p className="text-lg mb-2"><strong>Kommentar: </strong>
@@ -252,44 +263,44 @@ export default function Setup() {
 
           {/* Work-on Comments */}
           {selectedFinding && (
-  <Card className="p-6 w-full h-auto rounded-lg shadow-md border-2 mb-4 flex-1 flex flex-col">
-    <div className="flex justify-between mb-4">
-      <h2 className="text-2xl font-semibold">Work-on-Kommentare</h2>
-      <button
-        onClick={handleRefreshComments}
-        className="px-4 py-2 rounded bg-gray-300 text-gray-800 hover:bg-gray-400"
-      >
-        Refresh
-      </button>
-    </div>
+            <Card className="p-6 w-full h-auto rounded-lg shadow-md border-2 mb-4 flex-1 flex flex-col">
+              <div className="flex justify-between mb-4">
+                <h2 className="text-2xl font-semibold">Work-on-Kommentare</h2>
+                <button
+                  onClick={handleRefreshComments}
+                  className="px-4 py-2 rounded bg-gray-300 text-gray-800 hover:bg-gray-400"
+                >
+                  Refresh
+                </button>
+              </div>
 
-    {/* Scrollable comment section with fixed height */}
-    <div className="h-40 overflow-y-auto border p-2 rounded">
-      {workonComments.length > 0 ? (
-        workonComments.map((comment, index) => (
-          <p key={index} className="text-md mb-2">{comment.fw_kommentar}</p>
-        ))
-      ) : (
-        <p>No comments available for this finding.</p>
-      )}
-    </div>
+              {/* Scrollable comment section */}
+              <div className="h-40 overflow-y-auto border p-2 rounded">
+                {workonComments.length > 0 ? (
+                  workonComments.map((comment, index) => (
+                    <p key={index} className="text-md mb-2">{comment.fw_kommentar}</p>
+                  ))
+                ) : (
+                  <p>Keine Kommentare verfügbar.</p>
+                )}
+              </div>
 
-    <form onSubmit={handleCommentSubmit} className="mt-4">
-      <textarea
-        value={comment}
-        onChange={handleCommentChange}
-        className="w-full p-2 rounded border dark:bg-gray-700 dark:text-white"
-        placeholder="Add your comment..."
-      />
-      <button
-        type="submit"
-        className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-      >
-        Add Comment
-      </button>
-    </form>
-  </Card>
-)}
+              <form onSubmit={handleCommentSubmit} className="mt-4">
+                <textarea
+                  value={comment}
+                  onChange={handleCommentChange}
+                  className="w-full p-2 rounded border dark:bg-gray-700 dark:text-white"
+                  placeholder="Kommentar hinzufügen..."
+                />
+                <button
+                  type="submit"
+                  className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  Kommentar hinzufügen
+                </button>
+              </form>
+            </Card>
+          )}
         </div>
       </div>
 
