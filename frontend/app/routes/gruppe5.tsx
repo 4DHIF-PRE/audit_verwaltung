@@ -72,7 +72,6 @@ export default function Setup() {
     }
   };
 
-  //Dies ist nicht vollständig da es zu errors kommen kann
   const selectedAudit = selectedFinding
     ? audits.find((audit) => Number(audit.au_idx) === Number(selectedFinding.f_au_audit_idx))
     : null;
@@ -146,10 +145,13 @@ export default function Setup() {
   );
 
   return (
-    <div className="flex flex-grow h-screen flex-col dark:bg-black">
+    <div className="flex flex-col h-screen dark:bg-black">
       <Navbar />
-      <div className="flex justify-between px-10 mt-10 pt-5">
-        <div className="w-full max-w-md mt-2">
+
+      {/* Main Container */}
+      <div className="flex-grow flex overflow-hidden px-10 mt-10 pt-5">
+        {/* Findings Section */}
+        <div className="w-full max-w-md mt-2 flex-shrink-0 overflow-hidden">
           <h1 className="text-2xl font-bold mb-4">Findings</h1>
 
           {/* Filter Section */}
@@ -171,8 +173,8 @@ export default function Setup() {
             </div>
           </div>
 
-
-          <div className="overflow-y-auto max-h-[750px] overflow-x-hidden">
+          {/* Findings List - Scrollable */}
+          <div className="h-full overflow-y-auto max-h-full">
             <ul className="space-y-4">
               {filteredFindings.length > 0 ? (
                 filteredFindings.map((finding) => (
@@ -199,98 +201,103 @@ export default function Setup() {
           </div>
         </div>
 
-        <div className="flex-col container mt-2">
-          <div className="flex-1 ml-10 m-2">
-            {selectedFinding && (
-              <Card
-                className={`p-6 rounded-lg shadow-md w-full h-auto border-4 ${getBorderColor(selectedFinding.f_status)}`}>
-                <h2 className="text-3xl font-bold mb-4">Details zu Finding ID: {selectedFinding.f_id}</h2>
+        {/* Right Column - Details and Comments */}
+        <div className="flex-1 ml-10 m-2 flex flex-col">
+          {/* Finding Details */}
+          {selectedFinding && (
+            <Card
+              className={`p-6 rounded-lg shadow-md w-full h-auto border-4 mb-4 ${getBorderColor(selectedFinding.f_status)}`}>
+              <h2 className="text-3xl font-bold mb-4">Details zu Finding ID: {selectedFinding.f_id}</h2>
 
-                <p className="text-lg mb-2"><strong>Kommentar: </strong>
-                  {selectedFinding.f_comment && selectedFinding.f_comment.length > 0 ? (
-                    selectedFinding.f_comment
-                  ) : (
-                    <span> Kein Kommentar vorhanden.</span>
-                  )}
-                </p>
+              <p className="text-lg mb-2"><strong>Kommentar: </strong>
+                {selectedFinding.f_comment && selectedFinding.f_comment.length > 0 ? (
+                  selectedFinding.f_comment
+                ) : (
+                  <span> Kein Kommentar vorhanden.</span>
+                )}
+              </p>
 
-                {showMore && (
-                  <div>
-                    <p className="text-lg mb-2"><strong>Erstelldatum:</strong> {selectedFinding.f_creation_date}</p>
-                    <p className="text-lg mb-2"><strong>Status:</strong> {selectedFinding.f_status}</p>
-                    <p className="text-lg mb-2"><strong>Level:</strong> {selectedFinding.f_level}</p>
-                    <div className="text-lg mb-2">
-                      <strong>Audit:</strong>
-                      <div>
-                        {selectedAudit ? (
-                          <div className="mt-2">
-                            <p className="text-sm"><strong>Thema: </strong> {selectedAudit.au_theme}</p>
-                            <p className="text-sm"><strong>Datum: </strong> {selectedAudit.au_audit_date}</p>
-                            <p className="text-sm"><strong>Status: </strong> {selectedAudit.au_auditstatus}</p>
-                          </div>
-                        ) : (
-                          <p>Kein Audit mit der ID {selectedFinding.f_au_audit_idx} gefunden.</p>
-                        )}
-                      </div>
+              {showMore && (
+                <div>
+                  <p className="text-lg mb-2"><strong>Erstelldatum:</strong> {selectedFinding.f_creation_date}</p>
+                  <p className="text-lg mb-2"><strong>Status:</strong> {selectedFinding.f_status}</p>
+                  <p className="text-lg mb-2"><strong>Level:</strong> {selectedFinding.f_level}</p>
+                  <div className="text-lg mb-2">
+                    <strong>Audit:</strong>
+                    <div>
+                      {selectedAudit ? (
+                        <div className="mt-2">
+                          <p className="text-sm"><strong>Thema: </strong> {selectedAudit.au_theme}</p>
+                          <p className="text-sm"><strong>Datum: </strong> {selectedAudit.au_audit_date}</p>
+                          <p className="text-sm"><strong>Status: </strong> {selectedAudit.au_auditstatus}</p>
+                        </div>
+                      ) : (
+                        <p>Kein Audit mit der ID {selectedFinding.f_au_audit_idx} gefunden.</p>
+                      )}
                     </div>
                   </div>
-                )}
-
-                <button
-                  onClick={() => setShowMore(!showMore)}
-                  className="text-blue-500 hover:text-blue-700 mt-4 py-2 px-4 rounded bg-transparent border border-blue-500"
-                >
-                  {showMore ? 'Weniger anzeigen' : 'Mehr anzeigen'}
-                </button>
-              </Card>
-            )}
-          </div>
-
-          <div className="flex-1 ml-10 m-2">
-            {selectedFinding && (
-              <Card className={`p-6 rounded-lg shadow-md w-full h-auto border-4 ${getBorderColor(selectedFinding.f_status)}`}>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-3xl font-bold">Work-on-Kommentare</h2>
-                  <button
-                    onClick={handleRefreshComments}
-                    className="px-4 py-2 rounded bg-gray-300 text-gray-800 hover:bg-gray-400"
-                  >
-                    Refresh
-                  </button>
                 </div>
+              )}
 
-                {workonComments.length > 0 ? (
-                  workonComments.map((comment, index) => (
-                    <p key={index} className="text-md mb-2">{comment.fw_kommentar}</p>
-                  ))
-                ) : (
-                  <p>No comments available for this finding.</p>
-                )}
+              <button
+                onClick={() => setShowMore(!showMore)}
+                className="text-blue-500 hover:text-blue-700 mt-4 py-2 px-4 rounded-lg"
+              >
+                {showMore ? "Weniger anzeigen" : "Mehr anzeigen"}
+              </button>
+            </Card>
+          )}
 
-                <form onSubmit={handleCommentSubmit} className="mt-4">
-                  <textarea
-                    value={comment}
-                    onChange={handleCommentChange}
-                    className="w-full p-2 rounded border dark:bg-gray-700 dark:text-white" // Added dark mode styling
-                    placeholder="Add your comment..."
-                  />
-                  <button
-                    type="submit"
-                    className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    Add Comment
-                  </button>
-                </form>
+          {/* Work-on Comments */}
+          {selectedFinding && (
+  <Card className="p-6 w-full h-auto rounded-lg shadow-md border-2 mb-4 flex-1 flex flex-col">
+    <div className="flex justify-between mb-4">
+      <h2 className="text-2xl font-semibold">Work-on-Kommentare</h2>
+      <button
+        onClick={handleRefreshComments}
+        className="px-4 py-2 rounded bg-gray-300 text-gray-800 hover:bg-gray-400"
+      >
+        Refresh
+      </button>
+    </div>
 
-              </Card>
-            )}
-          </div>
+    {/* Scrollable comment section with fixed height */}
+    <div className="h-40 overflow-y-auto border p-2 rounded">
+      {workonComments.length > 0 ? (
+        workonComments.map((comment, index) => (
+          <p key={index} className="text-md mb-2">{comment.fw_kommentar}</p>
+        ))
+      ) : (
+        <p>No comments available for this finding.</p>
+      )}
+    </div>
+
+    <form onSubmit={handleCommentSubmit} className="mt-4">
+      <textarea
+        value={comment}
+        onChange={handleCommentChange}
+        className="w-full p-2 rounded border dark:bg-gray-700 dark:text-white"
+        placeholder="Add your comment..."
+      />
+      <button
+        type="submit"
+        className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+        Add Comment
+      </button>
+    </form>
+  </Card>
+)}
         </div>
       </div>
+
       <Footer />
     </div>
   );
 }
+
+
+
 
 
 
