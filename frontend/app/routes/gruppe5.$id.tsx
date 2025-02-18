@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useParams } from "@remix-run/react";
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Navbar } from '~/components/Navbar';
 import { Footer } from '~/components/Footer';
 
 export default function Setup() {
+  const { id } = useParams();
   const [findings, setFindings] = useState([]);
   const [audits, setAudits] = useState([]);
   const [selectedFinding, setSelectedFinding] = useState(null);
@@ -19,7 +21,7 @@ export default function Setup() {
 
   useEffect(() => {
     async function fetchFindings() {
-      const response = await showAllFindings();
+      const response = await showAllFindings(id);
       if (response.status === 404) {
         console.log("404 - Not Found");
       } else {
@@ -298,10 +300,6 @@ export default function Setup() {
 
 
 
-
-
-
-
 //funktioniert jetzt einwandfrei
 export async function postWorkonComment(id, commentData) {
   const response = await fetch(`http://localhost:3000/findings/workon/${id}`, {
@@ -325,8 +323,8 @@ export async function getWorkonComments(id) {
 }
 
 
-export async function showAllFindings() {
-  const response = await fetch('http://localhost:3000/findings/getall', {
+export async function showAllFindings(id) {
+  const response = await fetch(`http://localhost:3000/findings/getall/${id}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',

@@ -279,9 +279,9 @@ expressApp.delete('/registration/deleteToken', async (req, res) => {
     }
 });
 
-expressApp.get('/findings/getall', async (req, res) => {
+expressApp.get('/findings/getall/:id', async (req, res) => {
 
-    const result = await GetAllFindings();
+    const result = await GetAllFindings(parseInt(req.params.id));
 
     if (result instanceof Error) {
         res.status(400).json({ message: result.message });

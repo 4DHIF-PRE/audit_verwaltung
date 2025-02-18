@@ -1335,14 +1335,14 @@ export async function CreateFindingWorkOn(id, comment) {
     }
 }
 
-export async function GetAllFindings(): Promise<string | Error> {
+export async function GetAllFindings(id): Promise<string | Error> {
     const connection = await connectionPool.getConnection();
 
     try {
         await connection.beginTransaction();
 
         const [results]: [any, mysql.FieldPacket[]] = await connection.execute(
-            "SELECT * FROM f_findings"
+            "SELECT * FROM f_findings WHERE f_au_audit_idx = ?", [id]
         );
         if (results.length === 0) {
             return new Error("No Findings");
