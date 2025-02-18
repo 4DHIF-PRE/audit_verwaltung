@@ -139,6 +139,7 @@ export default function Question({ question, onChange }: { question: QuestionInt
       const finding = await findingResponse.json();
       const updatedFinding = {
         f_id: finding.f_id,
+        f_level: finding.f_level,
         f_auditor_comment: auditorComment.replace(/;/g, ""),
         f_finding_comment: findingComment.replace(/;/g, ""),
         f_creation_date: finding.f_creation_date,
