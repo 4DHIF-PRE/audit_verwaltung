@@ -15,7 +15,12 @@ export interface FileInt {
   fa_file: File;
 }
 
-export default function Question({ question }: { question: QuestionInt }) {
+interface QuestionProps {
+  question: QuestionInt;
+  onChange: () => void;
+}
+
+export default function Question({ question, onChange }: { question: QuestionInt }) {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [auditorComment, setAuditorComment] = useState("");
   const [findingComment, setFindingComment] = useState("");
@@ -115,6 +120,7 @@ export default function Question({ question }: { question: QuestionInt }) {
 
     loadData();
   }, [question]);
+
 
   const handleSave = async () => {
     try {
@@ -454,7 +460,10 @@ export default function Question({ question }: { question: QuestionInt }) {
             </label>
             <select
               id="status"
-              onChange={(e) => setSelectedStatus(e.target.value)}
+              onChange={(e) => {
+                setSelectedStatus(e.target.value);
+                onChange(); 
+              }}
               value={selectedStatus}
               className="border rounded-lg p-2.5 text-gray-700 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             >
@@ -472,7 +481,10 @@ export default function Question({ question }: { question: QuestionInt }) {
             <textarea
               id="auditorComment"
               value={auditorComment}
-              onChange={(e) => setAuditorComment(e.target.value)}
+              onChange={(e) => {
+                setAuditorComment(e.target.value); 
+                onChange();
+              }}
               className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               placeholder="Write your thoughts here..."
             ></textarea>
@@ -487,7 +499,10 @@ export default function Question({ question }: { question: QuestionInt }) {
               <textarea
                 id="findingComment"
                 value={findingComment}
-                onChange={(e) => setFindingComment(e.target.value)}
+                onChange={(e) => {
+                  setFindingComment(e.target.value); 
+                  onChange();
+                }}
                 className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder="Write your thoughts here..."
               ></textarea>

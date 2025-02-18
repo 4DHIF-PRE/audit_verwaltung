@@ -35,6 +35,9 @@ export default function App() {
   const fetchedOnceRef = useRef(false);
    const [questions, setQuestions] = useState<QuestionInt[]>([]);
    const [questionsfiltern, setQuestionsfiltern] = useState<QuestionInt[]>([]);
+   const questionRefs = useRef<(HTMLDivElement | null)[]>([]);
+   const [isSaveDisabled, setIsSaveDisabled] = useState(true);
+
   
   
  
@@ -68,9 +71,51 @@ export default function App() {
     loadAuditData();
   },  [id]);
 
+  useEffect(() => {
+    checkCompletion();
+  }, [questions, isSaveDisabled]); 
+  
+
   const handleSave = async () => {
+   // console.log(questionRefs.current[1])
     window.location.href = `/gruppe5`;
+
+   
+
+    
+
   };
+
+
+ 
+  const checkCompletion = async ()=>{
+    let passt = true;
+    
+    questionRefs.current.forEach((questionDiv, index) => {
+    if (questionDiv) {
+      const auditorComment = questionDiv.querySelector<HTMLInputElement>("#auditorComment")?.value;
+      const findingComment = questionDiv.querySelector<HTMLInputElement>("#findingComment")?.value;
+      const status = questionDiv.querySelector<HTMLSelectElement>("#status")?.value;
+
+      if (!auditorComment || auditorComment.trim() === "") {
+        passt = false;
+      }
+
+      if ((status === "dokumentiert" || status === "kritisch") && (!findingComment || findingComment.trim() === "")) {
+        passt = false;
+      }
+
+    }
+  });
+
+
+
+  setIsSaveDisabled(!passt); 
+
+}
+
+
+  
 
   if (loading&&!fetchedOnceRef) {
     return <div>Loading...</div>;
@@ -94,11 +139,12 @@ export default function App() {
         <main className="flex-grow overflow-y-auto pl-10 pr-10 bg-white dark:bg-black">
           <div className="px-10">
             {questions.length > 0 ? (
-              questions.map((question) => (
-                <div className="mt-3" key={question.qu_idx}>
-                  <Question question={question} />
+              questions.map((question, index) => (
+                <div key={question.qu_idx} ref={(el) => (questionRefs.current[index] = el)}>
+                  <Question question={question} onChange={checkCompletion} />
                 </div>
               ))
+              
             ) : (
               <div>No questions found for this audit.</div>
             )}
@@ -110,6 +156,7 @@ export default function App() {
           <button
             id="saveAudit"
             type="button"
+            disabled = {isSaveDisabled}
             onClick={handleSave}
             className="w-full bg-red-500 hover:bg-red-600 text-white font-medium rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 pt-2 pb-2"
           >
