@@ -24,7 +24,7 @@ interface QuestionProps {
 
 export default function Question({question, onChange}: { question: QuestionInt }) {
   const [selectedStatus, setSelectedStatus] = useState("");
-  const [selectedLevel, setSelectedLevel] = useState("");
+  const [selectedLevel, setSelectedLevel] = useState(0);
   const [auditorComment, setAuditorComment] = useState("");
   const [findingComment, setFindingComment] = useState("");
 
@@ -77,16 +77,16 @@ export default function Question({question, onChange}: { question: QuestionInt }
           if (finding.f_status !== undefined) {
             setSelectedStatus(finding.f_status.toString());
           }
+          setSelectedLevel(finding.f_level || 0);
           setAuditorComment(finding.f_comment || "");
           setFindingComment(finding.f_finding_comment || "");
-          if (finding.f_level !== undefined) {
-            setSelectedLevel(finding.f_level.toString());
-          }
+
         } else {
           console.log("No finding available.");
           setSelectedStatus("");
           setAuditorComment("");
           setFindingComment("");
+          setSelectedLevel(0);
         }
         if (finding) {
           const attachmentsResponse = await fetch(
@@ -142,12 +142,12 @@ export default function Question({question, onChange}: { question: QuestionInt }
       const finding = await findingResponse.json();
       const updatedFinding = {
         f_id: finding.f_id,
+        f_level: selectedLevel,
         f_auditor_comment: auditorComment.replace(/;/g, ""),
         f_finding_comment: findingComment.replace(/;/g, ""),
         f_creation_date: finding.f_creation_date,
         f_timeInDays: finding.f_timeInDays,
         f_status: selectedStatus,
-        f_level: selectedLevel,
       };
 
       const alteredFinding = JSON.parse(
@@ -170,8 +170,11 @@ export default function Question({question, onChange}: { question: QuestionInt }
       const existingFileNames = Array.isArray(attachments.fileName)
           ? attachments.fileName.map((file) => file.fa_filename)
           : [];
-      if (existingFileNames.length === 0)
+      if (existingFileNames.length === 0){
         console.log("List of API files is empty.");
+        console.log(updatedFinding.f_level, typeof updatedFinding.f_level);
+        console.log(updatedFinding.f_status);
+      }
 
       // Upload new files not already in existingFileNames
       const filesToUpload = fileData.filter(
@@ -491,12 +494,13 @@ export default function Question({question, onChange}: { question: QuestionInt }
                   <select
                       id="level"
                       onChange={(e) => {
-                        setSelectedLevel(e.target.value);
+                        setSelectedLevel(parseInt(e.target.value));
                         onChange();
                       }}
                       value={selectedLevel}
                       className="border rounded-lg p-2.5 text-gray-700 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   >
+                    <option value="0">Kein Level ausgewählt</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
                     <option value="3">3</option>
