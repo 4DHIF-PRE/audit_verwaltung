@@ -78,9 +78,6 @@ export default function App() {
   
 
   const handleSave = async () => {
-<<<<<<< HEAD
-   // console.log(questionRefs.current[1])
-=======
   const response = await fetch(`http://localhost:3000/audit/${id}`, {
     method: "PUT",
     headers: {
@@ -88,7 +85,6 @@ export default function App() {
     },
     body: JSON.stringify({ au_auditstatus: "findings_offen" })
     });
->>>>>>> 1ebc1b3135da90493f8f4d82f30e2f93e6888bee
     window.location.href = `/gruppe5`;
 
    
