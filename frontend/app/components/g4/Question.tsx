@@ -5,6 +5,8 @@ export interface QuestionInt {
   qu_idx: number;
   qu_audit_idx: number;
   qu_law_idx: number;
+  qu_law_text: string;
+  qu_law_law: string;
   qu_audited: boolean;
   qu_applicable: boolean;
   qu_finding_level: number;
@@ -67,6 +69,9 @@ export default function Question({ question, onChange }: { question: QuestionInt
               text: lawDetails.la_text,
             });
           }
+          question.qu_law_law=lawDetails.la_law;
+          question.qu_law_text=lawDetails.la_text;
+
 
           if (finding.f_status !== undefined) {
             setSelectedStatus(finding.f_status.toString());
@@ -198,7 +203,7 @@ export default function Question({ question, onChange }: { question: QuestionInt
         alert("Finding saved successfully! No new attachments to save.");
       else {
         console.log("Failed to save finding: ", result);
-        alert("Failed to save finding! No new attachments were saved.");
+        alert("Failed to save finding!");
       }
     } catch (error) {
       console.log("Error occured while attempting to save finding: ", error);
