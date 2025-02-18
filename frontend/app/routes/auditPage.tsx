@@ -240,7 +240,7 @@ export default function AuditPage() {
     setSelectedAudit((prev) => (prev === audit.au_idx ? 0 : audit.au_idx));
 
     const selectedAuditStatus =
-      audits.find((a) => a.au_idx === audit.au_idx)?.au_auditstatus || "";
+        audits.find((a) => a.au_idx === audit.au_idx)?.au_auditstatus || "";
     setAuditstatus(selectedAuditStatus);
 
     if (audit.au_leadauditor_idx === user?.u_userId) {
@@ -249,16 +249,20 @@ export default function AuditPage() {
       setIsLeadAuditor(false);
     }
 
-  
     const zugewieseneUserIDs = roles
-      .filter((role) => role.audit === audit.au_idx)
-      .map((role) => role.ru_u_userId);
+        .filter((role) => role.audit === audit.au_idx)
+        .map((role) => role.ru_u_userId);
 
-    // Passende Userdetails filtern
-    const zugewieseneUserDetails = users.filter((u) =>
-      zugewieseneUserIDs.includes(u.u_userId)
-    );
-
+    // Passende Userdetails filtern und ru_r_id hinzufügen
+    const zugewieseneUserDetails = users
+        .filter((u) => zugewieseneUserIDs.includes(u.u_userId))
+        .map((u) => {
+          const role = roles.find((r) => r.ru_u_userId === u.u_userId && r.audit === audit.au_idx);
+          return {
+            ...u,
+            ru_r_id: role ? role.ru_r_id : null, // Füge die ru_r_id hinzu
+          };
+        });
 
     setAuditZugewiesen(zugewieseneUserDetails);
   };
@@ -561,124 +565,143 @@ export default function AuditPage() {
           {/* Right Section */}
           <div className="w-full lg:w-2/3 h-full flex flex-col items-center justify-center p-6">
             {selectedAudit ? (
-              <div className="w-full max-w-screen-lg h-full bg-gray-200 dark:bg-gray-900 p-6 rounded-md flex flex-col justify-start">
-                <AuditVorschau audit={selectedAudit} allAudits={audits} />
-                <QuestionVorschau auditId={selectedAudit} questions={questions} />
+                <div
+                    className="w-full max-w-screen-lg h-full bg-gray-200 dark:bg-gray-900 p-6 rounded-md flex flex-col justify-start">
+                  <AuditVorschau audit={selectedAudit} allAudits={audits}/>
+                  <QuestionVorschau auditId={selectedAudit} questions={questions}/>
 
-                {/* Falls User Lead Auditor ist -> Zuweisen möglich */}
-                {isLeadAuditor && selectedAudit && (
-                  <div className="mb-4 flex gap-4 items-center">
-                    <input
-                      type="text"
-                      placeholder="Vornamen eingeben..."
-                      className="p-2 border rounded-md w-full text-black"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      placeholder="Nachnamen eingeben..."
-                      className="p-2 border rounded-md w-full text-black"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                    />
-                    <select
-                      className="p-2 border rounded-md text-black"
-                      value={role}
-                      onChange={(e) => setRole(Number(e.target.value))}
-                    >
-                      <option value="2">Auditor</option>
-                      <option value="3">Auditee</option>
-                      <option value="4">Gast</option>
-                      <option value="5">Reporter</option>
-                      <option value="6">Manual-Writer</option>
-                    </select>
-                    <button
-                      className="px-4 py-2 rounded-md bg-green-500 hover:bg-green-600 text-white"
-                      onClick={() => handleZuweisen(selectedAudit)}
-                    >
-                      Zuweisen
-                    </button>
-                  </div>
-                )}
-
-                {/* Zugewiesene User anzeigen */}
-                {auditZugewiesen.length > 0 && (
-                  <div className="my-4">
-                    <h3 className="font-bold mb-2">Zugewiesene User:</h3>
-                    <ul className="list-disc list-inside">
-                      {auditZugewiesen.map((assignedUser) => (
-                        <li key={assignedUser.u_userId}>
-                          {assignedUser.u_firstname} {assignedUser.u_lastname} 
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Buttons unter der Fragenliste */}
-                <div className="flex justify-center space-x-4 mt-4">
-                  {(auditstatus === "geplant" || auditstatus === "bereit") && (
-                    <button
-                      onClick={() =>
-                        selectedAudit &&
-                        (window.location.href = `/questionPage/${selectedAudit}`)
-                      }
-                      className="px-4 py-2 rounded-md text-white bg-purple-500 hover:bg-purple-600"
-                    >
-                      Neue Frage
-                    </button>
+                  {/* Falls User Lead Auditor ist -> Zuweisen möglich */}
+                  {isLeadAuditor && selectedAudit && (
+                      <div className="mb-4 flex gap-4 items-center">
+                        <input
+                            type="text"
+                            placeholder="Vornamen eingeben..."
+                            className="p-2 border rounded-md w-full text-black"
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            placeholder="Nachnamen eingeben..."
+                            className="p-2 border rounded-md w-full text-black"
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                        />
+                        <select
+                            className="p-2 border rounded-md text-black"
+                            value={role}
+                            onChange={(e) => setRole(Number(e.target.value))}
+                        >
+                          <option value="2">Auditor</option>
+                          <option value="3">Auditee</option>
+                          <option value="4">Gast</option>
+                          <option value="5">Reporter</option>
+                          <option value="6">Manual-Writer</option>
+                        </select>
+                        <button
+                            className="px-4 py-2 rounded-md bg-green-500 hover:bg-green-600 text-white"
+                            onClick={() => handleZuweisen(selectedAudit)}
+                        >
+                          Zuweisen
+                        </button>
+                      </div>
                   )}
 
-                  <button
-                    onClick={() =>
-                      selectedAudit &&
-                      (window.location.href = `/auditbearbeiten/${selectedAudit}`)
-                    }
-                    className="px-4 py-2 rounded-md text-white bg-blue-500 hover:bg-blue-600"
-                  >
-                    Bearbeiten
-                  </button>
+                  {/* Zugewiesene User anzeigen */}
+                  {auditZugewiesen.length > 0 && (
+                      <div className="my-4">
+                        <h3 className="font-bold mb-2">Zugewiesene User:</h3>
+                        <ul className="list-disc list-inside">
+                          {auditZugewiesen.map((assignedUser) => (
+                              <li key={assignedUser.u_userId}>
+                                {assignedUser.u_firstname} {assignedUser.u_lastname}{": "}
+                                {{
+                                  1: "Admin",
+                                  3: "Auditee",
+                                  2: "Auditor",
+                                  4: "Gast",
+                                  6: "Manual-Writer",
+                                  5: "Reporter",
+                                }[assignedUser.ru_r_id] || ""}
+                              </li>
+                          ))}
+                        </ul>
+                      </div>
+                  )}
 
-                  {auditstatus !== "geplant" && (
+                  {/* Buttons unter der Fragenliste */}
+                  <div className="flex justify-center space-x-4 mt-4">
+                    {(auditstatus === "geplant" || auditstatus === "bereit") && (
+                        <button
+                            onClick={() =>
+                                selectedAudit &&
+                                (window.location.href = `/questionPage/${selectedAudit}`)
+                            }
+                            className="px-4 py-2 rounded-md text-white bg-purple-500 hover:bg-purple-600"
+                        >
+                          Neue Frage
+                        </button>
+                    )}
+
                     <button
-                      onClick={() => {
-                        if (selectedAudit) {
-                          changeStatus(selectedAudit);
+                        onClick={() =>
+                            selectedAudit &&
+                            (window.location.href = `/auditbearbeiten/${selectedAudit}`)
                         }
-                      }}
-                      className="px-4 py-2 rounded-md text-white bg-green-500 hover:bg-green-600"
+                        className="px-4 py-2 rounded-md text-white bg-blue-500 hover:bg-blue-600"
                     >
-                      Durchführen
+                      Bearbeiten
                     </button>
-                  )}
 
-                  {auditstatus === "findings_offen" && (
-                    <button
-                      onClick={() => {
-                        if (selectedAudit) {
-                          window.location.href = `/gruppe5/${selectedAudit}`;
-                        }
-                      }}
-                      className="px-4 py-2 rounded-md text-white bg-red-600 hover:bg-red-700"
-                    >
-                      Findings
-                    </button>
-                  )}
+                    {auditstatus !== "geplant" && (
+                        <button
+                            onClick={() => {
+                              if (selectedAudit) {
+                                changeStatus(selectedAudit);
+                              }
+                            }}
+                            className="px-4 py-2 rounded-md text-white bg-green-500 hover:bg-green-600"
+                        >
+                          Durchführen
+                        </button>
+                    )}
+
+                    {auditstatus === "findings_offen" && (
+                        <button
+                            onClick={() => {
+                              if (selectedAudit) {
+                                window.location.href = `/gruppe5/${selectedAudit}`;
+                              }
+                            }}
+                            className="px-4 py-2 rounded-md text-white bg-red-600 hover:bg-red-700"
+                        >
+                          Findings
+                        </button>
+                    )}
+                  </div>
+
+
                 </div>
 
-                <button
-                  onClick={() => exportAllAuditsAndFindingsToPDF(audits, findings)}
-                  className="px-4 py-2 rounded-md bg-sky-300 hover:bg-sky-400 dark:bg-sky-500 dark:hover:bg-sky-600 dark:text-white mt-4"
-                >
-                  Export Audit Details as PDF
-                </button>
-              </div>
+
             ) : null}
+
+            {selectedAudit ? (
+                <div>
+                  <button
+                      onClick={() => exportAllAuditsAndFindingsToPDF(audits, findings)}
+                      className="px-4 py-2 rounded-md bg-sky-300 hover:bg-sky-400 dark:bg-sky-500 dark:hover:bg-sky-600 dark:text-white mt-4"
+                  >
+                    Export Audit Details as PDF
+                  </button>
+                </div>
+            ) : null}
+
+
           </div>
         </div>
       </div>
-      <Footer />
+      <Footer/>
     </div>
   );
 }
