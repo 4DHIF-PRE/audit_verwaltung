@@ -197,7 +197,7 @@ export default function Question({ question }: { question: QuestionInt }) {
         alert("Finding saved successfully! No new attachments to save.");
       else {
         console.log("Failed to save finding: ", result);
-        alert("Failed to save finding! No new attachments were saved.");
+        alert("Failed to save finding!");
       }
     } catch (error) {
       console.log("Error occured while attempting to save finding: ", error);
