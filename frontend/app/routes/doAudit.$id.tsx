@@ -78,6 +78,12 @@ export default function App() {
   
 
   const handleSave = async () => {
+
+    questionRefs.current.forEach((questionDiv, index) => {
+      const button = questionDiv.querySelector<HTMLSelectElement>("#saveQuestion");
+      button.click();
+    })
+
   const response = await fetch(`http://localhost:3000/audit/${id}`, {
     method: "PUT",
     headers: {
@@ -103,6 +109,7 @@ export default function App() {
       const auditorComment = questionDiv.querySelector<HTMLInputElement>("#auditorComment")?.value;
       const findingComment = questionDiv.querySelector<HTMLInputElement>("#findingComment")?.value;
       const status = questionDiv.querySelector<HTMLSelectElement>("#status")?.value;
+      
 
       if (!auditorComment || auditorComment.trim() === "") {
         passt = false;
@@ -165,8 +172,8 @@ export default function App() {
             type="button"
             disabled = {isSaveDisabled}
             onClick={handleSave}
-            className="w-full bg-red-500 hover:bg-red-600 text-white font-medium rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 pt-2 pb-2"
-          >
+            className={`w-full font-medium rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 pt-2 pb-2 transition-colors duration-200 
+              ${isSaveDisabled ? "bg-gray-300 text-gray-600 cursor-not-allowed" : "bg-red-500 hover:bg-red-600 text-white focus:ring-red-500"}`}>
             Audit abschließen
           </button>
         </div>
