@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import {useState, useEffect, useRef} from "react";
 
 // Interfaces
 export interface QuestionInt {
@@ -22,12 +22,13 @@ interface QuestionProps {
   onChange: () => void;
 }
 
-export default function Question({ question, onChange }: { question: QuestionInt }) {
+export default function Question({question, onChange}: { question: QuestionInt }) {
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedLevel, setSelectedLevel] = useState(0);
   const [auditorComment, setAuditorComment] = useState("");
   const [findingComment, setFindingComment] = useState("");
 
-  const [law, setLaw] = useState({ law: "", type: "", text: "" });
+  const [law, setLaw] = useState({law: "", type: "", text: ""});
   const [loading, setLoading] = useState(true);
   const [files, setFiles] = useState<string[]>([]); // Store filenames as strings
   const [fileData, setFileData] = useState<File[]>([]);
@@ -38,7 +39,7 @@ export default function Question({ question, onChange }: { question: QuestionInt
 
   // Load data from API
   useEffect(() => {
-    if (fetchedOnceRef.current) return; 
+    if (fetchedOnceRef.current) return;
 
     fetchedOnceRef.current = true;
     const loadData = async () => {
@@ -47,7 +48,7 @@ export default function Question({ question, onChange }: { question: QuestionInt
       try {
         // Fetch the findings data from the API (assuming only one finding is returned)
         const findingResponse = await fetch(
-          `http://localhost:3000/api/questions/${question.qu_idx}/finding`
+            `http://localhost:3000/api/questions/${question.qu_idx}/finding`
         );
         const finding = await findingResponse.json(); // Expecting a single finding object
 
@@ -57,7 +58,7 @@ export default function Question({ question, onChange }: { question: QuestionInt
           // Fetch the laws data from the API
           setFindingId(finding.f_id);
           const lawResponse = await fetch(
-            `http://localhost:3000/law/${question.qu_law_idx}`
+              `http://localhost:3000/law/${question.qu_law_idx}`
           );
           const lawDetails = await lawResponse.json();
 
@@ -69,24 +70,27 @@ export default function Question({ question, onChange }: { question: QuestionInt
               text: lawDetails.la_text,
             });
           }
-          question.qu_law_law=lawDetails.la_law;
-          question.qu_law_text=lawDetails.la_text;
+          question.qu_law_law = lawDetails.la_law;
+          question.qu_law_text = lawDetails.la_text;
 
 
           if (finding.f_status !== undefined) {
             setSelectedStatus(finding.f_status.toString());
           }
+          setSelectedLevel(finding.f_level || 0);
           setAuditorComment(finding.f_comment || "");
           setFindingComment(finding.f_finding_comment || "");
+
         } else {
           console.log("No finding available.");
           setSelectedStatus("");
           setAuditorComment("");
           setFindingComment("");
+          setSelectedLevel(0);
         }
         if (finding) {
           const attachmentsResponse = await fetch(
-            `http://localhost:3000/api/finding/attachments/${finding.f_id}/filenames`
+              `http://localhost:3000/api/finding/attachments/${finding.f_id}/filenames`
           );
           const attachments = await attachmentsResponse.json();
           //console.log("attach");
@@ -107,13 +111,12 @@ export default function Question({ question, onChange }: { question: QuestionInt
           console.error("Unexpected response format:", attachments);
         }*/
 
-          // Extract filenames from the API response
           const filenames = attachments.fileName.map(
-            (file: { fa_filename: string }) => file.fa_filename
+              (file: { fa_filename: string }) => file.fa_filename
           );
-          //console.log(filenames);
+          console.log(filenames);
           setFiles((prevFiles) =>
-            Array.from(new Set([...prevFiles, ...filenames]))
+              Array.from(new Set([...prevFiles, ...filenames]))
           );
         }
       } catch (error) {
@@ -134,12 +137,12 @@ export default function Question({ question, onChange }: { question: QuestionInt
       console.log(findingId);
 
       const findingResponse = await fetch(
-        `http://localhost:3000/api/questions/${question.qu_idx}/finding`
+          `http://localhost:3000/api/questions/${question.qu_idx}/finding`
       );
       const finding = await findingResponse.json();
       const updatedFinding = {
         f_id: finding.f_id,
-        f_level: finding.f_level,
+        f_level: selectedLevel,
         f_auditor_comment: auditorComment.replace(/;/g, ""),
         f_finding_comment: findingComment.replace(/;/g, ""),
         f_creation_date: finding.f_creation_date,
@@ -148,30 +151,34 @@ export default function Question({ question, onChange }: { question: QuestionInt
       };
 
       const alteredFinding = JSON.parse(
-        JSON.stringify(updatedFinding, (key, value) => {
-          return typeof value === "string" ? value.replace(/;/g, "") : value;
-        })
+          JSON.stringify(updatedFinding, (key, value) => {
+            return typeof value === "string" ? value.replace(/;/g, "") : value;
+          })
       );
 
       const result = await fetch(`http://localhost:3000/audit/finding`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify(alteredFinding),
       });
       const attachmentsResponse = await fetch(
-        `http://localhost:3000/api/finding/attachments/${findingId}/filenames`
+          `http://localhost:3000/api/finding/attachments/${finding.f_id}/filenames`
       );
       const attachments = await attachmentsResponse.json();
+      console.log("attach");
       console.log(attachments);
       const existingFileNames = Array.isArray(attachments.fileName)
-        ? attachments.fileName.map((file) => file.fa_filename)
-        : [];
-      if (existingFileNames.length === 0)
+          ? attachments.fileName.map((file) => file.fa_filename)
+          : [];
+      if (existingFileNames.length === 0){
         console.log("List of API files is empty.");
+        console.log(updatedFinding.f_level, typeof updatedFinding.f_level);
+        console.log(updatedFinding.f_status);
+      }
 
       // Upload new files not already in existingFileNames
       const filesToUpload = fileData.filter(
-        (file) => !existingFileNames.includes(file.name)
+          (file) => !existingFileNames.includes(file.name)
       );
       // Check if there are any files not already in API to be uploaded.
       // If not, skip invoking the API and evaluate finding save success.
@@ -182,16 +189,16 @@ export default function Question({ question, onChange }: { question: QuestionInt
           formData.append("file", file);
 
           const uploadResult = await fetch(
-            `http://localhost:3000/api/finding/attachments/${findingId}/${encodeURIComponent(
-              file.name
-            )}`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-              body: formData,
-            }
+              `http://localhost:3000/api/finding/attachments/${findingId}/${encodeURIComponent(
+                  file.name
+              )}`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+                body: formData,
+              }
           );
         }
         if (result.ok) {
@@ -220,35 +227,35 @@ export default function Question({ question, onChange }: { question: QuestionInt
 
     // Extract filenames from the dropped files and update state with strings
     const filenames = Array.from(droppedFiles).map((file) =>
-      file.name.replace(/;/g, "")
+        file.name.replace(/;/g, "")
     );
     //filenames.concat(files);
     //console.log(filenames);
     setFiles((prevFiles) => Array.from(new Set([...prevFiles, ...filenames])));
     console.log(files);
     setFileData((prevFiles) =>
-      Array.from(new Set([...prevFiles, ...Array.from(droppedFiles)]))
+        Array.from(new Set([...prevFiles, ...Array.from(droppedFiles)]))
     );
   };
 
   //maby add a dupicat restriction on name?
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { filesChanged } = event.target;
+    const {filesChanged} = event.target;
     console.log(filesChanged);
     if (filesChanged) {
       // Extract filenames from the selected files and update state with strings
       const fileList = Array.from(filesChanged);
       const filenames = Array.from(filesChanged).map((file) =>
-        file.name.replace(/;/g, "")
+          file.name.replace(/;/g, "")
       );
       //filenames.concat(files);
       //console.log(tmp);
       setFiles((prevFiles) =>
-        Array.from(new Set([...prevFiles, ...filenames]))
+          Array.from(new Set([...prevFiles, ...filenames]))
       );
       console.log(files);
       setFileData((prevFiles) =>
-        Array.from(new Set([...prevFiles, ...fileList]))
+          Array.from(new Set([...prevFiles, ...fileList]))
       );
     }
   };
@@ -256,39 +263,39 @@ export default function Question({ question, onChange }: { question: QuestionInt
   const handleRemoveFile = async (fileToRemove: string) => {
     const removeButton = document.getElementById(`removeFile-${fileToRemove}`);
     try {
-      
-      if(removeButton){
+
+      if (removeButton) {
         removeButton.disabled = true;
       }
-    
+
       if (confirm(`Remove file ${fileToRemove}? This cannot be undone!`)) {
         setFiles(files.filter((file) => file !== fileToRemove));
-       // console.log(files);
+        // console.log(files);
         setFileData((prevFiles) =>
-          prevFiles.filter((file) => file.name !== fileToRemove)
+            prevFiles.filter((file) => file.name !== fileToRemove)
         );
 
         if (findingId !== -1) {
           const attachmentsResponse = await fetch(
-            `http://localhost:3000/api/finding/attachments/${findingId}/filenames`
+              `http://localhost:3000/api/finding/attachments/${findingId}/filenames`
           );
           const attachments = await attachmentsResponse.json();
           // console.log(attachments);
           // Get list of existing file names
           const existingFileNames = Array.isArray(attachments.fileName)
-            ? attachments.fileName.map((file) => file.fa_filename)
-            : [];
+              ? attachments.fileName.map((file) => file.fa_filename)
+              : [];
           if (existingFileNames.length === 0)
             console.log("List of API files is empty.");
           else {
             const fileReturned = attachments.fileName.find(file => file.fa_filename === fileToRemove)
 
-            if(typeof fileReturned !== 'undefined' && fileReturned != null){
-              // fileReturned shouldn't be null or undefined if the file you're trying to delete is in the database. 
+            if (typeof fileReturned !== 'undefined' && fileReturned != null) {
+              // fileReturned shouldn't be null or undefined if the file you're trying to delete is in the database.
               /* By design, the first file that was found with a matching file name will be removed.
               */
               const deleteResult = await fetch(`http://localhost:3000/api/finding/attachments/${fileReturned.fa_id}/delete`)
-              if(deleteResult.ok) alert("File removed successfully!")
+              if (deleteResult.ok) alert("File removed successfully!")
             }
           }
         }
@@ -296,13 +303,13 @@ export default function Question({ question, onChange }: { question: QuestionInt
     } catch (error) {
       console.log(error);
     } finally {
-    if(removeButton) removeButton.disabled = false;
+      if (removeButton) removeButton.disabled = false;
     }
   };
 
   const handleDownload = async (fileToDownload: string) => {
     const downloadButton = document.getElementById(
-      `removeFile-${fileToDownload}`
+        `removeFile-${fileToDownload}`
     );
     if (downloadButton) {
       downloadButton.disabled = true;
@@ -310,19 +317,19 @@ export default function Question({ question, onChange }: { question: QuestionInt
     try {
       if (findingId !== -1) {
         const attachmentsResponse = await fetch(
-          `http://localhost:3000/api/finding/attachments/${findingId}/filenames`
+            `http://localhost:3000/api/finding/attachments/${findingId}/filenames`
         );
         const attachments = await attachmentsResponse.json();
         // console.log(attachments);
         // Get list of existing file names
         const existingFileNames = Array.isArray(attachments.fileName)
-          ? attachments.fileName.map((file) => file.fa_filename)
-          : [];
+            ? attachments.fileName.map((file) => file.fa_filename)
+            : [];
         if (existingFileNames.length === 0)
           console.log("List of API files is empty.");
         else {
           const fileReturned = attachments.fileName.find(
-            (file) => file.fa_filename === fileToDownload
+              (file) => file.fa_filename === fileToDownload
           );
 
           if (fileReturned) {
@@ -331,13 +338,13 @@ export default function Question({ question, onChange }: { question: QuestionInt
              */
             console.log("Preparing to fetch file for download...");
             const fileResult = await fetch(
-              `http://localhost:3000/api/finding/attachments/${fileReturned.fa_id}`
+                `http://localhost:3000/api/finding/attachments/${fileReturned.fa_id}`
             );
             const fileData = await fileResult.json();
             if (
-              fileResult.ok &&
-              fileData.fileName &&
-              fileData.fileName.length > 0
+                fileResult.ok &&
+                fileData.fileName &&
+                fileData.fileName.length > 0
             ) {
               console.log("File retrieved, preparing download...");
 
@@ -356,9 +363,9 @@ export default function Question({ question, onChange }: { question: QuestionInt
 
                 for (let i = 0; i < byteArray.length - separator.length; i++) {
                   if (
-                    separator.every(
-                      (byte, index) => byteArray[i + index] === byte
-                    )
+                      separator.every(
+                          (byte, index) => byteArray[i + index] === byte
+                      )
                   ) {
                     startIndex = i + separator.length;
                     break;
@@ -373,8 +380,8 @@ export default function Question({ question, onChange }: { question: QuestionInt
 
                   // Preserve the original file type (if detected)
                   const detectedType =
-                    fileObject.fa_filename.split(".").pop() ||
-                    "application/octet-stream";
+                      fileObject.fa_filename.split(".").pop() ||
+                      "application/octet-stream";
                   const cleanBlob = new Blob([cleanContent], {
                     type: detectedType,
                   });
@@ -392,7 +399,7 @@ export default function Question({ question, onChange }: { question: QuestionInt
                   window.URL.revokeObjectURL(url);
                 } else {
                   console.error(
-                    "Could not locate file content in the multipart data."
+                      "Could not locate file content in the multipart data."
                   );
                 }
               };
@@ -400,11 +407,10 @@ export default function Question({ question, onChange }: { question: QuestionInt
               reader.readAsArrayBuffer(fullBlob);
             } else {
               console.error(
-                "Failed to retrieve file content or file data structure is unexpected."
+                  "Failed to retrieve file content or file data structure is unexpected."
               );
             }
-          }
-          else console.warn("File not found on the server. Are you trying to download a local file?")
+          } else console.warn("File not found on the server. Are you trying to download a local file?")
         }
       }
     } catch (error) {
@@ -433,171 +439,194 @@ export default function Question({ question, onChange }: { question: QuestionInt
   }
 
   return (
-    <div className={`p-6 mt-4 ${bgColorClass} rounded-lg shadow-md`}>
-      {/* Gesetz und Typ (immer sichtbar) */}
-      <div className="mb-4 flex justify-between items-center">
-        <div>
-          <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
-            {law.law} #{law.type}
-          </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{law.text}</p>
+      <div className={`p-6 ${bgColorClass} rounded-lg shadow-md`}>
+        {/* Gesetz und Typ (immer sichtbar) */}
+        <div className="mb-4 flex justify-between items-center">
+          <div>
+            <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+              {law.law} #{law.type}
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{law.text}</p>
+          </div>
+
+          {/* Toggle Button mit Icon */}
+          <button
+              onClick={toggleCollapse}
+              className="flex items-center space-x-2 text-black font-medium rounded-md focus:outline-none pt-2 pb-2 pl-4 pr-4"
+          >
+            <img
+                src="../assets/klappicon.png"
+                alt="Collapse Icon"
+                className={`w-5 h-5 dark:invert transition-transform ${
+                    isCollapsed ? "rotate-0" : "rotate-180"
+                }`}
+            />
+          </button>
         </div>
 
-        {/* Toggle Button mit Icon */}
-        <button
-          onClick={toggleCollapse}
-          className="flex items-center space-x-2 text-black font-medium rounded-md focus:outline-none pt-2 pb-2 pl-4 pr-4"
-        >
-          <img
-            src="../assets/klappicon.png"
-            alt="Collapse Icon"
-            className={`w-5 h-5 dark:invert transition-transform ${
-              isCollapsed ? "rotate-0" : "rotate-180"
-            }`}
-          />
-        </button>
-      </div>
+        {!isCollapsed && (
+            <>
+              <div className="container flex gap-4">
+                <form className="max-w-sm mb-4">
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    Status
+                  </label>
+                  <select
+                      id="status"
+                      onChange={(e) => {
+                        setSelectedStatus(e.target.value);
+                        onChange();
+                      }}
+                      value={selectedStatus}
+                      className="border rounded-lg p-2.5 text-gray-700 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  >
+                    <option value="offen">Frage bewerten</option>
+                    <option value="richtig">Keine Findings</option>
+                    <option value="dokumentiert">Nur dokumentiert</option>
+                    <option value="kritisch">Kritisches Finding</option>
+                  </select>
+                </form>
 
-      {!isCollapsed && (
-        <>
-          <form className="max-w-sm mb-4">
-            <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-              Status
-            </label>
-            <select
-              id="status"
-              onChange={(e) => {
-                setSelectedStatus(e.target.value);
-                onChange(); 
-              }}
-              value={selectedStatus}
-              className="border rounded-lg p-2.5 text-gray-700 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            >
-              <option value="offen">Frage bewerten</option>
-              <option value="richtig">Keine Findings</option>
-              <option value="dokumentiert">Nur dokumentiert</option>
-              <option value="kritisch">Kritisches Finding</option>
-            </select>
-          </form>
-
-          <div className="mb-4">
-            <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-              Auditor Kommentar
-            </label>
-            <textarea
-              id="auditorComment"
-              value={auditorComment}
-              onChange={(e) => {
-                setAuditorComment(e.target.value); 
-                onChange();
-              }}
-              className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              placeholder="Write your thoughts here..."
-            ></textarea>
-          </div>
-
-          {(selectedStatus === "dokumentiert" ||
-            selectedStatus === "kritisch") && (
-            <div className="mb-4">
-              <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                Finding Kommentar
-              </label>
-              <textarea
-                id="findingComment"
-                value={findingComment}
-                onChange={(e) => {
-                  setFindingComment(e.target.value); 
-                  onChange();
-                }}
-                className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="Write your thoughts here..."
-              ></textarea>
-            </div>
-          )}
-
-          <div
-            className="flex items-center justify-center w-full mb-4"
-            onDrop={handleDrop}
-            onDragOver={(e) => e.preventDefault()}
-          >
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
-              <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                <svg
-                  className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 20 16"
-                >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
-                  />
-                </svg>
-                <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                  <span className="font-semibold">Click to upload</span> or drag
-                  and drop
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  SVG, PNG, JPG, or GIF (MAX. 800x400px)
-                </p>
+                <form>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    Level
+                  </label>
+                  <select
+                      id="level"
+                      onChange={(e) => {
+                        setSelectedLevel(parseInt(e.target.value));
+                        onChange();
+                      }}
+                      value={selectedLevel}
+                      className="border rounded-lg p-2.5 text-gray-700 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  >
+                    <option value="0">Kein Level ausgewählt</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                  </select>
+                </form>
               </div>
-              <input
-                id="dropzone-file"
-                type="file"
-                className="hidden"
-                multiple
-                onChange={handleFileChange}
-              />
-            </label>
-          </div>
 
-          <div className="space-y-4">
-            {files.map((file, index) => (
+              <div className="mb-4">
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                  Auditor Kommentar
+                </label>
+                <textarea
+                    id="auditorComment"
+                    value={auditorComment}
+                    onChange={(e) => {
+                      setAuditorComment(e.target.value);
+                      onChange();
+                    }}
+                    className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    placeholder="Write your thoughts here..."
+                ></textarea>
+              </div>
+
+              {(selectedStatus === "dokumentiert" ||
+                  selectedStatus === "kritisch") && (
+                  <div className="mb-4">
+                    <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                      Finding Kommentar
+                    </label>
+                    <textarea
+                        id="findingComment"
+                        value={findingComment}
+                        onChange={(e) => {
+                          setFindingComment(e.target.value);
+                          onChange();
+                        }}
+                        className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        placeholder="Write your thoughts here..."
+                    ></textarea>
+                  </div>
+              )}
+
               <div
-                key={index}
-                className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-md"
+                  className="flex items-center justify-center w-full mb-4"
+                  onDrop={handleDrop}
+                  onDragOver={(e) => e.preventDefault()}
               >
+                <label
+                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <svg
+                        className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 20 16"
+                    >
+                      <path
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
+                      />
+                    </svg>
+                    <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                      <span className="font-semibold">Click to upload</span> or drag
+                      and drop
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      SVG, PNG, JPG, or GIF (MAX. 800x400px)
+                    </p>
+                  </div>
+                  <input
+                      id="dropzone-file"
+                      type="file"
+                      className="hidden"
+                      multiple
+                      onChange={handleFileChange}
+                  />
+                </label>
+              </div>
+
+              <div className="space-y-4">
+                {files.map((file, index) => (
+                    <div
+                        key={index}
+                        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-md"
+                    >
                 <span className="text-gray-900 dark:text-white flex-1 truncate">
                   {file}
                 </span>
 
-                <div className="flex space-x-2">
-                  <button
-                    id={`downloadFile-${file}`}
-                    type="button"
-                    onClick={() => handleDownload(file)}
-                    className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1 px-3 rounded-md focus:outline-none"
-                  >
-                    Download
-                  </button>
+                      <div className="flex space-x-2">
+                        <button
+                            id={`downloadFile-${file}`}
+                            type="button"
+                            onClick={() => handleDownload(file)}
+                            className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1 px-3 rounded-md focus:outline-none"
+                        >
+                          Download
+                        </button>
 
-                  <button
-                    id={`removeFile-${file}`}
-                    type= "button"
-                    onClick={() => handleRemoveFile(file)}
-                    className="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded-md focus:outline-none"
-                  >
-                    Remove
-                  </button>
-                </div>
+                        <button
+                            id={`removeFile-${file}`}
+                            type="button"
+                            onClick={() => handleRemoveFile(file)}
+                            className="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded-md focus:outline-none"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          <button
-            id="saveQuestion"
-            type="button"
-            onClick={handleSave}
-            className="bg-red-500 hover:bg-red-600 text-white font-medium rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 pt-2 pb-2 pl-5 pr-5 mt-4"
-          >
-            Speichern
-          </button>
-        </>
-      )}
-    </div>
+              <button
+                  id="saveQuestion"
+                  type="button"
+                  onClick={handleSave}
+                  className="bg-red-500 hover:bg-red-600 text-white font-medium rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 pt-2 pb-2 pl-5 pr-5 mt-4"
+              >
+                Speichern
+              </button>
+            </>
+        )}
+      </div>
   );
 }
