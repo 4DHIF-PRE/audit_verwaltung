@@ -147,7 +147,7 @@ export default function App() {
           <div className="px-10">
             {questions.length > 0 ? (
               questions.map((question, index) => (
-                <div key={question.qu_idx} ref={(el) => (questionRefs.current[index] = el)}>
+                <div key={question.qu_idx} ref={(el) => (questionRefs.current[index] = el)} className="mt-2">
                   <Question question={question} onChange={checkCompletion} />
                 </div>
               ))
