@@ -32,7 +32,7 @@ export function Navbar() {
     };
 
     return (
-        <nav className="bg-white fixed w-full border-gray-200 dark:bg-gray-900">
+        <nav className="bg-white fixed w-full border-gray-200 dark:bg-gray-900 z-50">
             <div className="mx-auto flex flex-wrap justify-between p-4">
                 <a
                     href="/auditpage"

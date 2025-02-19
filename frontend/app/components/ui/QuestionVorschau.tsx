@@ -8,6 +8,25 @@ interface Props {
 
 export default function QuestionVorschau({ auditId, questions }: Props) {
   const [updatedQuestions, setUpdatedQuestions] = useState<QuestionInt[]>(questions);
+  const [auditStatus, setAuditStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAuditStatus = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/audit/${auditId}`);
+        const data = await response.json();
+        if (data && data.au_auditstatus) {
+          setAuditStatus(data.au_auditstatus);
+        }
+      } catch (error) {
+        console.error("Error fetching audit status:", error);
+      }
+    };
+
+    if (auditId) {
+      fetchAuditStatus();
+    }
+  }, [auditId]);
 
   const filteredQuestions = updatedQuestions.filter((q) => q.qu_audit_idx === auditId);
 
@@ -36,7 +55,7 @@ export default function QuestionVorschau({ auditId, questions }: Props) {
       }
 
       setUpdatedQuestions((prevQuestions) =>
-        prevQuestions.filter((q) => q.qu_idx !== questionId)
+          prevQuestions.filter((q) => q.qu_idx !== questionId)
       );
     } catch (error) {
       if ((error as Error).name === "AbortError") {
@@ -48,41 +67,45 @@ export default function QuestionVorschau({ auditId, questions }: Props) {
     }
   };
 
-  // Update the state when the questions prop changes
   useEffect(() => {
     setUpdatedQuestions(questions);
   }, [questions]);
 
   return (
-      <div className="flex-1 ml-6 p-4 rounded-md">
+      <div className="flex-1 ml-6 p-4 rounded-md mb-16">
         {auditId === 0 ? (
             <p className="text-sm sm:text-base">Wähle ein Audit aus, um Fragen zu sehen.</p>
         ) : filteredQuestions.length > 0 ? (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto max-h-[150px] overflow-y-auto">
               <table className="table-auto w-full text-sm sm:text-base">
-                <thead className="text-left">
+                <thead className="text-center">
                 <tr>
                   <th>Gesetzestext NR</th>
                   <th>Auditiert</th>
                   <th>Anwendbar</th>
-                  <th>Finding Stufe</th>
-                  <th>Möglichkeiten</th>
+                  {auditStatus === "begonnen" || auditStatus === "fertig" ? (
+                      <th>Finding Stufe</th>
+                  ) : null}
                 </tr>
                 </thead>
                 <tbody>
                 {filteredQuestions.map((q) => (
-                    <tr key={q.qu_idx} className="border-t">
+                    <tr key={q.qu_idx} className="border-t text-center">
                       <td>{q.qu_law_idx}</td>
                       <td>{q.qu_audited ? "Ja" : "Nein"}</td>
                       <td>{q.qu_applicable ? "Ja" : "Nein"}</td>
-                      <td>{q.qu_finding_level ?? "N/A"}</td>
+                      {auditStatus === "begonnen" || auditStatus === "fertig" ? (
+                          <td>{q.qu_finding_level ?? 0}</td>
+                      ) : null}
                       <td>
-                        <button
-                            className="text-red-500 hover:text-red-700"
-                            onClick={() => deleteQuestion(q.qu_idx)}
-                        >
-                          ❌
-                        </button>
+                        {auditStatus !== "begonnen" && auditStatus !== "fertig" && (
+                            <button
+                                className="text-red-500 hover:text-red-700"
+                                onClick={() => deleteQuestion(q.qu_idx)}
+                            >
+                              ❌
+                            </button>
+                        )}
                       </td>
                     </tr>
                 ))}

@@ -46,6 +46,17 @@ export default function AuditBearbeiten() {
   };
 
   const handleSave = async () => {
+    if (
+      !formData.au_audit_date ||
+      !formData.au_number_of_days ||
+      !formData.au_place ||
+      !formData.au_theme ||
+      !formData.au_typ
+    ) {
+      setError("Fehler bei der Eingabe.");
+      return;
+    }
+    
     try {
       const updatedFormData = {
         ...formData,
@@ -78,6 +89,9 @@ export default function AuditBearbeiten() {
       </h1>
 
           <div className="space-y-6">
+              {error && (
+                        <div className="text-red-500 text-center font-bold">{error}</div>
+              )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block font-bold">Datum</label>
@@ -93,32 +107,17 @@ export default function AuditBearbeiten() {
                 <input
                     type="number"
                     value={formData.au_number_of_days}
-                    onChange={(e) => handleInputChange("au_number_of_days", e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "" || /^[0-9]+$/.test(value)) {
+                        handleInputChange("au_number_of_days", value);
+                      }
+                    }}
                     className="w-full border p-2 rounded text-black"
                 />
               </div>
             </div>
 
-            {/* Lead Auditor und Auditee
-        <div className="flex space-x-4">
-          <div className="flex-1">
-            <label className="block font-bold">Lead Auditor ID</label>
-            <input
-              type="text"
-              value={formData.au_leadauditor_idx}
-              onChange={(e) =>
-                handleInputChange("au_leadauditor_idx", e.target.value)
-              }
-              className="w-full border p-2 rounded text-black"
-            />
-          </div>
-          <div className="flex-1">
-            <label className="block font-bold">Lead Auditee ID</label>
-              className="w-full border p-2 rounded text-black"
-            />
-          </div>
-        </div>
-        */}
             {/* Ort, Thema, Typ und Status */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
@@ -153,23 +152,6 @@ export default function AuditBearbeiten() {
                   <option value="sonstig">Sonstig</option>
                 </select>
               </div>
-              {/*
-          <div className="flex-1">
-            <label className="block font-bold">Status</label>
-            <select
-              value={formData.au_auditstatus}
-              onChange={(e) =>
-                handleInputChange("au_auditstatus", e.target.value)
-              }
-              className="w-full border p-2 rounded text-black"
-            >
-              <option value="geplant">Geplant</option>
-              <option value="bereit">Bereit</option>
-              <option value="begonnen">Begonnen</option>
-              <option value="findings_offen">Findings_offen</option>
-              <option value="fertig">Fertig</option>
-            </select>
-          </div> */}
             </div>
 
             {/* Save Button */}

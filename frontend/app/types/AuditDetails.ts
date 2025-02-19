@@ -2,7 +2,7 @@ export interface AuditDetails {
     au_idx: number;
     au_audit_date: string;
     au_number_of_days: number;
-    au_leadauditor_idx: number;
+    au_leadauditor_idx: string;
     au_auditstatus: string;
     au_place: string;
     au_theme: string;

@@ -1482,3 +1482,28 @@ export async function GetAllUser(){
         pool.release();
     }
 }
+
+
+export async function AssignRoleToUserForAudit(firstName: string, lastName: string, roleId: number, auditId: number) {
+    const userQuery = 'SELECT u_userId FROM u_user WHERE u_firstname = ? AND u_lastname = ?';
+    const insertQuery = 'INSERT INTO ru_rolesuser (ru_r_id, ru_u_userId, audit) VALUES (?, ?, ?)';
+    const pool = await connectionPool.getConnection();
+
+    try {
+        const [userRows]: any = await pool.execute(userQuery, [firstName, lastName]);
+        
+        if (userRows.length === 0) {
+            return new Error(`User mit Name ${firstName} ${lastName} nicht gefunden.`);
+        }
+
+        const userId = userRows[0].u_userId;
+
+        const [result]: any = await pool.execute(insertQuery, [roleId, userId, auditId]);
+
+        return { message: "Role successfully assigned to user.", result };
+    } catch (error) {
+        return new Error(`Failed to assign role: ${error.message}`);
+    } finally {
+        pool.release();
+    }
+}
