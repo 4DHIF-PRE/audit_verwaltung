@@ -439,7 +439,7 @@ export default function Question({question, onChange}: { question: QuestionInt }
   }
 
   return (
-      <div className={`p-6 ${bgColorClass} rounded-lg shadow-md`}>
+      <div className={`p-6 ${bgColorClass} rounded-lg mt-1 shadow-md`}>
         {/* Gesetz und Typ (immer sichtbar) */}
         <div className="mb-4 flex justify-between items-center">
           <div>
