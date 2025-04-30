@@ -213,7 +213,7 @@ export default function Setup() {
           </div>
         </div>
 
-        {/* Right Column - Details and Comments */}
+        {/* - */}
         <div className="flex-1 ml-10 m-2 flex flex-col">
           {/* Finding Details */}
           {selectedFinding && (
