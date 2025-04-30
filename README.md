@@ -1,8 +1,12 @@
 
-# Current backend restricitons
+# Aufgaben
 
-- no HTTPS (plain text cookies)
-- no password/email change available due to the lack of alternative authentication (Combined with notification send)
-- no notifications (Working on)
-- registration-tokens which expire before being consumed will remain in the database if they are not manually deleted (currently no deletion event scheduled)
-- changing the IDs of existing roles can result in undefined/unwwanted behaviour
+- Bugfix: Datumsanzeige beim Chat
+- Bugfix: Refresh-Button
+- Datei-Upload
+- Design Verbesserungen:
+    - Responsive Layout
+    - Bugfix: Scrollbar
+    - (Eventuell andere Farbanpassungen)
+- Verbesserungen im Datenbankmodell
+- „Finding Erledigt“ Button
