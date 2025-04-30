@@ -230,6 +230,11 @@ export default function AuditPage() {
       setAudits((prevAudits) =>
         prevAudits.filter((audit) => audit.au_idx !== auditId)
       );
+
+      if (selectedAudit === auditId) {
+        setSelectedAudit(0);
+      }
+
     } catch (error) {
       console.error("Error deleting audit:", error);
       alert(`Audit ${auditId} konnte nicht gelöscht werden.`);
@@ -552,6 +557,7 @@ export default function AuditPage() {
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeleteAudit(audit.au_idx);
+                              selectedAudit === null
                             }}
                           >
                             ❌
