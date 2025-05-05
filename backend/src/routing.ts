@@ -765,48 +765,39 @@ expressApp.put('/questions/:id', async (req, res) => {
 });
 
 expressApp.delete('/questions/:id', async (req, res) => {
+    // 1) ID parsen & validieren
     const questionId = parseInt(req.params.id, 10);
     if (isNaN(questionId)) {
-        return res.status(400).json({ message: "Invalid question ID" });
+      return res.status(400).json({ message: "Invalid question ID" });
     }
-});
-expressApp.get('/findings/workon/:id', async (req, res) => {
-    const findingWorkOnId = req.params.id;
-    const result = await GetFindingWorkOnById(+findingWorkOnId);
+  
+    // 2) Frage laden, um an qu_audit_idx zu kommen
+    const question = await GetQuestionById(questionId);
+    if (question instanceof Error) {
+      return res.status(404).json({ message: question.message });
+    }
+  
+    // 3) Audit laden & Status prüfen
+    const audit = await GetAuditById(question.qu_audit_idx);
+    if (audit instanceof Error) {
+      return res.status(500).json({ message: audit.message });
+    }
+    if (audit.au_auditstatus !== 'bereit') {
+      return res
+        .status(403)
+        .json({ message: "Fragen dürfen nur im Status 'bereit' gelöscht werden" });
+    }
+  
+    // 4) Lösch-Operation
+    const result = await DeleteQuestion(questionId);
     if (result instanceof Error) {
-        res.status(400).json({ message: result.message });
-    } else {
-        res.status(200).json(result);
+      return res.status(500).json({ message: result.message });
     }
-});
-
-expressApp.post('/findings/workon/:id', async (req, res) => {
-    const workon = req.body;
-    const findingId = req.params.id;
-
-    if (!Array.isArray(workon)) {
-        return res.status(400).json({ message: "Invalid data format, expected an array of workon data." });
-    }
-
-    try {
-        const createdWorkOns = [];
-
-        for (const finding of workon) {
-            const result = await CreateFindingWorkOn(findingId, finding.comment);
-            if (result instanceof Error) {
-                console.error("Error creating workon:", result.message);
-            } else {
-                createdWorkOns.push(result);
-            }
-        }
-
-        res.status(201).json({ created: createdWorkOns.length, data: createdWorkOns });
-    } catch (error) {
-        console.error("Error saving workons:", error);
-        res.status(500).json({ message: "Error saving workon data", error: error.message });
-    }
-});
-
+  
+    // 5) Erfolg zurückmelden
+    return res.json({ message: "Frage erfolgreich gelöscht" });
+  });
+  
 
 expressApp.post('/questions/bulk', async (req, res) => {
     const questions = req.body;
@@ -877,7 +868,7 @@ expressApp.get('/getFindingsById/:id', async (req, res) => {
         return;
     }else{
         res.status(200).json(result);
-        return;
+        return; 
     }
 });
 
