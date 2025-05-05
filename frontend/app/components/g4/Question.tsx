@@ -223,41 +223,25 @@ export default function Question({question, onChange}: { question: QuestionInt }
 
   const handleDrop = (event: React.DragEvent) => {
     event.preventDefault();
-    const droppedFiles = event.dataTransfer.files;
+    const droppedFiles = Array.from(event.dataTransfer.files);
 
-    // Extract filenames from the dropped files and update state with strings
-    const filenames = Array.from(droppedFiles).map((file) =>
-        file.name.replace(/;/g, "")
-    );
-    //filenames.concat(files);
-    //console.log(filenames);
-    setFiles((prevFiles) => Array.from(new Set([...prevFiles, ...filenames])));
-    console.log(files);
-    setFileData((prevFiles) =>
-        Array.from(new Set([...prevFiles, ...Array.from(droppedFiles)]))
-    );
+    if (droppedFiles.length === 0) return;
+
+    const newFilenames = droppedFiles.map((file) => file.name.replace(/;/g, ""));
+
+    setFiles((prev) => Array.from(new Set([...prev, ...newFilenames])));
+    setFileData((prev) => Array.from(new Set([...prev, ...droppedFiles])));
   };
 
-  //maby add a dupicat restriction on name?
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const {filesChanged} = event.target;
-    console.log(filesChanged);
-    if (filesChanged) {
-      // Extract filenames from the selected files and update state with strings
-      const fileList = Array.from(filesChanged);
-      const filenames = Array.from(filesChanged).map((file) =>
-          file.name.replace(/;/g, "")
-      );
-      //filenames.concat(files);
-      //console.log(tmp);
-      setFiles((prevFiles) =>
-          Array.from(new Set([...prevFiles, ...filenames]))
-      );
-      console.log(files);
-      setFileData((prevFiles) =>
-          Array.from(new Set([...prevFiles, ...fileList]))
-      );
-    }
+    const fileList = event.target.files;
+    if (!fileList) return;
+
+    const selectedFiles = Array.from(fileList);
+    const newFilenames = selectedFiles.map((file) => file.name.replace(/;/g, ""));
+
+    setFiles((prev) => Array.from(new Set([...prev, ...newFilenames])));
+    setFileData((prev) => Array.from(new Set([...prev, ...selectedFiles])));
   };
 
   const handleRemoveFile = async (fileToRemove: string) => {
@@ -307,117 +291,19 @@ export default function Question({question, onChange}: { question: QuestionInt }
     }
   };
 
-  const handleDownload = async (fileToDownload: string) => {
-    const downloadButton = document.getElementById(
-        `removeFile-${fileToDownload}`
-    );
-    if (downloadButton) {
-      downloadButton.disabled = true;
+  const handleDownload = (filename: string) => {
+    const file = fileData.find((f) => f.name.replace(/;/g, "") === filename);
+    if (!file) {
+      alert("Datei konnte nicht gefunden werden.");
+      return;
     }
-    try {
-      if (findingId !== -1) {
-        const attachmentsResponse = await fetch(
-            `http://localhost:3000/api/finding/attachments/${findingId}/filenames`
-        );
-        const attachments = await attachmentsResponse.json();
-        // console.log(attachments);
-        // Get list of existing file names
-        const existingFileNames = Array.isArray(attachments.fileName)
-            ? attachments.fileName.map((file) => file.fa_filename)
-            : [];
-        if (existingFileNames.length === 0)
-          console.log("List of API files is empty.");
-        else {
-          const fileReturned = attachments.fileName.find(
-              (file) => file.fa_filename === fileToDownload
-          );
 
-          if (fileReturned) {
-            // fileReturned shouldn't be null or undefined if the file you're trying to delete is in the database.
-            /* By design, the first file that was found with a matching file name will be downloaded.
-             */
-            console.log("Preparing to fetch file for download...");
-            const fileResult = await fetch(
-                `http://localhost:3000/api/finding/attachments/${fileReturned.fa_id}`
-            );
-            const fileData = await fileResult.json();
-            if (
-                fileResult.ok &&
-                fileData.fileName &&
-                fileData.fileName.length > 0
-            ) {
-              console.log("File retrieved, preparing download...");
-
-              const fileObject = fileData.fileName[0];
-              const bufferData = new Uint8Array(fileObject.fa_file.data); // Binary data
-              const fullBlob = new Blob([bufferData]); // Create a blob
-
-              const reader = new FileReader();
-              reader.onload = function () {
-                const arrayBuffer = reader.result as ArrayBuffer;
-                const byteArray = new Uint8Array(arrayBuffer);
-
-                // Locate the first instance of "\r\n\r\n" (header-body separator)
-                const separator = new TextEncoder().encode("\r\n\r\n");
-                let startIndex = -1;
-
-                for (let i = 0; i < byteArray.length - separator.length; i++) {
-                  if (
-                      separator.every(
-                          (byte, index) => byteArray[i + index] === byte
-                      )
-                  ) {
-                    startIndex = i + separator.length;
-                    break;
-                  }
-                }
-
-                if (startIndex !== -1) {
-                  console.log("Found header separator at byte:", startIndex);
-
-                  // Extract the actual file content after headers
-                  const cleanContent = byteArray.slice(startIndex);
-
-                  // Preserve the original file type (if detected)
-                  const detectedType =
-                      fileObject.fa_filename.split(".").pop() ||
-                      "application/octet-stream";
-                  const cleanBlob = new Blob([cleanContent], {
-                    type: detectedType,
-                  });
-
-                  // Create download link
-                  const url = window.URL.createObjectURL(cleanBlob);
-                  const downloadLink = document.createElement("a");
-                  downloadLink.href = url;
-                  downloadLink.download = fileObject.fa_filename;
-                  document.body.appendChild(downloadLink);
-                  downloadLink.click();
-
-                  // Cleanup
-                  document.body.removeChild(downloadLink);
-                  window.URL.revokeObjectURL(url);
-                } else {
-                  console.error(
-                      "Could not locate file content in the multipart data."
-                  );
-                }
-              };
-
-              reader.readAsArrayBuffer(fullBlob);
-            } else {
-              console.error(
-                  "Failed to retrieve file content or file data structure is unexpected."
-              );
-            }
-          } else console.warn("File not found on the server. Are you trying to download a local file?")
-        }
-      }
-    } catch (error) {
-      console.error("Error occurred while downloading file:", error);
-    } finally {
-      if (downloadButton) downloadButton.disabled = false;
-    }
+    const url = URL.createObjectURL(file);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const toggleCollapse = () => {
