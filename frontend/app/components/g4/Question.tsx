@@ -368,10 +368,10 @@ export default function Question({question, onChange}: { question: QuestionInt }
                             <select
                                 id="status"
                                 onChange={(e) => {
-                                    setSelectedStatus(e.target.value);
+                                    //setSelectedStatus(e.target.value);
                                     onChange();
                                 }}
-                                value={selectedStatus}
+                                //value={selectedStatus}
                                 className="border rounded-lg p-2.5 text-gray-700 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                             >
                                 <option value="offen">Frage bewerten</option>
@@ -418,7 +418,7 @@ export default function Question({question, onChange}: { question: QuestionInt }
                         ></textarea>
                     </div>
 
-                    {(selectedStatus === "dokumentiert" ||
+                    {/*{(selectedStatus === "dokumentiert" ||
                         selectedStatus === "kritisch") && (
                         <div className="mb-4">
                             <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
@@ -436,7 +436,7 @@ export default function Question({question, onChange}: { question: QuestionInt }
                             ></textarea>
                         </div>
                     )}
-
+*/}
                     <div
                         className="flex items-center justify-center w-full mb-4"
                         onDrop={handleDrop}
