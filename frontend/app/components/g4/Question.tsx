@@ -23,14 +23,16 @@ interface QuestionProps {
 }
 
 export default function Question({question, onChange}: { question: QuestionInt }) {
-    const [selectedStatus, setSelectedStatus] = useState("");
+    //const [selectedStatus, setSelectedStatus] = useState("");
+    const [implemented, setImplemented] = useState(null);
+    const [documented, setDocumented] = useState(null);
     const [selectedLevel, setSelectedLevel] = useState(0);
     const [auditorComment, setAuditorComment] = useState("");
     const [findingComment, setFindingComment] = useState("");
 
     const [law, setLaw] = useState({law: "", type: "", text: ""});
     const [loading, setLoading] = useState(true);
-    const [files, setFiles] = useState<string[]>([]); // Store filenames as strings
+    const [files, setFiles] = useState<string[]>([]);
     const [fileData, setFileData] = useState<{ name: string; content: string }[]>([]);
     const [isCollapsed, setIsCollapsed] = useState(true);
     const [findingId, setFindingId] = useState(-1);
@@ -46,23 +48,19 @@ export default function Question({question, onChange}: { question: QuestionInt }
             setLoading(true);
             console.log("onload");
             try {
-                // Fetch the findings data from the API (assuming only one finding is returned)
                 const findingResponse = await fetch(
                     `http://localhost:3000/api/questions/${question.qu_idx}/finding`
                 );
-                const finding = await findingResponse.json(); // Expecting a single finding object
 
-                // Log the findings to inspect the data structure
+                const finding = await findingResponse.json();
 
                 if (finding) {
-                    // Fetch the laws data from the API
                     setFindingId(finding.f_id);
                     const lawResponse = await fetch(
                         `http://localhost:3000/law/${question.qu_law_idx}`
                     );
                     const lawDetails = await lawResponse.json();
 
-                    // Update state with fetched data
                     if (lawDetails) {
                         setLaw({
                             law: lawDetails.la_law,
@@ -73,16 +71,16 @@ export default function Question({question, onChange}: { question: QuestionInt }
                     question.qu_law_law = lawDetails.la_law;
                     question.qu_law_text = lawDetails.la_text;
 
-                    if (finding.f_status !== undefined) {
-                        setSelectedStatus(finding.f_status.toString());
-                    }
+                    setImplemented(finding.f_implemented || null);
+                    setDocumented(finding.f_documented || null);
                     setSelectedLevel(finding.f_level || 0);
                     setAuditorComment(finding.f_comment || "");
                     setFindingComment(finding.f_finding_comment || "");
 
                 } else {
                     console.log("No finding available.");
-                    setSelectedStatus("");
+                    setImplemented(null);
+                    setDocumented(null);
                     setAuditorComment("");
                     setFindingComment("");
                     setSelectedLevel(0);
@@ -261,8 +259,6 @@ export default function Question({question, onChange}: { question: QuestionInt }
                         `http://localhost:3000/api/finding/attachments/${findingId}/filenames`
                     );
                     const attachments = await attachmentsResponse.json();
-                    // console.log(attachments);
-                    // Get list of existing file names
                     const existingFileNames = Array.isArray(attachments.fileName)
                         ? attachments.fileName.map((file) => file.fa_filename)
                         : [];
@@ -272,9 +268,6 @@ export default function Question({question, onChange}: { question: QuestionInt }
                         const fileReturned = attachments.fileName.find(file => file.fa_filename === fileToRemove)
 
                         if (typeof fileReturned !== 'undefined' && fileReturned != null) {
-                            // fileReturned shouldn't be null or undefined if the file you're trying to delete is in the database.
-                            /* By design, the first file that was found with a matching file name will be removed.
-                            */
                             const deleteResult = await fetch(`http://localhost:3000/api/finding/attachments/${fileReturned.fa_id}/delete`)
                             if (deleteResult.ok) alert("File removed successfully!")
                         }
@@ -331,13 +324,9 @@ export default function Question({question, onChange}: { question: QuestionInt }
 
     // Background color logic
     let bgColorClass = "bg-gray-100 dark:bg-gray-800";
-    if (selectedStatus === "richtig") {
-        bgColorClass = "bg-green-100 dark:bg-green-800";
-    } else if (selectedStatus === "kritisch") {
-        bgColorClass = "bg-red-100 dark:bg-red-800";
-    } else if (selectedStatus === "dokumentiert") {
-        bgColorClass = "bg-yellow-100 dark:bg-yellow-800";
-    }
+    if(implemented && documented) bgColorClass = "bg-green-100 dark:bg-green-800";
+    else if ((implemented && !documented) || (!implemented && documented)) bgColorClass = "bg-yellow-100 dark:bg-yellow-800";
+    else if (!implemented && !documented) bgColorClass = "bg-red-100 dark:bg-red-800";
 
     if (loading) {
         return <div>Loading...</div>;
