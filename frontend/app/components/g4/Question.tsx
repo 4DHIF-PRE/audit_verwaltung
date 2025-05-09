@@ -26,7 +26,6 @@ export default function Question({question, onChange}: { question: QuestionInt }
     //const [selectedStatus, setSelectedStatus] = useState("");
     const [implemented, setImplemented] = useState(null);
     const [documented, setDocumented] = useState(null);
-    const [selectedLevel, setSelectedLevel] = useState(0);
     const [auditorComment, setAuditorComment] = useState("");
     const [findingComment, setFindingComment] = useState("");
 
@@ -37,6 +36,8 @@ export default function Question({question, onChange}: { question: QuestionInt }
     const [isCollapsed, setIsCollapsed] = useState(true);
     const [findingId, setFindingId] = useState(-1);
     const fetchedOnceRef = useRef(false);
+    const [dokumentiert, setDokumentiert] = useState("");
+    const [implementiert, setImplementiert] = useState("");
 
 
     // Load data from API
@@ -361,45 +362,37 @@ export default function Question({question, onChange}: { question: QuestionInt }
             {!isCollapsed && (
                 <>
                     <div className="container flex gap-4">
-                        <form className="max-w-sm mb-4">
+                        <div>
                             <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                                Status
+                               Dokumentiert 
                             </label>
-                            <select
-                                id="status"
-                                onChange={(e) => {
-                                    //setSelectedStatus(e.target.value);
-                                    onChange();
-                                }}
-                                //value={selectedStatus}
-                                className="border rounded-lg p-2.5 text-gray-700 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                            >
-                                <option value="offen">Frage bewerten</option>
-                                <option value="richtig">Keine Findings</option>
-                                <option value="dokumentiert">Nur dokumentiert</option>
-                                <option value="kritisch">Kritisches Finding</option>
-                            </select>
-                        </form>
+                            <div>
+                            <label>
+                                <input className="" type="radio" name="dokumentiertRadio" value="dokumentiertJa" />
+                                    Ja
+                            </label>
+                            <label>
+                                <input className="ml-2" type="radio" name="dokumentiertRadio" value="dokumentiertNein" />
+                                    Nein
+                                 </label>
+                                </div>
+                            </div>
 
-                        <form>
+                        <div>
                             <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                                Level
+                                Implementiert
                             </label>
-                            <select
-                                id="level"
-                                onChange={(e) => {
-                                    setSelectedLevel(parseInt(e.target.value));
-                                    onChange();
-                                }}
-                                value={selectedLevel}
-                                className="border rounded-lg p-2.5 text-gray-700 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                            >
-                                <option value="0">Kein Level ausgewählt</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                            </select>
-                        </form>
+                            <div>
+                            <label className="">
+                                <input className="" type="radio" name="implementiertRadio" value="implementiertJa" />
+                                    Ja
+                            </label>
+                            <label>
+                                <input className="ml-2" type="radio" name="implementiertRadio" value="implementiertNein" />
+                                    Nein
+                                 </label>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="mb-4">
