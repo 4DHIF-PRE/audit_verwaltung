@@ -24,11 +24,8 @@ interface QuestionProps {
 
 export default function Question({question, onChange}: { question: QuestionInt }) {
     //const [selectedStatus, setSelectedStatus] = useState("");
-    const [implemented, setImplemented] = useState(null);
-    const [documented, setDocumented] = useState(null);
     const [auditorComment, setAuditorComment] = useState("");
     const [findingComment, setFindingComment] = useState("");
-
     const [law, setLaw] = useState({law: "", type: "", text: ""});
     const [loading, setLoading] = useState(true);
     const [files, setFiles] = useState<string[]>([]);
@@ -36,11 +33,11 @@ export default function Question({question, onChange}: { question: QuestionInt }
     const [isCollapsed, setIsCollapsed] = useState(true);
     const [findingId, setFindingId] = useState(-1);
     const fetchedOnceRef = useRef(false);
-    const [dokumentiert, setDokumentiert] = useState("");
-    const [implementiert, setImplementiert] = useState("");
+    const [documented, setDocumented] = useState(false);
+    const [implemented, setImplemented] = useState(false);
+    const [selectedLevel, setSelectedLevel] = useState<string|null>(null);
+    const baseDiv = document.getElementById("baseDiv");
 
-
-    // Load data from API
     useEffect(() => {
         if (fetchedOnceRef.current) return;
 
@@ -325,16 +322,28 @@ export default function Question({question, onChange}: { question: QuestionInt }
 
     // Background color logic
     let bgColorClass = "bg-gray-100 dark:bg-gray-800";
-    if(implemented && documented) bgColorClass = "bg-green-100 dark:bg-green-800";
-    else if ((implemented && !documented) || (!implemented && documented)) bgColorClass = "bg-yellow-100 dark:bg-yellow-800";
-    else if (!implemented && !documented) bgColorClass = "bg-red-100 dark:bg-red-800";
 
     if (loading) {
         return <div>Loading...</div>;
     }
 
+    function checkFarbe(){
+        if(implemented&&documented){
+            //grün shit
+            baseDiv.style.backgroundColor="bg-green-100";
+        }
+        else if(!implemented&&!documented){
+            //rot shit 
+            baseDiv.style.backgroundColor="bg-red-100";
+        }
+        else {
+            //gelbshit
+            baseDiv.style.backgroundColor="bg-yellow-100";
+        }
+    }
+
     return (
-        <div className={`p-6 ${bgColorClass} rounded-lg mt-1 shadow-md`}>
+        <div id="baseDiv" className={`p-6 ${bgColorClass} rounded-lg mt-1 shadow-md`}>
             {/* Gesetz und Typ (immer sichtbar) */}
             <div className="mb-4 flex justify-between items-center">
                 <div>
@@ -362,17 +371,25 @@ export default function Question({question, onChange}: { question: QuestionInt }
             {!isCollapsed && (
                 <>
                     <div className="container flex gap-4">
-                        <div>
+                        <div className="mr-4">
                             <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                Dokumentiert 
                             </label>
                             <div>
                             <label>
-                                <input className="" type="radio" name="dokumentiertRadio" value="dokumentiertJa" />
+                                <input className="" type="radio" name="dokumentiertRadio" value="ja" onChange={event=>{
+                                    setDocumented(true);
+                                    console.log(documented);
+                                    checkFarbe();
+                                }}/>
                                     Ja
                             </label>
                             <label>
-                                <input className="ml-2" type="radio" name="dokumentiertRadio" value="dokumentiertNein" />
+                                <input className="ml-2" type="radio" name="dokumentiertRadio" value="nein" onChange={event=>{
+                                    setDocumented(false);
+                                    console.log(documented);
+                                    checkFarbe();
+                                    }}/>
                                     Nein
                                  </label>
                                 </div>
@@ -384,11 +401,20 @@ export default function Question({question, onChange}: { question: QuestionInt }
                             </label>
                             <div>
                             <label className="">
-                                <input className="" type="radio" name="implementiertRadio" value="implementiertJa" />
+                                <input className="" type="radio" name="implementiertRadio" value="ja" onChange={event=>{
+                                    useEffect(() => {
+                                        console.log("Documented: ", documented);
+                                        checkFarbe();
+                                    }, [documented]);
+                                }}/>
                                     Ja
                             </label>
                             <label>
-                                <input className="ml-2" type="radio" name="implementiertRadio" value="implementiertNein" />
+                                <input className="ml-2" type="radio" name="implementiertRadio" value="nein" onChange={event=>{
+                                    setImplemented(false);
+                                    console.log(implemented);
+                                    checkFarbe();
+                                    }}/>
                                     Nein
                                  </label>
                             </div>
