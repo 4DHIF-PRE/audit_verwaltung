@@ -330,7 +330,7 @@ export default function Question({question, onChange}: { question: QuestionInt }
         const levelBox = document.getElementById("levelDiv") as HTMLElement;
         if(documentedCheckbox.checked&&implementedCheckbox.checked){
             console.log("beide sind gechecked");
-            levelBox.classList.remove("hidden");
+            levelBox.classList.add("hidden");
             setDocumented(true);
             setImplemented(true);
             /*grün wenn es implementiert UND dokumentiert ist  */ 
@@ -339,7 +339,7 @@ export default function Question({question, onChange}: { question: QuestionInt }
         else if(!documentedCheckbox.checked&&!implementedCheckbox.checked){
             /*wenn es nicht implementiert und dokumentiert ist dann ist der div rot*/
             console.log("beide sind nicht gechecked");
-            levelBox.classList.add("hidden");
+            levelBox.classList.remove("hidden");
             setDocumented(false);
             setImplemented(false);
             baseDiv.style.backgroundColor="#fee2e2";
@@ -349,7 +349,7 @@ export default function Question({question, onChange}: { question: QuestionInt }
             console.log("eine checkbox ist gechecked die andere nicht");
             setDocumented(false);
             setImplemented(true);
-            levelBox.classList.add("hidden");
+            levelBox.classList.remove("hidden");
             baseDiv.style.backgroundColor="#fef9c3";
         }
          else if(documentedCheckbox.checked&&!implementedCheckbox.checked) {
@@ -357,7 +357,7 @@ export default function Question({question, onChange}: { question: QuestionInt }
             console.log("eine checkbox ist gechecked die andere nicht");
             setDocumented(true);
             setImplemented(false);
-            levelBox.classList.add("hidden");
+            levelBox.classList.remove("hidden");
             baseDiv.style.backgroundColor="#fef9c3";
         }
     }
@@ -401,7 +401,7 @@ export default function Question({question, onChange}: { question: QuestionInt }
                             <label className="mr-4" htmlFor="implementedCheckbox">Implementiert</label>  
                         </div>
 
-                        <div id="levelDiv" className="flex flex-row hidden">
+                        <div id="levelDiv" className="flex flex-row">
                             <label className="mr-2" htmlFor="levelBox">Level</label>  
                             <select id="levelBox" className="bg-transparent h-6 border border-solid border-gray-500 pl-2 pr-3" name="levelBoxWild" onChange={anderesAusgesucht=>setSelectedLevel(Number(anderesAusgesucht.target.value))}>
                                 <optgroup label="Finding-Level">
