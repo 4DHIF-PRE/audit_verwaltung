@@ -33,10 +33,7 @@ export default function Question({question, onChange}: { question: QuestionInt }
     const [isCollapsed, setIsCollapsed] = useState(true);
     const [findingId, setFindingId] = useState(-1);
     const fetchedOnceRef = useRef(false);
-    const [documented, setDocumented] = useState(false);
-    const [implemented, setImplemented] = useState(false);
     const [selectedLevel, setSelectedLevel] = useState<string|null>(null);
-    const baseDiv = document.getElementById("baseDiv");
 
     useEffect(() => {
         if (fetchedOnceRef.current) return;
@@ -69,19 +66,16 @@ export default function Question({question, onChange}: { question: QuestionInt }
                     question.qu_law_law = lawDetails.la_law;
                     question.qu_law_text = lawDetails.la_text;
 
-                    setImplemented(finding.f_implemented || null);
-                    setDocumented(finding.f_documented || null);
+                    //setImplemented(finding.f_implemented || null);
+                    //setDocumented(finding.f_documented || null);
                     setSelectedLevel(finding.f_level || 0);
                     setAuditorComment(finding.f_comment || "");
                     setFindingComment(finding.f_finding_comment || "");
 
                 } else {
                     console.log("No finding available.");
-                    setImplemented(null);
-                    setDocumented(null);
                     setAuditorComment("");
                     setFindingComment("");
-                    setSelectedLevel(0);
                 }
 
                 if (finding) {
@@ -320,30 +314,41 @@ export default function Question({question, onChange}: { question: QuestionInt }
         setIsCollapsed(!isCollapsed);
     };
 
-    // Background color logic
-    let bgColorClass = "bg-gray-100 dark:bg-gray-800";
+    let bgColorClass = "bg-red-100 dark:bg-red-800";
 
     if (loading) {
         return <div>Loading...</div>;
     }
 
+
+    /* ennio was here type shit*/
     function checkFarbe(){
-        if(implemented&&documented){
-            //grün shit
-            baseDiv.style.backgroundColor="bg-green-100";
+        let baseDiv = document.getElementById("baseDiv") as HTMLElement;
+        const documentedCheckbox = document.getElementById("documentedCheckbox") as HTMLInputElement;
+        const implementedCheckbox = document.getElementById("implementedCheckbox") as HTMLInputElement;
+        const levelBox = document.getElementById("levelDiv") as HTMLElement;
+        if(documentedCheckbox.checked&&implementedCheckbox.checked){
+            console.log("beide sind gechecked");
+            levelBox.classList.remove("hidden");
+            /*grün wenn es implementiert UND dokumentiert ist  */ 
+            baseDiv.style.backgroundColor="#d1fae5";
         }
-        else if(!implemented&&!documented){
-            //rot shit 
-            baseDiv.style.backgroundColor="bg-red-100";
+        else if(!documentedCheckbox.checked&&!implementedCheckbox.checked){
+            /*wenn es nicht implementiert und dokumentiert ist dann ist der div rot*/
+            console.log("beide sind nicht gechecked");
+            levelBox.classList.add("hidden");
+            baseDiv.style.backgroundColor="#fee2e2";
         }
         else {
-            //gelbshit
-            baseDiv.style.backgroundColor="bg-yellow-100";
+            /*sonst ist es gelb bei allen anderen kombinationen */
+            console.log("eine checkbox ist gechecked die andere nicht");
+            levelBox.classList.add("hidden");
+            baseDiv.style.backgroundColor="#fef9c3";
         }
     }
 
     return (
-        <div id="baseDiv" className={`p-6 ${bgColorClass} rounded-lg mt-1 shadow-md`}>
+        <div id="baseDiv" className={`p-6 ${bgColorClass} rounded-lg mt-1 shadow-md mt-4`}>
             {/* Gesetz und Typ (immer sichtbar) */}
             <div className="mb-4 flex justify-between items-center">
                 <div>
@@ -371,53 +376,25 @@ export default function Question({question, onChange}: { question: QuestionInt }
             {!isCollapsed && (
                 <>
                     <div className="container flex gap-4">
-                        <div className="mr-4">
-                            <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                               Dokumentiert 
-                            </label>
-                            <div>
-                            <label>
-                                <input className="" type="radio" name="dokumentiertRadio" value="ja" onChange={event=>{
-                                    setDocumented(true);
-                                    console.log(documented);
-                                    checkFarbe();
-                                }}/>
-                                    Ja
-                            </label>
-                            <label>
-                                <input className="ml-2" type="radio" name="dokumentiertRadio" value="nein" onChange={event=>{
-                                    setDocumented(false);
-                                    console.log(documented);
-                                    checkFarbe();
-                                    }}/>
-                                    Nein
-                                 </label>
-                                </div>
-                            </div>
+                        <div className="mr-4 mb-4">
+                            <input className="mr-1" type="checkbox" id="documentedCheckbox" onChange={checkFarbe}/>
+                            <label htmlFor="documentedCheckbox">Dokumentiert</label>  
+                        </div>
 
                         <div>
-                            <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                                Implementiert
-                            </label>
-                            <div>
-                            <label className="">
-                                <input className="" type="radio" name="implementiertRadio" value="ja" onChange={event=>{
-                                    useEffect(() => {
-                                        console.log("Documented: ", documented);
-                                        checkFarbe();
-                                    }, [documented]);
-                                }}/>
-                                    Ja
-                            </label>
-                            <label>
-                                <input className="ml-2" type="radio" name="implementiertRadio" value="nein" onChange={event=>{
-                                    setImplemented(false);
-                                    console.log(implemented);
-                                    checkFarbe();
-                                    }}/>
-                                    Nein
-                                 </label>
-                            </div>
+                            <input className="mr-1" type="checkbox" id="implementedCheckbox" onChange={checkFarbe}/>
+                            <label className="mr-4" htmlFor="implementedCheckbox">Implementiert</label>  
+                        </div>
+
+                        <div id="levelDiv" className="flex flex-row hidden">
+                            <label className="mr-2" htmlFor="levelBox">Level</label>  
+                            <select id="levelBox" className="bg-transparent h-6 border border-solid border-gray-500 pl-2 pr-3" name="levelBoxWild" >
+                                <optgroup label="Finding-Level">
+                                    <option>Stufe 1</option>
+                                    <option>Stufe 2</option>
+                                    <option>Stufe 3</option>
+                                </optgroup>
+                            </select>
                         </div>
                     </div>
 
