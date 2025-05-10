@@ -33,7 +33,9 @@ export default function Question({question, onChange}: { question: QuestionInt }
     const [isCollapsed, setIsCollapsed] = useState(true);
     const [findingId, setFindingId] = useState(-1);
     const fetchedOnceRef = useRef(false);
-    const [selectedLevel, setSelectedLevel] = useState<string|null>(null);
+    const [selectedLevel, setSelectedLevel] = useState<number>(0);
+    const [documented, setDocumented] = useState<boolean>(false);
+    const [implemented, setImplemented] = useState<boolean|null>(null);
 
     useEffect(() => {
         if (fetchedOnceRef.current) return;
@@ -320,7 +322,6 @@ export default function Question({question, onChange}: { question: QuestionInt }
         return <div>Loading...</div>;
     }
 
-
     /* ennio was here type shit*/
     function checkFarbe(){
         let baseDiv = document.getElementById("baseDiv") as HTMLElement;
@@ -330,6 +331,8 @@ export default function Question({question, onChange}: { question: QuestionInt }
         if(documentedCheckbox.checked&&implementedCheckbox.checked){
             console.log("beide sind gechecked");
             levelBox.classList.remove("hidden");
+            setDocumented(true);
+            setImplemented(true);
             /*grün wenn es implementiert UND dokumentiert ist  */ 
             baseDiv.style.backgroundColor="#d1fae5";
         }
@@ -337,11 +340,23 @@ export default function Question({question, onChange}: { question: QuestionInt }
             /*wenn es nicht implementiert und dokumentiert ist dann ist der div rot*/
             console.log("beide sind nicht gechecked");
             levelBox.classList.add("hidden");
+            setDocumented(false);
+            setImplemented(false);
             baseDiv.style.backgroundColor="#fee2e2";
         }
-        else {
+        else if(!documentedCheckbox.checked&&implementedCheckbox.checked) {
             /*sonst ist es gelb bei allen anderen kombinationen */
             console.log("eine checkbox ist gechecked die andere nicht");
+            setDocumented(false);
+            setImplemented(true);
+            levelBox.classList.add("hidden");
+            baseDiv.style.backgroundColor="#fef9c3";
+        }
+         else if(documentedCheckbox.checked&&!implementedCheckbox.checked) {
+            /*sonst ist es gelb bei allen anderen kombinationen */
+            console.log("eine checkbox ist gechecked die andere nicht");
+            setDocumented(true);
+            setImplemented(false);
             levelBox.classList.add("hidden");
             baseDiv.style.backgroundColor="#fef9c3";
         }
@@ -388,11 +403,11 @@ export default function Question({question, onChange}: { question: QuestionInt }
 
                         <div id="levelDiv" className="flex flex-row hidden">
                             <label className="mr-2" htmlFor="levelBox">Level</label>  
-                            <select id="levelBox" className="bg-transparent h-6 border border-solid border-gray-500 pl-2 pr-3" name="levelBoxWild" >
+                            <select id="levelBox" className="bg-transparent h-6 border border-solid border-gray-500 pl-2 pr-3" name="levelBoxWild" onChange={anderesAusgesucht=>setSelectedLevel(Number(anderesAusgesucht.target.value))}>
                                 <optgroup label="Finding-Level">
-                                    <option>Stufe 1</option>
-                                    <option>Stufe 2</option>
-                                    <option>Stufe 3</option>
+                                    <option value="1">Stufe 1</option>
+                                    <option value="2">Stufe 2</option>
+                                    <option value="3">Stufe 3</option>
                                 </optgroup>
                             </select>
                         </div>
@@ -510,7 +525,14 @@ export default function Question({question, onChange}: { question: QuestionInt }
                     <button
                         id="saveQuestion"
                         type="button"
-                        onClick={handleSave}
+                        onClick={() => {
+                            handleSave();
+                            //ok es funktioniert, das saven ist halt asynchron deswegen dauert es ein bisschen länger als ein console log
+                            //documented, implemented values -> werden in den documented & implemented hooks gesaved 
+                            console.log(documented);
+                            console.log(implemented);
+                            console.log(selectedLevel);
+                        }}
                         className="bg-red-500 hover:bg-red-600 text-white font-medium rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 pt-2 pb-2 pl-5 pr-5 mt-4"
                     >
                         Speichern
