@@ -108,9 +108,10 @@ export default function Question({question, onChange}: { question: QuestionInt }
 
     const handleSave = async () => {
         try {
-            document.getElementById("saveQuestion").style.visibility = "hidden";
+            document.getElementById("saveQuestion")!.style.visibility = "hidden";
 
-            const result = await fetch("...PUT für Finding...");
+            const request = {method:"PUT", headers:{'Content-Type': 'application/json'}, body:JSON.stringify({documented:documented, implemented:implemented, level:selectedLevel})};
+            const result = await fetch("http://localhost:3000/api/findings/" + findingId, request);
             if (result.ok) {
                 alert("Finding erfolgreich gespeichert!");
             } else {
@@ -120,7 +121,7 @@ export default function Question({question, onChange}: { question: QuestionInt }
             console.error("Fehler beim Speichern:", error);
             alert("Fehler beim Speichern des Findings.");
         } finally {
-            document.getElementById("saveQuestion").style.visibility = "visible";
+            document.getElementById("saveQuestion")!.style.visibility = "visible";
         }
     };
 
