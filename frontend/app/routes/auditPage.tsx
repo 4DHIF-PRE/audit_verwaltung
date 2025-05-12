@@ -606,7 +606,7 @@ export default function AuditPage() {
             <StatusBadge status={displayedAudits.find(f => f.au_idx == selectedAudit).au_auditstatus} />
           </div>
                   <AuditVorschau audit={selectedAudit} allAudits={audits}/>
-                  <div className="dark:bg-gray-800 p-4 rounded-b-lg">
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-b-lg">
                   <QuestionVorschau auditId={selectedAudit} questions={questions}/>
 
                   {/* Falls User Lead Auditor ist -> Zuweisen möglich */}

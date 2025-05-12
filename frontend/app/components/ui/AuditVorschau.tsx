@@ -77,12 +77,12 @@ export default function AuditVorschau({ audit, allAudits }: Props) {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-t-lg overflow-hidden transition-all duration-300 hover:shadow-xl">
+    <div className="bg-white dark:bg-gray-800 rounded-t-lg">
       {selectedAuditDetails ? (
         <div className="p-6">
           
           <div className="dark:bg-gray-800">
-          <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6">
+          <div className="bg-gray-200 dark:bg-gray-700 p-4 rounded-lg mb-6">
             <div className="flex items-center mb-4">
               <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-full mr-4">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
