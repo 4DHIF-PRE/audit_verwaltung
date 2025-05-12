@@ -2,24 +2,6 @@ import { useEffect, useState } from "react";
 import { AuditDetails } from "~/types/AuditDetails";
 import { UserDetails } from "~/types/UserDetails";
 
-// Status Badge Komponente für visuelles Feedback
-const StatusBadge = ({ status }) => {
-  const getStatusColor = () => {
-    switch (status.toLowerCase()) {
-      case "geplant": return "bg-blue-100 text-blue-800";
-      case "in bearbeitung": return "bg-yellow-100 text-yellow-800";
-      case "abgeschlossen": return "bg-green-100 text-green-800";
-      case "storniert": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  return (
-    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor()}`}>
-      {status.charAt(0).toUpperCase() + status.slice(1)}
-    </span>
-  );
-};
 
 interface Props {
   audit: number;
@@ -95,16 +77,11 @@ export default function AuditVorschau({ audit, allAudits }: Props) {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden transition-all duration-300 hover:shadow-xl">
+    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-t-lg overflow-hidden transition-all duration-300 hover:shadow-xl">
       {selectedAuditDetails ? (
         <div className="p-6">
-          <div className="flex justify-between items-start mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-              {selectedAuditDetails.au_theme}
-            </h2>
-            <StatusBadge status={selectedAuditDetails.au_auditstatus} />
-          </div>
-
+          
+          <div className="dark:bg-gray-800">
           <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6">
             <div className="flex items-center mb-4">
               <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-full mr-4">
@@ -150,17 +127,9 @@ export default function AuditVorschau({ audit, allAudits }: Props) {
 
           <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Typ</p>
-                <p className="font-medium text-gray-800 dark:text-white">
-                  {selectedAuditDetails.au_typ.charAt(0).toUpperCase() + selectedAuditDetails.au_typ.slice(1)}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Thema</p>
-                <p className="font-medium text-gray-800 dark:text-white">{selectedAuditDetails.au_theme}</p>
-              </div>
+              
             </div>
+          </div>
           </div>
         </div>
       ) : (
