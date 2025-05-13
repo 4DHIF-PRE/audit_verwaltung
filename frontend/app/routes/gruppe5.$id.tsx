@@ -147,7 +147,6 @@ export default function Setup() {
     } catch (error) {
       console.error('Fehler beim Absenden des Kommentars:', error);
     }
-
     setComment("");
   };
 
