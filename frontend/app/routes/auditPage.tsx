@@ -118,6 +118,24 @@ export default function AuditPage() {
   const [canCreateAudit, setCanCreateAudit] = useState(false);
   const [isAuditor, setIsAuditor] = useState<boolean>(false);
 
+  const StatusBadge = ({ status }) => {
+    const getStatusColor = () => {
+      switch (status.toLowerCase()) {
+        case "geplant": return "bg-blue-100 text-blue-800";
+        case "in bearbeitung": return "bg-yellow-100 text-yellow-800";
+        case "abgeschlossen": return "bg-green-100 text-green-800";
+        case "storniert": return "bg-red-100 text-red-800";
+        default: return "bg-gray-100 text-gray-800";
+      }
+    };
+  
+    return (
+      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor()}`}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </span>
+    );
+  };
+  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -230,6 +248,11 @@ export default function AuditPage() {
       setAudits((prevAudits) =>
         prevAudits.filter((audit) => audit.au_idx !== auditId)
       );
+
+      if (selectedAudit === auditId) {
+        setSelectedAudit(0);
+      }
+
     } catch (error) {
       console.error("Error deleting audit:", error);
       alert(`Audit ${auditId} konnte nicht gelöscht werden.`);
@@ -490,6 +513,7 @@ export default function AuditPage() {
     <div className="flex flex-col w-full h-screen bg-white">
       <Navbar />
       <div className="flex-1 p-4 bg-white dark:bg-black mt-9">
+        <div>
         <div className="flex flex-col lg:flex-row flex-1 mt-6 space-y-6 lg:space-y-0 lg:space-x-6">
           {/* Left Section */}
           <div className="flex flex-col w-full lg:w-1/3 space-y-4 relative">
@@ -521,8 +545,8 @@ export default function AuditPage() {
 
               <div className="flex flex-col h-full">
                 <div
-                  className="flex-1 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4
-    max-h-[50vh] sm:max-h-[calc(100vh-100px)]"
+                  className="flex-1 overflow-y-auto border border-gray-300 dark:bg-gray-800 
+                  rounded-md mb-4 max-h-[calc(6*4.8rem)] sm:max-h-[calc(6*4.8rem)]"
                 >
                   {displayedAudits.length > 0 ? (
                     displayedAudits.map((audit) => (
@@ -552,6 +576,7 @@ export default function AuditPage() {
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeleteAudit(audit.au_idx);
+                              selectedAudit === null
                             }}
                           >
                             ❌
@@ -573,8 +598,15 @@ export default function AuditPage() {
           <div className="w-full lg:w-2/3 h-full flex flex-col items-center justify-center p-6">
             {selectedAudit ? (
                 <div
-                    className="w-full max-w-screen-lg h-full bg-gray-200 dark:bg-gray-900 p-6 rounded-md flex flex-col justify-start">
+                    className="w-full max-w-screen-lg h-full bg-gray-200 dark:bg-gray-900  p-6 rounded-md flex flex-col justify-start">
+                  <div className="flex justify-between items-start mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+                {displayedAudits.find(f => f.au_idx == selectedAudit).au_theme}
+            </h2>
+            <StatusBadge status={displayedAudits.find(f => f.au_idx == selectedAudit).au_auditstatus} />
+          </div>
                   <AuditVorschau audit={selectedAudit} allAudits={audits}/>
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-b-lg">
                   <QuestionVorschau auditId={selectedAudit} questions={questions}/>
 
                   {/* Falls User Lead Auditor ist -> Zuweisen möglich */}
@@ -685,6 +717,7 @@ export default function AuditPage() {
                         </button>
                     )}
                   </div>
+                  </div>
 
 
                 </div>
@@ -705,6 +738,7 @@ export default function AuditPage() {
 
 
           </div>
+        </div>
         </div>
       </div>
       <Footer/>
