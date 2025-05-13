@@ -124,6 +124,11 @@ export default function Setup() {
     }
   }
 
+  const getTimeFormatted = (time_data) => {
+    const date_time = new Date(time_data);
+    return (date_time.getDate() + "." + (Number.parseInt(date_time.getMonth()) + 1) + "." + date_time.getFullYear() + " " + date_time.toLocaleTimeString());
+  }
+
   const handleCommentChange = (e) => {
     setComment(e.target.value);
   };
@@ -288,7 +293,7 @@ export default function Setup() {
               <div className="h-40 overflow-y-auto border p-2 rounded">
                 {workonComments.length > 0 ? (
                   workonComments.map((comment, index) => (
-                    <p key={index} className="text-md mb-2">{comment.fw_kommentar}</p>
+                    <p key={index} className="text-md mb-2">{comment.fw_kommentar} <a className='text-xs text-gray-500/80'>{getTimeFormatted(comment.fw_datum)}</a></p>
                   ))
                 ) : (
                   <p>Keine Kommentare verfügbar.</p>
