@@ -5,30 +5,13 @@ import { Law } from "../../types/Law"; // definiere diesen Typ separat
 interface Props {
   auditId: number;
   questions: QuestionInt[];
+  auditStatus: string | null;
 }
 
-export default function QuestionVorschau({ auditId, questions }: Props) {
+export default function QuestionVorschau({ auditId, questions, auditStatus  }: Props) {
   const [updatedQuestions, setUpdatedQuestions] = useState<QuestionInt[]>(questions);
-  const [auditStatus, setAuditStatus] = useState<string | null>(null);
   const [lawMap, setLawMap] = useState<Record<number, Law>>({});
 
-  useEffect(() => {
-    const fetchAuditStatus = async () => {
-      try {
-        const response = await fetch(`http://localhost:3000/audit/${auditId}`);
-        const data = await response.json();
-        if (data?.au_auditstatus) {
-          setAuditStatus(data.au_auditstatus);
-        }
-      } catch (error) {
-        console.error("Error fetching audit status:", error);
-      }
-    };
-
-    if (auditId) {
-      fetchAuditStatus();
-    }
-  }, [auditId]);
 
   useEffect(() => {
     setUpdatedQuestions(questions);
@@ -38,18 +21,6 @@ export default function QuestionVorschau({ auditId, questions }: Props) {
     const fetchLaws = async () => {
       const uniqueLawIds = [...new Set(questions.map((q) => q.qu_law_idx))];
       const newLawMap: Record<number, Law> = {};
-
-      for (const id of uniqueLawIds) {
-        try {
-          const response = await fetch(`http://localhost:3000/law/${id}`);
-          const data = await response.json();
-          if (data?.la_idx) {
-            newLawMap[id] = data;
-          }
-        } catch (err) {
-          console.error("Fehler beim Laden des Gesetzes", err);
-        }
-      }
 
       setLawMap(newLawMap);
     };
@@ -91,6 +62,7 @@ export default function QuestionVorschau({ auditId, questions }: Props) {
     }
   };
 
+  
   return (
     <div className="flex-1 ml-6 p-4 rounded-md mb-16">
       {auditId === 0 ? (

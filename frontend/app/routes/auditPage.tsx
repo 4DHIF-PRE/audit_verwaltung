@@ -120,7 +120,7 @@ const [users, setUsers] = useState<(UserDetails & { selectedRole?: number })[]>(
   const [role, setRole] = useState<number>();
   const [canCreateAudit, setCanCreateAudit] = useState(false);
   const [isAuditor, setIsAuditor] = useState<boolean>(false);
-
+  const selectedAuditData = audits.find((a) => a.au_idx === selectedAudit);
   const StatusBadge = ({ status }) => {
     const getStatusColor = () => {
       switch (status.toLowerCase()) {
@@ -644,15 +644,22 @@ const filteredUnassignedUsers = users
             {selectedAudit ? (
                 <div
                     className="w-full max-w-screen-lg h-full bg-gray-200 dark:bg-gray-900  p-6 rounded-md flex flex-col justify-start">
+                 
                   <div className="flex justify-between items-start mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-                {displayedAudits.find(f => f.au_idx == selectedAudit).au_theme}
-            </h2>
-            <StatusBadge status={displayedAudits.find(f => f.au_idx == selectedAudit).au_auditstatus} />
-          </div>
-                  <AuditVorschau audit={selectedAudit} allAudits={audits} />
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+                      {selectedAuditData?.au_theme || "Audit nicht gefunden"}
+                    </h2>
+                    <StatusBadge status={selectedAuditData?.au_auditstatus || "unbekannt"} />
+                  </div>
+
+                  <AuditVorschau audit={selectedAudit} allAudits={audits} allUsers={users} />
+
                   <div className="bg-white dark:bg-gray-800 p-4 rounded-b-lg">
-                    <QuestionVorschau auditId={selectedAudit} questions={questions} />
+                    <QuestionVorschau
+  auditId={selectedAudit}
+  questions={questions}
+  auditStatus={selectedAuditData?.au_auditstatus || null}
+/>
 
                     {isLeadAuditor && selectedAudit && (
                       <div className="my-4">

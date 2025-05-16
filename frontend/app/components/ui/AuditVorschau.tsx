@@ -1,56 +1,18 @@
-import { useEffect, useState } from "react";
 import { AuditDetails } from "~/types/AuditDetails";
 import { UserDetails } from "~/types/UserDetails";
-
 
 interface Props {
   audit: number;
   allAudits: AuditDetails[];
+  allUsers: UserDetails[]; 
 }
 
-export default function AuditVorschau({ audit, allAudits }: Props) {
-  const [users, setUsers] = useState<UserDetails[]>([]);
-  const [selectedAuditDetails, setSelectedAuditDetails] = useState<AuditDetails | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch('http://localhost:3000/getalluser', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch users');
-        }
-        const userData: UserDetails[] = await response.json();
-        setUsers(userData);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
-  useEffect(() => {
-    if (audit === 0) {
-      setSelectedAuditDetails(null);
-    } else {
-      const foundAudit = allAudits.find((a) => a.au_idx === audit);
-      setSelectedAuditDetails(foundAudit || null);
-    }
-  }, [audit, allAudits]);
+export default function AuditVorschau({ audit, allAudits, allUsers }: Props) {
+  const selectedAuditDetails = allAudits.find((a) => a.au_idx === audit) || null;
 
   const getAuditorName = (auditorId: number | null) => {
     if (!auditorId) return "Unbekannt";
-    const user = users.find((u) => u.u_userId === auditorId.toString());
+    const user = allUsers.find((u) => u.u_userId === auditorId.toString());
     return user ? `${user.u_firstname} ${user.u_lastname}` : "Unbekannt";
   };
 
@@ -68,21 +30,28 @@ export default function AuditVorschau({ audit, allAudits }: Props) {
     return date;
   };
 
-  if (isLoading) {
+  if (!selectedAuditDetails) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex flex-col items-center justify-center p-12 text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400 dark:text-gray-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+        <span className="text-xl text-gray-500 dark:text-gray-400 font-medium">
+          Audit auswählen oder erstellen
+        </span>
+        <p className="text-gray-400 dark:text-gray-500 mt-2">
+          Wählen Sie ein bestehendes Audit aus oder erstellen Sie ein neues
+        </p>
       </div>
     );
   }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-t-lg">
-      {selectedAuditDetails ? (
-        <div className="p-6">
-          
-          <div className="dark:bg-gray-800">
+      <div className="p-6">
+        <div className="dark:bg-gray-800">
           <div className="bg-gray-200 dark:bg-gray-700 p-4 rounded-lg mb-6">
+            {/* Zeitraum */}
             <div className="flex items-center mb-4">
               <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-full mr-4">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -99,6 +68,7 @@ export default function AuditVorschau({ audit, allAudits }: Props) {
               </div>
             </div>
 
+            {/* Ort */}
             <div className="flex items-center mb-4">
               <div className="bg-green-100 dark:bg-green-900 p-2 rounded-full mr-4">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600 dark:text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -112,6 +82,7 @@ export default function AuditVorschau({ audit, allAudits }: Props) {
               </div>
             </div>
 
+            {/* Auditor */}
             <div className="flex items-center">
               <div className="bg-purple-100 dark:bg-purple-900 p-2 rounded-full mr-4">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-600 dark:text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -120,31 +91,14 @@ export default function AuditVorschau({ audit, allAudits }: Props) {
               </div>
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Auditor</p>
-                <p className="font-medium text-gray-800 dark:text-white">{getAuditorName(selectedAuditDetails.au_leadauditor_idx)}</p>
+                <p className="font-medium text-gray-800 dark:text-white">
+                  {getAuditorName(selectedAuditDetails.au_leadauditor_idx)}
+                </p>
               </div>
             </div>
           </div>
-
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-            <div className="grid grid-cols-2 gap-4">
-              
-            </div>
-          </div>
-          </div>
         </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center p-12 text-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400 dark:text-gray-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-          <span className="text-xl text-gray-500 dark:text-gray-400 font-medium">
-            Audit auswählen oder erstellen
-          </span>
-          <p className="text-gray-400 dark:text-gray-500 mt-2">
-            Wählen Sie ein bestehendes Audit aus oder erstellen Sie ein neues
-          </p>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
