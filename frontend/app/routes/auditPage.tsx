@@ -302,11 +302,22 @@ const [users, setUsers] = useState<(UserDetails & { selectedRole?: number })[]>(
 
  
 const handleMehrereZuweisen = async (auditId: number) => {
-  const toAssign = users.filter((u) => u.selectedRole);
+  const toAssign = users.filter(
+    (u) =>
+      u.selectedRole !== undefined &&
+      u.selectedRole !== null &&
+      u.selectedRole !== "" &&
+      !auditZugewiesen.some((assigned) => assigned.u_userId === u.u_userId)
+  );
+
+  if (toAssign.length === 0) {
+    alert("Bitte wählen Sie mindestens einen Benutzer mit einer Rolle aus.");
+    return;
+  }
 
   try {
-    for (const user of toAssign) {
-      const response = await fetch("http://localhost:3000/assignRole", {
+    const assignRequests = toAssign.map((user) =>
+      fetch("http://localhost:3000/assignRole", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -315,23 +326,35 @@ const handleMehrereZuweisen = async (auditId: number) => {
           roleId: user.selectedRole,
           auditId: auditId,
         }),
-      });
+      }).then((res) => {
+        if (!res.ok) {
+          return res.json().then((data) => {
+            throw new Error(data.message || `Fehler bei ${user.u_firstname}`);
+          });
+        }
+        return res.json();
+      })
+    );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Zuweisung fehlgeschlagen.");
-      }
+    await Promise.all(assignRequests);
 
-      console.log(`✅ ${user.u_firstname} zugewiesen`);
-    }
+    // Aktualisiere die Anzeige
+    const newlyAssigned = toAssign.map((u) => ({
+      ...u,
+      ru_r_id: u.selectedRole,
+    }));
 
-    alert("Alle ausgewählten Benutzer erfolgreich zugewiesen!");
+    setAuditZugewiesen((prev) => [...prev, ...newlyAssigned]);
+
+    alert("Benutzer erfolgreich zugewiesen.");
     setModalOpen(false);
   } catch (error: any) {
     console.error("Fehler beim Zuweisen:", error);
     alert(`Fehler: ${error.message}`);
   }
 };
+
+
 
   const filteredAudits = audits.filter((audit) => {
     const auditText = audit.au_theme.toLowerCase();
