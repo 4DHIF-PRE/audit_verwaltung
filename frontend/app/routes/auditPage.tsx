@@ -13,6 +13,7 @@ import { useLoaderData } from "@remix-run/react";
 import { Footer } from "~/components/Footer";
 import { Button } from "~/components/ui/button";
 import jsPDF from "jspdf";
+import { Modal } from "~/components/ui/modal";
 import { useNavigate } from "react-router-dom";
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -100,12 +101,14 @@ export default function AuditPage() {
   // States
   const [user, setUser] = useState<UserDetails>();
   const [roles, setRoles] = useState<RolesUser[]>([]);
-  const [users, setUsers] = useState<UserDetails[]>([]);
+const [users, setUsers] = useState<(UserDetails & { selectedRole?: number })[]>([]);
   const [audits, setAudits] = useState<AuditDetails[]>([]);
   const [findings, setFindings] = useState<FindingDetails[]>([]);
   const [auditstatus, setAuditstatus] = useState<string>("");
   const [selectedAudit, setSelectedAudit] = useState<number>(0);
   const [isLeadAuditor, setIsLeadAuditor] = useState<boolean>(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [searchText, setSearchText] = useState("");
 
   const [auditZugewiesen, setAuditZugewiesen] = useState<UserDetails[]>([]);
 
@@ -298,30 +301,37 @@ export default function AuditPage() {
   };
 
  
-  const handleZuweisen = async (audit: number) => {
-    try {
+const handleMehrereZuweisen = async (auditId: number) => {
+  const toAssign = users.filter((u) => u.selectedRole);
+
+  try {
+    for (const user of toAssign) {
       const response = await fetch("http://localhost:3000/assignRole", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          firstName: firstName,
-          lastName: lastName,
-          roleId: role,
-          auditId: audit,
+          firstName: user.u_firstname,
+          lastName: user.u_lastname,
+          roleId: user.selectedRole,
+          auditId: auditId,
         }),
       });
 
-      const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || "Fehler beim Zuweisen.");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Zuweisung fehlgeschlagen.");
       }
 
-      alert("Erfolgreich zugewiesen!");
-    } catch (error: any) {
-      alert(`Fehler: ${error.message}`);
+      console.log(`✅ ${user.u_firstname} zugewiesen`);
     }
-  };
 
+    alert("Alle ausgewählten Benutzer erfolgreich zugewiesen!");
+    setModalOpen(false);
+  } catch (error: any) {
+    console.error("Fehler beim Zuweisen:", error);
+    alert(`Fehler: ${error.message}`);
+  }
+};
 
   const filteredAudits = audits.filter((audit) => {
     const auditText = audit.au_theme.toLowerCase();
@@ -330,6 +340,18 @@ export default function AuditPage() {
     const matchesType = filter === "" || audit.au_auditstatus === filter;
     return matchesSearch && matchesType;
   });
+
+const filteredUnassignedUsers = users
+  .filter((user) =>
+    `${user.u_firstname} ${user.u_lastname}`.toLowerCase().includes(searchText.toLowerCase())
+  )
+  .filter(
+    (user) =>
+      !auditZugewiesen.some(
+        (assigned) => assigned.u_userId === user.u_userId
+      )
+  );
+
 
 
   const changeStatus = async (auditId: number) => {
@@ -605,47 +627,84 @@ export default function AuditPage() {
             </h2>
             <StatusBadge status={displayedAudits.find(f => f.au_idx == selectedAudit).au_auditstatus} />
           </div>
-                  <AuditVorschau audit={selectedAudit} allAudits={audits}/>
+                  <AuditVorschau audit={selectedAudit} allAudits={audits} />
                   <div className="bg-white dark:bg-gray-800 p-4 rounded-b-lg">
-                  <QuestionVorschau auditId={selectedAudit} questions={questions}/>
+                    <QuestionVorschau auditId={selectedAudit} questions={questions} />
 
-                  {/* Falls User Lead Auditor ist -> Zuweisen möglich */}
-                  {isLeadAuditor && selectedAudit && (
-                      <div className="mb-4 flex gap-4 items-center">
-                        <input
-                            type="text"
-                            placeholder="Vornamen eingeben..."
-                            className="p-2 border rounded-md w-full text-black"
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                        />
-                        <input
-                            type="text"
-                            placeholder="Nachnamen eingeben..."
-                            className="p-2 border rounded-md w-full text-black"
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
-                        />
-                        <select
-                            className="p-2 border rounded-md text-black"
-                            value={role}
-                            onChange={(e) => setRole(Number(e.target.value))}
-                        >
-                          <option value="2">Auditor</option>
-                          <option value="3">Auditee</option>
-                          <option value="4">Gast</option>
-                          <option value="5">Reporter</option>
-                          <option value="6">Manual-Writer</option>
-                        </select>
+                    {isLeadAuditor && selectedAudit && (
+                      <div className="my-4">
                         <button
-                            className="px-4 py-2 rounded-md bg-green-500 hover:bg-green-600 text-white"
-                            onClick={() => handleZuweisen(selectedAudit)}
+                          className="px-4 py-2 rounded-md bg-blue-500 hover:bg-blue-600 text-white"
+                          onClick={() => setModalOpen(true)}
                         >
-                          Zuweisen
+                          Personen hinzufügen
                         </button>
                       </div>
-                  )}
+                    )}
 
+                    <Modal isOpen={modalOpen} className="w-[600px] h-[520px] fixed rounded-md bg-white p-6 overflow-hidden">
+                      <h2 className="text-lg font-bold mb-4">Benutzer zuweisen</h2>
+                      <input
+                        type="text"
+                        placeholder="Suche Benutzer..."
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        className="w-full p-2 border border-gray-400 rounded-md mb-4 text-black"
+                      />
+                      <div className="h-[320px] overflow-y-auto border border-gray-300 rounded-md mb-4 divide-y dark:border-gray-600">
+                       {filteredUnassignedUsers.length === 0 ? (
+  <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+    Keine Benutzer gefunden
+  </div>
+) : (
+  filteredUnassignedUsers.map((userItem) => (
+    <div
+      key={userItem.u_userId}
+      className="flex items-center justify-between px-4 py-2"
+    >
+      <span className="dark:text-white">
+        {userItem.u_firstname} {userItem.u_lastname}
+      </span>
+      <select
+        className="p-1 border rounded text-black"
+        value={userItem.selectedRole || ""}
+        onChange={(e) => {
+          const updatedUsers = users.map((u) =>
+            u.u_userId === userItem.u_userId
+              ? { ...u, selectedRole: Number(e.target.value) }
+              : u
+          );
+          setUsers(updatedUsers);
+        }}
+      >
+        <option value="">Rolle wählen</option>
+        <option value="2">Auditor</option>
+        <option value="3">Auditee</option>
+        <option value="4">Gast</option>
+        <option value="5">Reporter</option>
+        <option value="6">Manual-Writer</option>
+      </select>
+    </div>
+  ))
+)}
+                      </div>
+
+                      <div className="flex justify-between">
+                        <button
+                          onClick={() => handleMehrereZuweisen(selectedAudit)}
+                          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded"
+                        >
+                          OK
+                        </button>
+                        <button
+                          onClick={() => setModalOpen(false)}
+                          className="px-4 py-2 bg-gray-300 text-black hover:bg-gray-400 rounded"
+                        >
+                          Abbrechen
+                        </button>
+                      </div>
+                    </Modal>
+           
                   {/* Zugewiesene User anzeigen */}
                   {auditZugewiesen.length > 0 && (
                       <div className="my-4">
