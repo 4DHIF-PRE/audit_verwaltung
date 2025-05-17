@@ -15,8 +15,8 @@ export default function AuditFilter({ SetQuestions, questionsFiltern }) {
   console.log(newFiltered);
 }
   return (
-    <div className="flex justify-center items-center h-250 w-150">
-      <div className="pt-6 pb-6 px-6 py-6 mx-10 my-10 mt-10 mb-2 bg-gray-100 rounded-lg shadow-md flex flex-1 space-x-4 dark:bg-gray-900">
+    <div className="flex justify-center items-center h-250 w-150 mb-2">
+      <div className="pt-6 pb-6 px-6 py-6 mx-10 my-10 mt-10 mb-6 bg-gray-100 rounded-lg shadow-md flex flex-1 space-x-4 dark:bg-gray-900">
         <div className="flex-1">
           <label
             htmlFor="auditNumber"
