@@ -464,92 +464,111 @@ const filteredUnassignedUsers = users
     }
   };
 
-  const exportAllAuditsAndFindingsToPDF = async (
-    audits: AuditDetails[],
-    findings: FindingDetails[]
-  ) => {
-    try {
-      if (audits.length === 0) {
-        throw new Error("Keine Audits gefunden.");
-      }
+  /** Exportiert alle Audits mit ihren Findings als PDF, indem es die Findings pro Audit nachlädt */
+const exportAllAuditsAndFindingsToPDF = async () => {
+  if (audits.length === 0) {
+    alert("Keine Audits vorhanden.");
+    return;
+  }
 
-      const doc = new jsPDF();
-      let yPosition = 10;
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let y = 20;
+  let pageCount = 1;
 
-      audits.forEach((audit, auditIndex) => {
-        if (yPosition > 270) {
-          doc.addPage();
-          yPosition = 10;
-        }
+  for (let ai = 0; ai < audits.length; ai++) {
+    const audit = audits[ai];
 
-        const formattedDate = new Date(audit.au_audit_date).toLocaleDateString(
-          "de-DE",
-          {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-          }
-        );
-
-        // Audit-Details
-        doc.setFontSize(14);
-        doc.text(`Audit ${auditIndex + 1}: ${audit.au_theme}`, 10, yPosition);
-        doc.setFontSize(12);
-        doc.text(`Datum: ${formattedDate}`, 10, yPosition + 10);
-        doc.text(`Ort: ${audit.au_place}`, 10, yPosition + 20);
-        doc.text(
-          `Status: ${audit.au_auditstatus || "Unbekannt"}`,
-          10,
-          yPosition + 30
-        );
-        doc.text(`Leitender Auditor: ${audit.au_leadauditor_idx}`, 10, yPosition + 40);
-        yPosition += 50;
-
-        // Findings filtern
-        const auditFindings = findings.filter(
-          (finding) => finding.f_au_audit_idx === audit.au_idx
-        );
-
-        if (auditFindings.length > 0) {
-          doc.text("Findings:", 10, yPosition);
-          yPosition += 10;
-
-          auditFindings.forEach((finding, index) => {
-            if (yPosition > 270) {
-              doc.addPage();
-              yPosition = 10;
-            }
-
-            const findingDate = finding.f_creation_date
-              ? new Date(finding.f_creation_date).toLocaleDateString("de-DE", {
-                  year: "numeric",
-                  month: "2-digit",
-                  day: "2-digit",
-                })
-              : "Keine Angabe";
-
-            doc.setFontSize(10);
-            doc.text(`${index + 1}.`, 10, yPosition);
-            doc.text(`   Level: ${finding.f_level || "Nicht angegeben"}`, 15, yPosition);
-            doc.text(`   Status: ${finding.f_status || "Nicht angegeben"}`, 15, yPosition + 5);
-            doc.text(`   Kommentar: ${finding.f_comment || "Keine"}`, 15, yPosition + 10);
-            doc.text(`   Maßnahme: ${finding.f_finding_comment || "Keine"}`, 15, yPosition + 15);
-            doc.text(`   Erstellt am: ${findingDate}`, 15, yPosition + 20);
-
-            yPosition += 35;
-          });
-        } else {
-          doc.text("Keine Findings für dieses Audit.", 10, yPosition);
-          yPosition += 20;
-        }
-      });
-
-      doc.save(`All_Audits_and_Findings.pdf`);
-    } catch (error) {
-      console.error("Fehler beim Exportieren der Audit-Details:", error);
-      alert("Fehler beim Exportieren der Audit-Details.");
+  if (y + 30 > pageHeight) {    
+      doc.addPage();                 
+      y = 20;                        
+      pageCount++;                   
     }
-  };
+
+    // 1) Findings live nachladen
+    let relevantFindings: any[] = [];
+    try {
+      const resp = await fetch(
+        `http://localhost:3000/findings/getall/${audit.au_idx}`,
+        { method: "GET", credentials: "include" }
+      );
+      if (resp.ok) relevantFindings = await resp.json();
+    } catch (e) {
+      console.error("Fehler beim Laden der Findings für Audit", audit.au_idx, e);
+    }
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(40, 40, 40);
+    doc.text(audit.au_theme, pageWidth / 2, y, { align: "center" });
+    y += 7;
+
+    // Trennlinie unter der Überschrift
+    doc.setDrawColor(100, 100, 100);
+    doc.setLineWidth(0.5);
+    doc.line(15, y, pageWidth - 15, y);
+    y += 8;
+
+    doc.setFillColor(230, 230, 230);
+    doc.rect(15, y, pageWidth - 30, 8, "F"); // gefülltes Rechteck
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Findings", 17, y + 5);
+    y += 12;
+
+    if (relevantFindings.length === 0) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+      doc.text("Keine Findings vorhanden.", 17, y);
+      y += 10;
+    } else {
+      for (let fi = 0; fi < relevantFindings.length; fi++) {
+        const f = relevantFindings[fi];
+
+        if (y > 270) {
+          doc.addPage();
+          pageCount++;
+          y = 20;
+        }
+
+        doc.setFillColor(245, 245, 245);
+        doc.rect(15, y - 2, pageWidth - 30, 16, "F");
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(11);
+        const indent = 17;
+        doc.setTextColor(0, 0, 0);
+        doc.text(`${fi + 1}. ID: ${f.f_id}`, indent, y + 3);
+        if (f.f_level && f.f_level > 0) {
+          doc.text(`Level: ${f.f_level}`, indent + 40, y + 3);
+        }
+        doc.text(`Law: ${f.f_qu_question_idx.qu_law_law}`, indent + 80, y + 3);
+        doc.text(
+          `Kommentar: ${f.f_comment || "–"}`,
+          indent,
+          y + 8
+        );
+
+        y += 18;
+      }
+    }
+    y+=12;
+
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    doc.text(
+      `Seite ${pageCount}`,
+      pageWidth / 2,
+      doc.internal.pageSize.getHeight() - 10,
+      { align: "center" }
+    );
+  }
+  doc.save(`AlleAudits&Findings.pdf`);
+};
+
 
   // Gefilterte Audits
   const displayedAudits = filteredAudits;

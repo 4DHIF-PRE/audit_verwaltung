@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Form } from "@remix-run/react";
+import { Link ,Form } from "@remix-run/react";
 import {LogOut, Moon, Sun} from "lucide-react";
 
 export function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         const currentTheme = localStorage.getItem("theme");
@@ -18,6 +19,21 @@ export function Navbar() {
 
         document.documentElement.classList.toggle("dark", isDarkMode);
     }, [isDarkMode]);
+
+    useEffect(() => {
+        fetch("http://localhost:3000/users/querySessionowner", {
+            method: "GET",
+            credentials: "include",
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                const isAdminUser = data.roles?.some((role: any) => role.r_id === 1);
+                setIsAdmin(isAdminUser);
+            })
+            .catch((err) => {
+                console.error("Session check failed", err);
+            });
+    }, []);
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
@@ -76,6 +92,13 @@ export function Navbar() {
                     id="navbar-default"
                 >
                     <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
+                        {isAdmin && (
+                            <li>
+                                <Link to="/users" className="hover:text-blue-500">
+                                    Users
+                                </Link>
+                            </li>
+                        )}
                         <li>
                             <button
                                 onClick={toggleTheme}
