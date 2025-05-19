@@ -1317,7 +1317,6 @@ export async function GetFindingWorkOnById(findingWorkOnId) {
 
 export async function CreateFindingWorkOn(id, comment) {
     let currentTime = new Date();
-    console.log(currentTime);
     const query = `
           INSERT INTO fw_finding_workon (fw_finding_idx, fw_kommentar, fw_datum)
           VALUES (?, ?, ?)
