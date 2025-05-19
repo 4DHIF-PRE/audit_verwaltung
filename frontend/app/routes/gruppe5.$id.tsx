@@ -141,6 +141,7 @@ export default function Setup() {
 
     try {
       const response = await postWorkonComment(selectedFinding.f_id, [{ comment }]);
+      handleRefreshComments();
       if (!response.ok) {
         console.error('Fehler beim Absenden des Kommentars:', response.status);
       }
@@ -322,8 +323,6 @@ export default function Setup() {
     </div>
   );
 }
-
-
 
 //funktioniert jetzt einwandfrei
 export async function postWorkonComment(id, commentData) {
