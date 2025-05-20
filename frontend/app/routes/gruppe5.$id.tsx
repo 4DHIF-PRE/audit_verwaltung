@@ -18,8 +18,13 @@ export default function Setup() {
     kritisch: true
   });
   const [error, setError] = useState(null);  // Fehlerzustand hinzufügen
+  let own_user_name = "Loading";
 
   useEffect(() => {
+    async function getownuser() {
+      own_user_name = await getUserName(document.cookie);
+    }
+    getownuser();
     async function fetchFindings() {
       const response = await showAllFindings(id);
       if (response.status === 404) {
@@ -35,6 +40,8 @@ export default function Setup() {
       }
     }
     fetchFindings();
+    // console.log(own_user_name);
+    // console.log(document.cookie);
   }, [id]);
 
   useEffect(() => {
@@ -56,8 +63,7 @@ export default function Setup() {
   const fetchWorkonComments = async () => {
     if (selectedFinding) {
       try {
-        const response = await getWorkonComments(selectedFinding.f_id);
-        const data = await response.json();
+        const data = await getWorkonComments(selectedFinding.f_id);
         setWorkonComments(Array.isArray(data) ? data : [data]);
       } catch (error) {
         console.error("Fehler beim Laden der Work-on-Kommentare:", error);
@@ -130,7 +136,7 @@ export default function Setup() {
   }
 
   const handleCommentChange = (e) => {
-    setComment(e.target.value);
+    setComment(e.target.value, own_user_name);
   };
 
   const handleCommentSubmit = async (e) => {
@@ -293,7 +299,15 @@ export default function Setup() {
               <div className="h-40 overflow-y-auto border p-2 rounded">
                 {workonComments.length > 0 ? (
                   workonComments.map((comment, index) => (
-                    <p key={index} className="text-md mb-2">{comment.fw_kommentar} <a className='text-xs text-gray-500/80'>{getTimeFormatted(comment.fw_datum)}</a></p>
+                    <p key={index} className="text-md mb-2">
+                      <a className="text-xs mb-2 text-gray-600/85">
+                        {"(" + (comment.fw_user?.u_firstname || own_user_name) + "): "}
+                      </a>
+                      {comment.fw_kommentar}
+                      <a className='text-xs text-gray-500/80'>
+                        {" " + getTimeFormatted(comment.fw_datum)}
+                      </a>
+                    </p>
                   ))
                 ) : (
                   <p>Keine Kommentare verfügbar.</p>
@@ -326,24 +340,35 @@ export default function Setup() {
 
 //funktioniert jetzt einwandfrei
 export async function postWorkonComment(id, commentData) {
+  // console.log(document.cookie);
   const response = await fetch(`http://localhost:3000/findings/workon/${id}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      Cookie: document.cookie || "",
     },
+    credentials: "include",
     body: JSON.stringify(commentData),
   });
   return response;
 }
 
 export async function getWorkonComments(id) {
+  // await new Promise(r => setTimeout(r, 1000));
   const response = await fetch(`http://localhost:3000/findings/workon/${id}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
     },
   });
-  return response;
+  let response_clean = await response.json();
+  for (let i = 0; i < response_clean.length; i++) {
+    // console.log(response_clean[i]);
+    let userid = response_clean[i].fw_user;
+    response_clean[i].fw_user = await getUserName(userid);
+    // console.log(response_clean[i]);
+  }
+  return response_clean;
 }
 
 
@@ -365,4 +390,14 @@ export async function getAudit(id) {
     },
   });
   return response;
+}
+
+export async function getUserName(id) {
+  const response = await fetch(`http://localhost:3000/username/${id}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  return response.json();
 }

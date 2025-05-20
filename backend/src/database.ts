@@ -1315,16 +1315,30 @@ export async function GetFindingWorkOnById(findingWorkOnId) {
     }
 }
 
-export async function CreateFindingWorkOn(id, comment) {
+export async function CreateFindingWorkOn(id, comment, sessionId) {
+    let user_type;
+    try {
+        user_type = await SessionToUser(sessionId);
+    } catch (error) {
+        return new Error(`Failed to find User: ${error.message}`);
+    }
+    let user_data;
+    try {
+        user_data = user_type.u_userId;
+    } catch (error) {
+        return new Error(`Failed to fetch User: ${error.message}`);
+    }
+
     let currentTime = new Date();
     const query = `
-          INSERT INTO fw_finding_workon (fw_finding_idx, fw_kommentar, fw_datum)
-          VALUES (?, ?, ?)
+          INSERT INTO fw_finding_workon (fw_finding_idx, fw_kommentar, fw_datum, fw_user)
+          VALUES (?, ?, ?, ?)
       `;
     const values = [
         id,
         comment,
-        currentTime
+        currentTime,
+        user_data
     ];
     const pool = await connectionPool.getConnection();
     try {
@@ -1481,6 +1495,19 @@ export async function GetAllUser(){
     }catch(error){
         return new Error(`Failed to retrieve users: ${error.message}`);
     }finally{
+        pool.release();
+    }
+}
+
+export async function GetUserNameById(userId) {
+    const query = `SELECT u_firstname FROM u_user WHERE u_userId = ?`;
+    const pool = await connectionPool.getConnection();
+    try {
+        const [rows] = await pool.execute(query, [userId]);
+        return rows[0] || null;
+    } catch (error) {
+        return new Error(`Failed to retrieve audit: ${error.message}`);
+    } finally {
         pool.release();
     }
 }
