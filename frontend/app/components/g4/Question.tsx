@@ -527,6 +527,7 @@ export default function Question({question, onSaved}: { question: QuestionInt })
                     <button
                         id="saveQuestion"
                         type="button"
+                        id={`save-button-${question.qu_idx}`}
                         onClick={() => {
                             handleSave();
                             //ok es funktioniert, das saven ist halt asynchron deswegen dauert es ein bisschen länger als ein console log

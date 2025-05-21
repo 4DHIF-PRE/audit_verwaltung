@@ -79,10 +79,12 @@ export default function App() {
 
   const handleSave = async () => {
 
-    questionRefs.current.forEach((questionDiv, index) => {
-      const button = questionDiv.querySelector<HTMLSelectElement>("#saveQuestion");
-      button.click();
-    })
+    for (const question of questions) {
+      const button = document.getElementById(`save-button-${question.qu_idx}`) as HTMLButtonElement;
+      if (button) {
+        button.click();
+      }
+    }
 
   const response = await fetch(`http://localhost:3000/audit/${id}`, {
     method: "PUT",
@@ -91,11 +93,9 @@ export default function App() {
     },
     body: JSON.stringify({ au_auditstatus: "findings_offen" })
     });
-    window.location.href = `/gruppe5`;
-
-   
-
     
+    await new Promise((r) => setTimeout(r, 1000));
+    window.location.href = `/gruppe5/${id}`;
 
   };
 
