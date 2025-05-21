@@ -14,13 +14,17 @@ export default function Setup() {
   const [workonComments, setWorkonComments] = useState([]);
   const [statusFilter, setStatusFilter] = useState({
     offen: true,
-    dokumentiert: true,
     richtig: true,
     kritisch: true
   });
   const [error, setError] = useState(null);  // Fehlerzustand hinzufügen
+  let own_user_name = "Loading";
 
   useEffect(() => {
+    async function getownuser() {
+      own_user_name = await getUserName(document.cookie);
+    }
+    getownuser();
     async function fetchFindings() {
       const response = await showAllFindings(id);
       if (response.status === 404) {
@@ -36,6 +40,8 @@ export default function Setup() {
       }
     }
     fetchFindings();
+    // console.log(own_user_name);
+    // console.log(document.cookie);
   }, [id]);
 
   useEffect(() => {
@@ -57,8 +63,7 @@ export default function Setup() {
   const fetchWorkonComments = async () => {
     if (selectedFinding) {
       try {
-        const response = await getWorkonComments(selectedFinding.f_id);
-        const data = await response.json();
+        const data = await getWorkonComments(selectedFinding.f_id);
         setWorkonComments(Array.isArray(data) ? data : [data]);
       } catch (error) {
         console.error("Fehler beim Laden der Work-on-Kommentare:", error);
@@ -88,8 +93,6 @@ export default function Setup() {
     switch (status) {
       case 'offen':
         return 'bg-gray-200';
-      case 'dokumentiert':
-        return 'bg-yellow-200';
       case 'richtig':
         return 'bg-green-200';
       case 'kritisch':
@@ -103,8 +106,6 @@ export default function Setup() {
     switch (status) {
       case 'offen':
         return 'border-gray-400';
-      case 'dokumentiert':
-        return 'border-yellow-400';
       case 'richtig':
         return 'border-green-400';
       case 'kritisch':
@@ -114,8 +115,28 @@ export default function Setup() {
     }
   };
 
+  const getStatusDescription = (documented, implemented) => {
+    switch (documented) {
+      case 0:
+        if (implemented == 0) {
+          return 'kritisch';
+        }
+        return 'offen';
+      case 1:
+        if (implemented == 0) {
+          return 'offen';
+        }
+        return 'richtig';
+    }
+  }
+
+  const getTimeFormatted = (time_data) => {
+    const date_time = new Date(time_data);
+    return (date_time.getDate() + "." + (Number.parseInt(date_time.getMonth()) + 1) + "." + date_time.getFullYear() + " " + date_time.toLocaleTimeString());
+  }
+
   const handleCommentChange = (e) => {
-    setComment(e.target.value);
+    setComment(e.target.value, own_user_name);
   };
 
   const handleCommentSubmit = async (e) => {
@@ -126,13 +147,13 @@ export default function Setup() {
 
     try {
       const response = await postWorkonComment(selectedFinding.f_id, [{ comment }]);
+      handleRefreshComments();
       if (!response.ok) {
         console.error('Fehler beim Absenden des Kommentars:', response.status);
       }
     } catch (error) {
       console.error('Fehler beim Absenden des Kommentars:', error);
     }
-
     setComment("");
   };
 
@@ -150,7 +171,7 @@ export default function Setup() {
 
   // Überprüfen, ob findings ein Array ist, bevor der Filter angewendet wird
   const filteredFindings = Array.isArray(findings)
-    ? findings.filter((finding) => statusFilter[finding.f_status])
+    ? findings.filter((finding) => statusFilter[getStatusDescription(finding.f_documented, finding.f_implemented)])
     : [];
 
   return (
@@ -170,7 +191,7 @@ export default function Setup() {
           <div className="mb-4 p-4 border rounded bg-gray-50 dark:bg-gray-800">
             <h2 className="text-lg font-semibold mb-2 text-black dark:text-white">Status filtern:</h2>
             <div className="flex space-x-4">
-              {['dokumentiert', 'richtig', 'kritisch'].map((status) => (
+              {['offen', 'richtig', 'kritisch'].map((status) => (
                 <label key={status} className="flex items-center text-black dark:text-gray-300">
                   <input
                     type="checkbox"
@@ -191,7 +212,7 @@ export default function Setup() {
               {filteredFindings.length > 0 ? (
                 filteredFindings.map((finding) => (
                   <Card
-                    className={`w-full p-4 cursor-pointer border-l-8 dark:text-black ${getStatusColor(finding.f_status)}`}
+                    className={`w-full p-4 cursor-pointer border-l-8 dark:text-black ${getStatusColor(getStatusDescription(finding.f_documented, finding.f_implemented))}`}
                     key={finding.f_id}
                     onClick={() => handleSelectFinding(finding)}
                   >
@@ -202,7 +223,7 @@ export default function Setup() {
                     </CardHeader>
                     <CardContent>
                       <p><strong>Erstelldatum:</strong> {finding.f_creation_date}</p>
-                      <p><strong>Status:</strong> {finding.f_status}</p>
+                      <p><strong>Status:</strong> {getStatusDescription(finding.f_documented, finding.f_implemented)}</p>
                     </CardContent>
                   </Card>
                 ))
@@ -213,12 +234,12 @@ export default function Setup() {
           </div>
         </div>
 
-        {/* Right Column - Details and Comments */}
+        {/* - */}
         <div className="flex-1 ml-10 m-2 flex flex-col">
           {/* Finding Details */}
           {selectedFinding && (
             <Card
-              className={`p-6 rounded-lg shadow-md w-full h-auto border-4 mb-4 ${getBorderColor(selectedFinding.f_status)}`}
+              className={`p-6 rounded-lg shadow-md w-full h-auto border-4 mb-4 ${getBorderColor(getStatusDescription(selectedFinding.f_documented, selectedFinding.f_implemented))}`}
             >
               <h2 className="text-3xl font-bold mb-4">Details zu Finding ID: {selectedFinding.f_id}</h2>
 
@@ -233,7 +254,7 @@ export default function Setup() {
               {showMore && (
                 <div>
                   <p className="text-lg mb-2"><strong>Erstelldatum:</strong> {selectedFinding.f_creation_date}</p>
-                  <p className="text-lg mb-2"><strong>Status:</strong> {selectedFinding.f_status}</p>
+                  <p className="text-lg mb-2"><strong>Status:</strong> {getStatusDescription(selectedFinding.f_documented, selectedFinding.f_implemented)}</p>
                   <p className="text-lg mb-2"><strong>Level:</strong> {selectedFinding.f_level}</p>
                   <div className="text-lg mb-2">
                     <strong>Audit:</strong>
@@ -278,7 +299,15 @@ export default function Setup() {
               <div className="h-40 overflow-y-auto border p-2 rounded">
                 {workonComments.length > 0 ? (
                   workonComments.map((comment, index) => (
-                    <p key={index} className="text-md mb-2">{comment.fw_kommentar}</p>
+                    <p key={index} className="text-md mb-2">
+                      <a className="text-xs mb-2 text-gray-600/85">
+                        {"(" + (comment.fw_user?.u_firstname || own_user_name) + "): "}
+                      </a>
+                      {comment.fw_kommentar}
+                      <a className='text-xs text-gray-500/80'>
+                        {" " + getTimeFormatted(comment.fw_datum)}
+                      </a>
+                    </p>
                   ))
                 ) : (
                   <p>Keine Kommentare verfügbar.</p>
@@ -309,28 +338,37 @@ export default function Setup() {
   );
 }
 
-
-
 //funktioniert jetzt einwandfrei
 export async function postWorkonComment(id, commentData) {
+  // console.log(document.cookie);
   const response = await fetch(`http://localhost:3000/findings/workon/${id}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      Cookie: document.cookie || "",
     },
+    credentials: "include",
     body: JSON.stringify(commentData),
   });
   return response;
 }
 
 export async function getWorkonComments(id) {
+  // await new Promise(r => setTimeout(r, 1000));
   const response = await fetch(`http://localhost:3000/findings/workon/${id}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
     },
   });
-  return response;
+  let response_clean = await response.json();
+  for (let i = 0; i < response_clean.length; i++) {
+    // console.log(response_clean[i]);
+    let userid = response_clean[i].fw_user;
+    response_clean[i].fw_user = await getUserName(userid);
+    // console.log(response_clean[i]);
+  }
+  return response_clean;
 }
 
 
@@ -352,4 +390,14 @@ export async function getAudit(id) {
     },
   });
   return response;
+}
+
+export async function getUserName(id) {
+  const response = await fetch(`http://localhost:3000/username/${id}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  return response.json();
 }

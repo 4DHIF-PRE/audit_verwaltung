@@ -2,7 +2,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import { validateEmail, validateName, validatePassword } from './util/validation.util.js';
 //Mein Lieblings-Import
-import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings, getFindingByQuestionID, getAuditQuestions, createFinding, updateFinding, deleteFinding, getFindingsByID, uploadAttachment, getFileNameByFindingId, getFilesByFindingId, deleteFileByFindingAttachmentId, getFileByFindingAttachmentId, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion, GetQuestionByAuditAndLaw, UpdateAuditStatus, GetFindingWorkOnById, CreateFindingWorkOn, GetWorkOnById, GetRolesUser, AddRoleForAudit, GetAllUser, getFindingsByAudit, AssignRoleToUserForAudit } from './database.js';
+import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings, getFindingByQuestionID, getAuditQuestions, createFinding, updateFinding, deleteFinding, getFindingsByID, uploadAttachment, getFileNameByFindingId, getFilesByFindingId, deleteFileByFindingAttachmentId, getFileByFindingAttachmentId, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion, GetQuestionByAuditAndLaw, UpdateAuditStatus, GetFindingWorkOnById, CreateFindingWorkOn, GetWorkOnById, GetRolesUser, AddRoleForAudit, GetAllUser, getFindingsByAudit, AssignRoleToUserForAudit, GetUserNameById } from './database.js';
 
 import { sendMailDefault, sendMailInvite } from './mailService.js';
 import cors from 'cors'
@@ -345,7 +345,6 @@ expressApp.get('/audit/questions/:id', async (req, res) => {
 
 });
 
-// POST einen neuen Finding zu einem Audit ( Finding erstellen )
 expressApp.post('/audit/finding', async (req, res) => {
 
     const findingData = req.body;
@@ -360,10 +359,9 @@ expressApp.post('/audit/finding', async (req, res) => {
     }
 });
 
-// PUT eines Findings von einem Audit ( Finding aktualisieren )
 expressApp.put('/audit/finding', async (req, res) => {
     const updateData = req.body;
-    //console.log("Update Data before updateFinding:")
+    // console.log("Update Data before updateFinding:")
     // console.log(updateData)
     try {
         const result = await updateFinding(updateData);
@@ -378,7 +376,6 @@ expressApp.put('/audit/finding', async (req, res) => {
 
 
 
-// DELETE eine Finding
 expressApp.delete('/audit/finding/:id', async (req, res) => {
     // const findingId:number = parseInt(req.params.id);
     try {
@@ -796,8 +793,42 @@ expressApp.delete('/questions/:id', async (req, res) => {
   
     // 5) Erfolg zurückmelden
     return res.json({ message: "Frage erfolgreich gelöscht" });
-  });
   
+});
+
+expressApp.post('/findings/workon/:id', async (req, res) => {
+    const sessionId = req.cookies[cookieName];
+    const workon = req.body;
+    const findingId = req.params.id;
+
+    if (!sessionId) {
+        res.status(401).json({ message: "Invalid sessionId" });
+        return;
+    }
+
+    if (!Array.isArray(workon)) {
+        return res.status(400).json({ message: "Invalid data format, expected an array of workon data." });
+    }
+
+    try {
+        const createdWorkOns = [];
+
+        for (const finding of workon) {
+            const result = await CreateFindingWorkOn(findingId, finding.comment, sessionId);
+            if (result instanceof Error) {
+                console.error("Error creating workon:", result.message);
+            } else {
+                createdWorkOns.push(result);
+            }
+        }
+
+        res.status(201).json({ created: createdWorkOns.length, data: createdWorkOns });
+    } catch (error) {
+        console.error("Error saving workons:", error);
+        res.status(500).json({ message: "Error saving workon data", error: error.message });
+    }
+});
+
 
 expressApp.post('/questions/bulk', async (req, res) => {
     const questions = req.body;
@@ -869,6 +900,18 @@ expressApp.get('/getFindingsById/:id', async (req, res) => {
     }else{
         res.status(200).json(result);
         return; 
+    }
+});
+
+expressApp.get('/username/:id', async (req, res) => {
+    const userid = req.params.id;
+    const result = await GetUserNameById(userid);
+    if(result instanceof Error){
+        res.status(400).json({message: result.message});
+        return;
+    }else{
+        res.status(200).json(result);
+        return;
     }
 });
 

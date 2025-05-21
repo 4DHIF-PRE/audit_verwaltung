@@ -1350,7 +1350,6 @@ export async function UpdateAuditImplemented(auditId, newImplemented) {
     }
 
 // Finding Functions
-
     export async function GetFindingWorkOnById(findingWorkOnId) {
         const query = `SELECT *
                        FROM fw_finding_workon
@@ -1361,28 +1360,44 @@ export async function UpdateAuditImplemented(auditId, newImplemented) {
             return rows || null;
         } catch (error) {
             return new Error(`Failed to retrieve question: ${error.message}`);
-        }
+    }
+}
+
+export async function CreateFindingWorkOn(id, comment, sessionId) {
+    let user_type;
+    try {
+        user_type = await SessionToUser(sessionId);
+    } catch (error) {
+        return new Error(`Failed to find User: ${error.message}`);
+    }
+    let user_data;
+    try {
+        user_data = user_type.u_userId;
+    } catch (error) {
+        return new Error(`Failed to fetch User: ${error.message}`);
     }
 
-    export async function CreateFindingWorkOn(id, comment) {
-        const query = `
-            INSERT INTO fw_finding_workon (fw_finding_idx, fw_kommentar)
-            VALUES (?, ?)
-        `;
-        const values = [
-            id,
-            comment,
-        ];
-        const pool = await connectionPool.getConnection();
-        try {
-            const [result] = await pool.execute(query, values);
-            return result;
-        } catch (error) {
-            return new Error(`Failed to create question: ${error.message}`);
-        } finally {
-            pool.release();
-        }
+    let currentTime = new Date();
+    const query = `
+          INSERT INTO fw_finding_workon (fw_finding_idx, fw_kommentar, fw_datum, fw_user)
+          VALUES (?, ?, ?, ?)
+      `;
+    const values = [
+        id,
+        comment,
+        currentTime,
+        user_data
+    ];
+    const pool = await connectionPool.getConnection();
+    try {
+        const [result] = await pool.execute(query, values);
+        return result;
+    } catch (error) {
+        return new Error(`Failed to create question: ${error.message}`);
+    } finally {
+        pool.release();
     }
+}
 
     export async function GetAllFindings(id): Promise<string | Error> {
         const connection = await connectionPool.getConnection();
@@ -1498,19 +1513,31 @@ export async function UpdateAuditImplemented(auditId, newImplemented) {
 
 
 // Rollen
-    export async function AddRoleForAudit(userId: number, auditId: number) {
-        const query = `INSERT INTO ru_rolesuser (ru_r_id, ru_u_userId, audit)
-                       VALUES (?, ?, ?)`;
-        const pool = await connectionPool.getConnection();
-        try {
-            const [result] = await pool.execute(query, [2, userId, auditId]);
-            return result;
-        } catch (error) {
-            return new Error(`Failed to add role for audit: ${error.message}`);
-        } finally {
-            pool.release();
-        }
+export async function AddRoleForAudit(userId: number, auditId: number) {
+  const query = `INSERT INTO ru_rolesuser (ru_r_id, ru_u_userId, audit) VALUES (?, ?, ?)`;
+  const pool = await connectionPool.getConnection();
+  try {
+      const [result] = await pool.execute(query, [2, userId, auditId]);
+      return result;
+  } catch (error) {
+      return new Error(`Failed to add role for audit: ${error.message}`);
+  } finally {
+      pool.release();
+  }
+}
+
+export async function GetUserNameById(userId) {
+    const query = `SELECT u_firstname FROM u_user WHERE u_userId = ?`;
+    const pool = await connectionPool.getConnection();
+    try {
+        const [rows] = await pool.execute(query, [userId]);
+        return rows[0] || null;
+    } catch (error) {
+        return new Error(`Failed to retrieve audit: ${error.message}`);
+    } finally {
+        pool.release();
     }
+}
 
     export async function GetRolesUser() {
         const query = `SELECT *
