@@ -17,8 +17,10 @@ export default function Setup() {
     richtig: true,
     kritisch: true
   });
-  const [error, setError] = useState(null);  // Fehlerzustand hinzufügen
+  const [error, setError] = useState(null);
   let own_user_name = "Loading";
+
+  let index_success = 0;
 
   useEffect(() => {
     async function getownuser() {
@@ -29,14 +31,14 @@ export default function Setup() {
       const response = await showAllFindings(id);
       if (response.status === 404) {
         setError("Finding nicht gefunden");
-        setFindings([]);  // Leere Array setzen, falls kein Finding gefunden wird
+        setFindings([]);
       } else if (!response.ok) {
         setError("Fehler beim Laden der Findings");
         setFindings([]);
       } else {
         const data = await response.json();
         setFindings(data);
-        setError(null);  // Fehler zurücksetzen, wenn die Daten erfolgreich geladen wurden
+        setError(null);
       }
     }
     fetchFindings();
@@ -93,6 +95,7 @@ export default function Setup() {
       case 'offen':
         return 'bg-gray-200';
       case 'richtig':
+        index_success++;
         return 'bg-green-200';
       case 'kritisch':
         return 'bg-red-200';
@@ -124,6 +127,11 @@ export default function Setup() {
       case 1:
         if (implemented == 0) {
           return 'offen';
+        }
+        console.log(index_success);
+        if (index_success == findings.length) {
+          // Abschliessen
+          document.getElementById("findings_beenden").classList.remove("hidden");
         }
         return 'richtig';
     }
@@ -168,7 +176,6 @@ export default function Setup() {
     }));
   };
 
-  // Überprüfen, ob findings ein Array ist, bevor der Filter angewendet wird
   const filteredFindings = Array.isArray(findings)
     ? findings.filter((finding) => statusFilter[getStatusDescription(finding.f_documented, finding.f_implemented)])
     : [];
@@ -177,17 +184,20 @@ export default function Setup() {
     <div className="flex flex-col h-screen dark:bg-black">
       <Navbar />
 
-      {/* Main Container */}
       <div className="flex-grow flex overflow-hidden px-10 mt-10 pt-5">
-        {/* Findings Section */}
-        {/* Findings Section */}
         <div className="w-full max-w-md mt-2 flex-shrink-0 h-full flex flex-col">
           <h1 className="text-2xl font-bold mb-4">Findings</h1>
 
-          {/* Fehleranzeige */}
+          <button
+            type="submit"
+            className={"mt-2 mb-3 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 hidden"}
+            id="findings_beenden"
+          >
+            Abschließen
+          </button>
+
           {error && <div className="text-red-500 mb-4">{error}</div>}
 
-          {/* Filter Section */}
           <div className="mb-4 p-4 border rounded bg-gray-50 dark:bg-gray-800">
             <h2 className="text-lg font-semibold mb-2 text-black dark:text-white">Status filtern:</h2>
             <div className="flex space-x-4">
@@ -206,7 +216,6 @@ export default function Setup() {
             </div>
           </div>
 
-          {/* Findings List */}
           <div className="flex-grow overflow-y-auto">
             <ul className="space-y-4">
               {filteredFindings.length > 0 ? (
@@ -236,9 +245,7 @@ export default function Setup() {
         </div>
 
 
-        {/* - */}
         <div className="w-[70%] ml-10 m-2 flex flex-col overflow-y-auto max-h-[80vh] pr-2">
-          {/* Finding Details */}
           {selectedFinding && (
             <Card
               className={`p-6 rounded-lg shadow-md w-full h-auto border-4 mb-4 ${getBorderColor(getStatusDescription(selectedFinding.f_documented, selectedFinding.f_implemented))}`}
@@ -282,10 +289,9 @@ export default function Setup() {
                 {showMore ? "Weniger anzeigen" : "Mehr anzeigen"}
               </button>
             </Card>
-          
+
           )}
 
-          {/* Work-on Comments */}
           {selectedFinding && (
             <Card className="p-6 w-full h-auto rounded-lg shadow-md border-2 mb-4 flex-1 flex flex-col">
               <div className="flex justify-between mb-4">
@@ -298,7 +304,6 @@ export default function Setup() {
                 </button>
               </div>
 
-              {/* Scrollable comment section */}
               <div className="h-40 overflow-y-auto border p-2 rounded">
                 {workonComments.length > 0 ? (
                   workonComments.map((comment, index) => (
@@ -333,7 +338,7 @@ export default function Setup() {
               </form>
 
             </Card>
-            
+
           )}
         </div>
       </div>
@@ -343,7 +348,7 @@ export default function Setup() {
   );
 }
 
-//funktioniert jetzt einwandfrei
+// funktioniert jetzt einwandfrei
 export async function postWorkonComment(id, commentData) {
   // console.log(document.cookie);
   const response = await fetch(`http://localhost:3000/findings/workon/${id}`, {
