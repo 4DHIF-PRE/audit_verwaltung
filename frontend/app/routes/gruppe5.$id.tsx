@@ -237,7 +237,7 @@ export default function Setup() {
 
 
         {/* - */}
-        <div className="w-[60%] ml-10 m-2 flex flex-col overflow-y-auto max-h-[80vh] pr-2">
+        <div className="w-[70%] ml-10 m-2 flex flex-col overflow-y-auto max-h-[80vh] pr-2">
           {/* Finding Details */}
           {selectedFinding && (
             <Card
