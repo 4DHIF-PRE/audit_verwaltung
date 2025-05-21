@@ -1440,6 +1440,21 @@ export async function CreateFindingWorkOn(id, comment, sessionId) {
         }
     }
 
+    export async function AuditBeenden(id) {
+        const query = `
+            UPDATE au_audit SET au_auditstatus = 'fertig' WHERE au_idx = ?;
+        `;
+        const pool = await connectionPool.getConnection();
+        try {
+            await pool.execute(query, [id]);
+            return null;
+        } catch (error) {
+            return new Error(`Failed to check question existence: ${error.message}`);
+        } finally {
+            pool.release();
+        }
+    }
+
 // End Of Finding Methods
 
     export async function UpdateQuestion(questionId, updates) {

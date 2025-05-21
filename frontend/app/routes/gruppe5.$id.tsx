@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from "@remix-run/react";
+import { useParams, useNavigate } from "@remix-run/react";
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Navbar } from '~/components/Navbar';
 import { Footer } from '~/components/Footer';
@@ -19,6 +19,7 @@ export default function Setup() {
   });
   const [error, setError] = useState(null);
   let own_user_name = "Loading";
+  const navigate = useNavigate();
 
   let index_success = 0;
 
@@ -146,6 +147,16 @@ export default function Setup() {
     setComment(e.target.value, own_user_name);
   };
 
+  const handleAbschliessen = async () => {
+    try {
+      await endAudit(audits[0].au_idx);
+      navigate("/auditPage");
+    } catch (error) {
+      console.error("Fehler beim Abschließen:", error);
+      setError("Abschließen fehlgeschlagen");
+    }
+  };
+
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     if (!selectedFinding) return;
@@ -189,9 +200,10 @@ export default function Setup() {
           <h1 className="text-2xl font-bold mb-4">Findings</h1>
 
           <button
-            type="submit"
-            className={"mt-2 mb-3 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 hidden"}
+            type="button"
+            className="mt-2 mb-3 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 hidden"
             id="findings_beenden"
+            onClick={handleAbschliessen}
           >
             Abschließen
           </button>
@@ -410,4 +422,13 @@ export async function getUserName(id) {
     },
   });
   return response.json();
+}
+
+export async function endAudit(id) {
+  const response = await fetch(`http://localhost:3000/audit/beenden/${id}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 }
