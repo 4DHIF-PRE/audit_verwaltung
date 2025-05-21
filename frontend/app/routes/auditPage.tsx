@@ -13,6 +13,7 @@ import { useLoaderData } from "@remix-run/react";
 import { Footer } from "~/components/Footer";
 import { Button } from "~/components/ui/button";
 import jsPDF from "jspdf";
+import { Modal } from "~/components/ui/modal";
 import { useNavigate } from "react-router-dom";
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -100,12 +101,14 @@ export default function AuditPage() {
   // States
   const [user, setUser] = useState<UserDetails>();
   const [roles, setRoles] = useState<RolesUser[]>([]);
-  const [users, setUsers] = useState<UserDetails[]>([]);
+const [users, setUsers] = useState<(UserDetails & { selectedRole?: number })[]>([]);
   const [audits, setAudits] = useState<AuditDetails[]>([]);
   const [findings, setFindings] = useState<FindingDetails[]>([]);
   const [auditstatus, setAuditstatus] = useState<string>("");
   const [selectedAudit, setSelectedAudit] = useState<number>(0);
   const [isLeadAuditor, setIsLeadAuditor] = useState<boolean>(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [searchText, setSearchText] = useState("");
 
   const [auditZugewiesen, setAuditZugewiesen] = useState<UserDetails[]>([]);
 
@@ -117,7 +120,25 @@ export default function AuditPage() {
   const [role, setRole] = useState<number>();
   const [canCreateAudit, setCanCreateAudit] = useState(false);
   const [isAuditor, setIsAuditor] = useState<boolean>(false);
-
+  const selectedAuditData = audits.find((a) => a.au_idx === selectedAudit);
+  const StatusBadge = ({ status }) => {
+    const getStatusColor = () => {
+      switch (status.toLowerCase()) {
+        case "geplant": return "bg-blue-100 text-blue-800";
+        case "in bearbeitung": return "bg-yellow-100 text-yellow-800";
+        case "abgeschlossen": return "bg-green-100 text-green-800";
+        case "storniert": return "bg-red-100 text-red-800";
+        default: return "bg-gray-100 text-gray-800";
+      }
+    };
+  
+    return (
+      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor()}`}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </span>
+    );
+  };
+  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -230,6 +251,11 @@ export default function AuditPage() {
       setAudits((prevAudits) =>
         prevAudits.filter((audit) => audit.au_idx !== auditId)
       );
+
+      if (selectedAudit === auditId) {
+        setSelectedAudit(0);
+      }
+
     } catch (error) {
       console.error("Error deleting audit:", error);
       alert(`Audit ${auditId} konnte nicht gelöscht werden.`);
@@ -275,29 +301,59 @@ export default function AuditPage() {
   };
 
  
-  const handleZuweisen = async (audit: number) => {
-    try {
-      const response = await fetch("http://localhost:3000/assignRole", {
+const handleMehrereZuweisen = async (auditId: number) => {
+  const toAssign = users.filter(
+    (u) =>
+      u.selectedRole !== undefined &&
+      u.selectedRole !== null &&
+      u.selectedRole !== "" &&
+      !auditZugewiesen.some((assigned) => assigned.u_userId === u.u_userId)
+  );
+
+  if (toAssign.length === 0) {
+    alert("Bitte wählen Sie mindestens einen Benutzer mit einer Rolle aus.");
+    return;
+  }
+
+  try {
+    const assignRequests = toAssign.map((user) =>
+      fetch("http://localhost:3000/assignRole", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          firstName: firstName,
-          lastName: lastName,
-          roleId: role,
-          auditId: audit,
+          firstName: user.u_firstname,
+          lastName: user.u_lastname,
+          roleId: user.selectedRole,
+          auditId: auditId,
         }),
-      });
+      }).then((res) => {
+        if (!res.ok) {
+          return res.json().then((data) => {
+            throw new Error(data.message || `Fehler bei ${user.u_firstname}`);
+          });
+        }
+        return res.json();
+      })
+    );
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Fehler beim Zuweisen.");
-      }
+    await Promise.all(assignRequests);
 
-      alert("Erfolgreich zugewiesen!");
-    } catch (error: any) {
-      alert(`Fehler: ${error.message}`);
-    }
-  };
+    // Aktualisiere die Anzeige
+    const newlyAssigned = toAssign.map((u) => ({
+      ...u,
+      ru_r_id: u.selectedRole,
+    }));
+
+    setAuditZugewiesen((prev) => [...prev, ...newlyAssigned]);
+
+    alert("Benutzer erfolgreich zugewiesen.");
+    setModalOpen(false);
+  } catch (error: any) {
+    console.error("Fehler beim Zuweisen:", error);
+    alert(`Fehler: ${error.message}`);
+  }
+};
+
 
 
   const filteredAudits = audits.filter((audit) => {
@@ -307,6 +363,18 @@ export default function AuditPage() {
     const matchesType = filter === "" || audit.au_auditstatus === filter;
     return matchesSearch && matchesType;
   });
+
+const filteredUnassignedUsers = users
+  .filter((user) =>
+    `${user.u_firstname} ${user.u_lastname}`.toLowerCase().includes(searchText.toLowerCase())
+  )
+  .filter(
+    (user) =>
+      !auditZugewiesen.some(
+        (assigned) => assigned.u_userId === user.u_userId
+      )
+  );
+
 
 
   const changeStatus = async (auditId: number) => {
@@ -396,92 +464,111 @@ export default function AuditPage() {
     }
   };
 
-  const exportAllAuditsAndFindingsToPDF = async (
-    audits: AuditDetails[],
-    findings: FindingDetails[]
-  ) => {
-    try {
-      if (audits.length === 0) {
-        throw new Error("Keine Audits gefunden.");
-      }
+  /** Exportiert alle Audits mit ihren Findings als PDF, indem es die Findings pro Audit nachlädt */
+const exportAllAuditsAndFindingsToPDF = async () => {
+  if (audits.length === 0) {
+    alert("Keine Audits vorhanden.");
+    return;
+  }
 
-      const doc = new jsPDF();
-      let yPosition = 10;
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let y = 20;
+  let pageCount = 1;
 
-      audits.forEach((audit, auditIndex) => {
-        if (yPosition > 270) {
-          doc.addPage();
-          yPosition = 10;
-        }
+  for (let ai = 0; ai < audits.length; ai++) {
+    const audit = audits[ai];
 
-        const formattedDate = new Date(audit.au_audit_date).toLocaleDateString(
-          "de-DE",
-          {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-          }
-        );
-
-        // Audit-Details
-        doc.setFontSize(14);
-        doc.text(`Audit ${auditIndex + 1}: ${audit.au_theme}`, 10, yPosition);
-        doc.setFontSize(12);
-        doc.text(`Datum: ${formattedDate}`, 10, yPosition + 10);
-        doc.text(`Ort: ${audit.au_place}`, 10, yPosition + 20);
-        doc.text(
-          `Status: ${audit.au_auditstatus || "Unbekannt"}`,
-          10,
-          yPosition + 30
-        );
-        doc.text(`Leitender Auditor: ${audit.au_leadauditor_idx}`, 10, yPosition + 40);
-        yPosition += 50;
-
-        // Findings filtern
-        const auditFindings = findings.filter(
-          (finding) => finding.f_au_audit_idx === audit.au_idx
-        );
-
-        if (auditFindings.length > 0) {
-          doc.text("Findings:", 10, yPosition);
-          yPosition += 10;
-
-          auditFindings.forEach((finding, index) => {
-            if (yPosition > 270) {
-              doc.addPage();
-              yPosition = 10;
-            }
-
-            const findingDate = finding.f_creation_date
-              ? new Date(finding.f_creation_date).toLocaleDateString("de-DE", {
-                  year: "numeric",
-                  month: "2-digit",
-                  day: "2-digit",
-                })
-              : "Keine Angabe";
-
-            doc.setFontSize(10);
-            doc.text(`${index + 1}.`, 10, yPosition);
-            doc.text(`   Level: ${finding.f_level || "Nicht angegeben"}`, 15, yPosition);
-            doc.text(`   Status: ${finding.f_status || "Nicht angegeben"}`, 15, yPosition + 5);
-            doc.text(`   Kommentar: ${finding.f_comment || "Keine"}`, 15, yPosition + 10);
-            doc.text(`   Maßnahme: ${finding.f_finding_comment || "Keine"}`, 15, yPosition + 15);
-            doc.text(`   Erstellt am: ${findingDate}`, 15, yPosition + 20);
-
-            yPosition += 35;
-          });
-        } else {
-          doc.text("Keine Findings für dieses Audit.", 10, yPosition);
-          yPosition += 20;
-        }
-      });
-
-      doc.save(`All_Audits_and_Findings.pdf`);
-    } catch (error) {
-      console.error("Fehler beim Exportieren der Audit-Details:", error);
-      alert("Fehler beim Exportieren der Audit-Details.");
+  if (y + 30 > pageHeight) {    
+      doc.addPage();                 
+      y = 20;                        
+      pageCount++;                   
     }
-  };
+
+    // 1) Findings live nachladen
+    let relevantFindings: any[] = [];
+    try {
+      const resp = await fetch(
+        `http://localhost:3000/findings/getall/${audit.au_idx}`,
+        { method: "GET", credentials: "include" }
+      );
+      if (resp.ok) relevantFindings = await resp.json();
+    } catch (e) {
+      console.error("Fehler beim Laden der Findings für Audit", audit.au_idx, e);
+    }
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(40, 40, 40);
+    doc.text(audit.au_theme, pageWidth / 2, y, { align: "center" });
+    y += 7;
+
+    // Trennlinie unter der Überschrift
+    doc.setDrawColor(100, 100, 100);
+    doc.setLineWidth(0.5);
+    doc.line(15, y, pageWidth - 15, y);
+    y += 8;
+
+    doc.setFillColor(230, 230, 230);
+    doc.rect(15, y, pageWidth - 30, 8, "F"); // gefülltes Rechteck
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Findings", 17, y + 5);
+    y += 12;
+
+    if (relevantFindings.length === 0) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+      doc.text("Keine Findings vorhanden.", 17, y);
+      y += 10;
+    } else {
+      for (let fi = 0; fi < relevantFindings.length; fi++) {
+        const f = relevantFindings[fi];
+
+        if (y > 270) {
+          doc.addPage();
+          pageCount++;
+          y = 20;
+        }
+
+        doc.setFillColor(245, 245, 245);
+        doc.rect(15, y - 2, pageWidth - 30, 16, "F");
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(11);
+        const indent = 17;
+        doc.setTextColor(0, 0, 0);
+        doc.text(`${fi + 1}. ID: ${f.f_id}`, indent, y + 3);
+        if (f.f_level && f.f_level > 0) {
+          doc.text(`Level: ${f.f_level}`, indent + 40, y + 3);
+        }
+        doc.text(`Law: ${f.f_qu_question_idx.qu_law_law}`, indent + 80, y + 3);
+        doc.text(
+          `Kommentar: ${f.f_comment || "–"}`,
+          indent,
+          y + 8
+        );
+
+        y += 18;
+      }
+    }
+    y+=12;
+
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    doc.text(
+      `Seite ${pageCount}`,
+      pageWidth / 2,
+      doc.internal.pageSize.getHeight() - 10,
+      { align: "center" }
+    );
+  }
+  doc.save(`AlleAudits&Findings.pdf`);
+};
+
 
   // Gefilterte Audits
   const displayedAudits = filteredAudits;
@@ -490,6 +577,7 @@ export default function AuditPage() {
     <div className="flex flex-col w-full h-screen bg-white">
       <Navbar />
       <div className="flex-1 p-4 bg-white dark:bg-black mt-9">
+        <div>
         <div className="flex flex-col lg:flex-row flex-1 mt-6 space-y-6 lg:space-y-0 lg:space-x-6">
           {/* Left Section */}
           <div className="flex flex-col w-full lg:w-1/3 space-y-4 relative">
@@ -521,8 +609,8 @@ export default function AuditPage() {
 
               <div className="flex flex-col h-full">
                 <div
-                  className="flex-1 overflow-auto border border-gray-300 dark:bg-gray-800 rounded-md mb-4
-    max-h-[50vh] sm:max-h-[calc(100vh-100px)]"
+                  className="flex-1 overflow-y-auto border border-gray-300 dark:bg-gray-800 
+                  rounded-md mb-4 max-h-[calc(6*4.8rem)] sm:max-h-[calc(6*4.8rem)]"
                 >
                   {displayedAudits.length > 0 ? (
                     displayedAudits.map((audit) => (
@@ -552,6 +640,7 @@ export default function AuditPage() {
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeleteAudit(audit.au_idx);
+                              selectedAudit === null
                             }}
                           >
                             ❌
@@ -573,47 +662,98 @@ export default function AuditPage() {
           <div className="w-full lg:w-2/3 h-full flex flex-col items-center justify-center p-6">
             {selectedAudit ? (
                 <div
-                    className="w-full max-w-screen-lg h-full bg-gray-200 dark:bg-gray-900 p-6 rounded-md flex flex-col justify-start">
-                  <AuditVorschau audit={selectedAudit} allAudits={audits}/>
-                  <QuestionVorschau auditId={selectedAudit} questions={questions}/>
+                    className="w-full max-w-screen-lg h-full bg-gray-200 dark:bg-gray-900  p-6 rounded-md flex flex-col justify-start">
+                 
+                  <div className="flex justify-between items-start mb-6">
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+                      {selectedAuditData?.au_theme || "Audit nicht gefunden"}
+                    </h2>
+                    <StatusBadge status={selectedAuditData?.au_auditstatus || "unbekannt"} />
+                  </div>
 
-                  {/* Falls User Lead Auditor ist -> Zuweisen möglich */}
-                  {isLeadAuditor && selectedAudit && (
-                      <div className="mb-4 flex gap-4 items-center">
-                        <input
-                            type="text"
-                            placeholder="Vornamen eingeben..."
-                            className="p-2 border rounded-md w-full text-black"
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                        />
-                        <input
-                            type="text"
-                            placeholder="Nachnamen eingeben..."
-                            className="p-2 border rounded-md w-full text-black"
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
-                        />
-                        <select
-                            className="p-2 border rounded-md text-black"
-                            value={role}
-                            onChange={(e) => setRole(Number(e.target.value))}
-                        >
-                          <option value="2">Auditor</option>
-                          <option value="3">Auditee</option>
-                          <option value="4">Gast</option>
-                          <option value="5">Reporter</option>
-                          <option value="6">Manual-Writer</option>
-                        </select>
+                  <AuditVorschau audit={selectedAudit} allAudits={audits} allUsers={users} />
+
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-b-lg">
+                    <QuestionVorschau
+  auditId={selectedAudit}
+  questions={questions}
+  auditStatus={selectedAuditData?.au_auditstatus || null}
+/>
+
+                    {isLeadAuditor && selectedAudit && (
+                      <div className="my-4">
                         <button
-                            className="px-4 py-2 rounded-md bg-green-500 hover:bg-green-600 text-white"
-                            onClick={() => handleZuweisen(selectedAudit)}
+                          className="px-4 py-2 rounded-md bg-blue-500 hover:bg-blue-600 text-white"
+                          onClick={() => setModalOpen(true)}
                         >
-                          Zuweisen
+                          Personen hinzufügen
                         </button>
                       </div>
-                  )}
+                    )}
 
+                    <Modal isOpen={modalOpen} className="w-[600px] h-[520px] fixed rounded-md bg-white p-6 overflow-hidden">
+                      <h2 className="text-lg font-bold mb-4">Benutzer zuweisen</h2>
+                      <input
+                        type="text"
+                        placeholder="Suche Benutzer..."
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        className="w-full p-2 border border-gray-400 rounded-md mb-4 text-black"
+                      />
+                      <div className="h-[320px] overflow-y-auto border border-gray-300 rounded-md mb-4 divide-y dark:border-gray-600">
+                       {filteredUnassignedUsers.length === 0 ? (
+  <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+    Keine Benutzer gefunden
+  </div>
+) : (
+  filteredUnassignedUsers.map((userItem) => (
+    <div
+      key={userItem.u_userId}
+      className="flex items-center justify-between px-4 py-2"
+    >
+      <span className="dark:text-white">
+        {userItem.u_firstname} {userItem.u_lastname}
+      </span>
+      <select
+        className="p-1 border rounded text-black"
+        value={userItem.selectedRole || ""}
+        onChange={(e) => {
+          const updatedUsers = users.map((u) =>
+            u.u_userId === userItem.u_userId
+              ? { ...u, selectedRole: Number(e.target.value) }
+              : u
+          );
+          setUsers(updatedUsers);
+        }}
+      >
+        <option value="">Rolle wählen</option>
+        <option value="2">Auditor</option>
+        <option value="3">Auditee</option>
+        <option value="4">Gast</option>
+        <option value="5">Reporter</option>
+        <option value="6">Manual-Writer</option>
+      </select>
+    </div>
+  ))
+)}
+                      </div>
+
+                      <div className="flex justify-between">
+                        <button
+                          onClick={() => handleMehrereZuweisen(selectedAudit)}
+                          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded"
+                        >
+                          OK
+                        </button>
+                        <button
+                          onClick={() => setModalOpen(false)}
+                          className="px-4 py-2 bg-gray-300 text-black hover:bg-gray-400 rounded"
+                        >
+                          Abbrechen
+                        </button>
+                      </div>
+                    </Modal>
+           
                   {/* Zugewiesene User anzeigen */}
                   {auditZugewiesen.length > 0 && (
                       <div className="my-4">
@@ -685,6 +825,7 @@ export default function AuditPage() {
                         </button>
                     )}
                   </div>
+                  </div>
 
 
                 </div>
@@ -705,6 +846,7 @@ export default function AuditPage() {
 
 
           </div>
+        </div>
         </div>
       </div>
       <Footer/>

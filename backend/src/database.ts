@@ -755,14 +755,15 @@ export async function createFinding(findingData: {
   f_au_audit_idx: number;
   f_qu_question_idx: number;
   f_u_auditor_id: string;
-  f_status: string;
+  f_implemented: boolean;
+  f_documented: boolean;
   f_comment: string;
   f_finding_comment: string;
 }): Promise<number | Error> {
   const connection = await connectionPool.getConnection();
   try {
     const [result]: any = await connection.execute(
-      `INSERT INTO f_findings (f_level, f_creation_date, f_timeInDays, f_au_audit_idx, f_qu_question_idx, f_u_auditor_id, f_status, f_comment, f_finding_comment)
+      `INSERT INTO f_findings (f_level, f_creation_date, f_timeInDays, f_au_audit_idx, f_qu_question_idx, f_u_auditor_id, f_implemented, f_documented, f_comment, f_finding_comment)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         findingData.f_level,
@@ -771,7 +772,8 @@ export async function createFinding(findingData: {
         findingData.f_au_audit_idx,
         findingData.f_qu_question_idx,
         findingData.f_u_auditor_id,
-        findingData.f_status,
+        findingData.f_implemented,
+        findingData.f_documented,
         findingData.f_comment,
         findingData.f_finding_comment,
       ]
@@ -794,7 +796,8 @@ export async function updateFinding(updateData: {
     f_finding_comment: string;
     f_creation_date: Date;
     f_timeInDays: number;
-    f_status: string;
+    f_implemented: boolean;
+    f_documented: boolean;
 }): Promise<void | Error> {
 
   const connection = await connectionPool.getConnection();
@@ -807,7 +810,7 @@ export async function updateFinding(updateData: {
 
     const results = await connection.execute(
       `UPDATE f_findings
-       SET f_level = '${updateData.f_level}', f_comment = '${updateData.f_auditor_comment}', f_finding_comment = '${updateData.f_finding_comment}', f_creation_date = '${creationDate}', f_timeInDays = ${updateData.f_timeInDays}, f_status = '${updateData.f_status}'
+       SET f_level = '${updateData.f_level}', f_comment = '${updateData.f_auditor_comment}', f_finding_comment = '${updateData.f_finding_comment}', f_creation_date = '${creationDate}', f_timeInDays = ${updateData.f_timeInDays}, f_implemented = '${updateData.f_implemented}, f_documented = '${updateData.f_documented}
              WHERE f_id = ${updateData.f_id}`
         );
     } catch (error) {
@@ -1127,14 +1130,15 @@ export async function DeleteLaw(lawId) {
 export async function CreateAudit(auditData) {
     const pool = await connectionPool.getConnection();
     const query = `
-        INSERT INTO au_audit (au_audit_date, au_number_of_days, au_leadauditor_idx, au_auditstatus, au_place, au_theme, au_typ)
+        INSERT INTO au_audit (au_audit_date, au_number_of_days, au_leadauditor_idx, au_implemented, au_documented, au_place, au_theme, au_typ)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
   const values = [
     auditData.au_audit_date,
     auditData.au_number_of_days,
     auditData.au_leadauditor_idx,
-    auditData.au_auditstatus,
+    auditData.au_implemented,
+    auditData.au_documented,
     auditData.au_place,
     auditData.au_theme,
     auditData.au_typ,
@@ -1235,6 +1239,7 @@ export async function DeleteAudit(auditId) {
     }
 }
 
+//UNNÖTIG -> implemented und documented
 export async function UpdateAuditStatus(auditId, newStatus) {
     const query = `UPDATE au_audit SET au_auditstatus = ? WHERE au_idx = ?`;
     const pool = await connectionPool.getConnection();
@@ -1252,66 +1257,109 @@ export async function UpdateAuditStatus(auditId, newStatus) {
     }
 }
 
-// Question functions
-export async function CreateQuestion(questionData) {
-    const query = `
-        INSERT INTO qu_questions (qu_audit_idx, qu_law_idx, qu_audited, qu_applicable, qu_finding_level)
-        VALUES (?, ?, ?, ?, ?)
-    `;
-    const values = [
-        questionData.qu_audit_idx,
-        questionData.qu_law_idx,
-        questionData.qu_audited,
-        questionData.qu_applicable,
-        questionData.qu_finding_level || null,
-    ];
+export async function UpdateAuditImplemented(auditId, newImplemented) {
+    const query = `UPDATE au_audit
+                   SET au_implemented = ?
+                   WHERE au_idx = ?`;
     const pool = await connectionPool.getConnection();
     try {
-        const [result] = await pool.execute(query, values);
+        const [result] = await pool.execute(query, [newImplemented, auditId]);
+        //@ts-ignore
+        if (result.affectedRows === 0) {
+            return new Error("Audit not found");
+        }
         return result;
     } catch (error) {
-        return new Error(`Failed to create question: ${error.message}`);
+        return new Error(`Failed to update audit implemented: ${error.message}`);
     } finally {
         pool.release();
     }
 }
 
-export async function GetAllQuestions() {
-    const query = `SELECT * FROM qu_questions`;
-    const pool = await connectionPool.getConnection();
-    try {
-        const [rows] = await pool.execute(query);
-        return rows;
-    } catch (error) {
-        return new Error(`Failed to retrieve questions: ${error.message}`);
-    } finally {
-        pool.release();
+    export async function UpdateAuditDocumented(auditId, newDocumented) {
+        const query = `UPDATE au_audit
+                       SET au_documented = ?
+                       WHERE au_idx = ?`;
+        const pool = await connectionPool.getConnection();
+        try {
+            const [result] = await pool.execute(query, [newDocumented, auditId]);
+            //@ts-ignore
+            if (result.affectedRows === 0) {
+                return new Error("Audit not found");
+            }
+            return result;
+        } catch (error) {
+            return new Error(`Failed to update audit documented: ${error.message}`);
+        } finally {
+            pool.release();
+        }
     }
-}
 
-export async function GetQuestionById(questionId) {
-    const query = `SELECT * FROM qu_questions WHERE qu_idx = ?`;
-    const pool = await connectionPool.getConnection();
-    try {
-        const [rows] = await pool.execute(query, [questionId]);
-        return rows[0] || null;
-    } catch (error) {
-        return new Error(`Failed to retrieve question: ${error.message}`);
-    } finally {
-        pool.release();
+
+// Question functions
+    export async function CreateQuestion(questionData) {
+        const query = `
+            INSERT INTO qu_questions (qu_audit_idx, qu_law_idx, qu_audited, qu_applicable, qu_finding_level)
+            VALUES (?, ?, ?, ?, ?)
+        `;
+        const values = [
+            questionData.qu_audit_idx,
+            questionData.qu_law_idx,
+            questionData.qu_audited,
+            questionData.qu_applicable,
+            questionData.qu_finding_level || null,
+        ];
+        const pool = await connectionPool.getConnection();
+        try {
+            const [result] = await pool.execute(query, values);
+            return result;
+        } catch (error) {
+            return new Error(`Failed to create question: ${error.message}`);
+        } finally {
+            pool.release();
+        }
     }
-}
+
+    export async function GetAllQuestions() {
+        const query = `SELECT *
+                       FROM qu_questions`;
+        const pool = await connectionPool.getConnection();
+        try {
+            const [rows] = await pool.execute(query);
+            return rows;
+        } catch (error) {
+            return new Error(`Failed to retrieve questions: ${error.message}`);
+        } finally {
+            pool.release();
+        }
+    }
+
+    export async function GetQuestionById(questionId) {
+        const query = `SELECT *
+                       FROM qu_questions
+                       WHERE qu_idx = ?`;
+        const pool = await connectionPool.getConnection();
+        try {
+            const [rows] = await pool.execute(query, [questionId]);
+            return rows[0] || null;
+        } catch (error) {
+            return new Error(`Failed to retrieve question: ${error.message}`);
+        } finally {
+            pool.release();
+        }
+    }
 
 // Finding Functions
-
-export async function GetFindingWorkOnById(findingWorkOnId) {
-    const query = `SELECT * FROM fw_finding_workon WHERE fw_finding_idx = ?`;
-    const pool = await connectionPool.getConnection();
-    try {
-        const [rows] = await pool.execute(query, [findingWorkOnId]);
-        return rows || null;
-    } catch (error) {
-        return new Error(`Failed to retrieve question: ${error.message}`);
+    export async function GetFindingWorkOnById(findingWorkOnId) {
+        const query = `SELECT *
+                       FROM fw_finding_workon
+                       WHERE fw_finding_idx = ?`;
+        const pool = await connectionPool.getConnection();
+        try {
+            const [rows] = await pool.execute(query, [findingWorkOnId]);
+            return rows || null;
+        } catch (error) {
+            return new Error(`Failed to retrieve question: ${error.message}`);
     }
 }
 
@@ -1351,112 +1399,117 @@ export async function CreateFindingWorkOn(id, comment, sessionId) {
     }
 }
 
-export async function GetAllFindings(id): Promise<string | Error> {
-    const connection = await connectionPool.getConnection();
+    export async function GetAllFindings(id): Promise<string | Error> {
+        const connection = await connectionPool.getConnection();
 
-    try {
-        await connection.beginTransaction();
+        try {
+            await connection.beginTransaction();
 
-        const [results]: [any, mysql.FieldPacket[]] = await connection.execute(
-            "SELECT * FROM f_findings WHERE f_au_audit_idx = ?", [id]
-        );
-        if (results.length === 0) {
-            return new Error("No Findings");
+            const [results]: [any, mysql.FieldPacket[]] = await connection.execute(
+                "SELECT * FROM f_findings WHERE f_au_audit_idx = ?", [id]
+            );
+            if (results.length === 0) {
+                return new Error("No Findings");
+            }
+
+            await connection.commit();
+            return results;
+        } catch (error) {
+            console.log(error);
+            await connection.rollback();
+            return error;
+        } finally {
+            connection.release();
         }
-
-        await connection.commit();
-        return results;
-    } catch (error) {
-        console.log(error);
-        await connection.rollback();
-        return error;
-    } finally {
-        connection.release();
     }
-}
 
-export async function GetWorkOnById(id) {
-    const query = `
-      SELECT * FROM fw_finding_workon 
-      WHERE fw_idx = ?
-    `;
-    const pool = await connectionPool.getConnection();
-    try {
-        const [rows] = await pool.execute(query, [id]);
-        return rows[0] || null;
-    } catch (error) {
-        return new Error(`Failed to check question existence: ${error.message}`);
-    } finally {
-        pool.release();
+    export async function GetWorkOnById(id) {
+        const query = `
+            SELECT *
+            FROM fw_finding_workon
+            WHERE fw_idx = ?
+        `;
+        const pool = await connectionPool.getConnection();
+        try {
+            const [rows] = await pool.execute(query, [id]);
+            return rows[0] || null;
+        } catch (error) {
+            return new Error(`Failed to check question existence: ${error.message}`);
+        } finally {
+            pool.release();
+        }
     }
-}
 
 // End Of Finding Methods
 
-export async function UpdateQuestion(questionId, updates) {
-    const fields = Object.keys(updates)
-        .map((key) => `${key} = ?`)
-        .join(", ");
-    const values = Object.values(updates).concat(questionId);
-    const query = `UPDATE qu_questions SET ${fields} WHERE qu_idx = ?`;
-    const pool = await connectionPool.getConnection();
-    try {
-        const [result] = await pool.execute(query, values);
-        return result;
-    } catch (error) {
-        return new Error(`Failed to update question: ${error.message}`);
-    } finally {
-        pool.release();
-    }
-}
-
-export async function DeleteQuestion(questionId) {
-    const pool = await connectionPool.getConnection();
-    try {
-        await pool.beginTransaction();
-
-        // Delete all findings related to the question
-        await pool.execute("DELETE FROM f_findings WHERE f_qu_question_idx = ?", [
-            questionId,
-        ]);
-
-        // Delete the question
-        const [result] = await pool.execute(
-            "DELETE FROM qu_questions WHERE qu_idx = ?",
-            [questionId]
-        );
-
-        // @ts-ignore
-        if (result.affectedRows === 0) {
-            await pool.rollback();
-            return new Error("Question not found or already deleted");
+    export async function UpdateQuestion(questionId, updates) {
+        const fields = Object.keys(updates)
+            .map((key) => `${key} = ?`)
+            .join(", ");
+        const values = Object.values(updates).concat(questionId);
+        const query = `UPDATE qu_questions
+                       SET ${fields}
+                       WHERE qu_idx = ?`;
+        const pool = await connectionPool.getConnection();
+        try {
+            const [result] = await pool.execute(query, values);
+            return result;
+        } catch (error) {
+            return new Error(`Failed to update question: ${error.message}`);
+        } finally {
+            pool.release();
         }
-
-        await pool.commit();
-    } catch (error) {
-        await pool.rollback();
-        console.error("Error deleting question and findings:", error);
-        return new Error("Database error occurred while deleting question");
-    } finally {
-        pool.release();
     }
-}
 
-export async function GetQuestionByAuditAndLaw(auditId, lawId) {
-    const query = `
-      SELECT * FROM qu_questions 
-      WHERE qu_audit_idx = ? AND qu_law_idx = ?
-    `;
-    const pool = await connectionPool.getConnection();
-    try {
-        const [rows] = await pool.execute(query, [auditId, lawId]);
-        return rows[0] || null;
-    } catch (error) {
-        return new Error(`Failed to check question existence: ${error.message}`);
-    } finally {
-        pool.release();
+    export async function DeleteQuestion(questionId) {
+        const pool = await connectionPool.getConnection();
+        try {
+            await pool.beginTransaction();
+
+            // Delete all findings related to the question
+            await pool.execute("DELETE FROM f_findings WHERE f_qu_question_idx = ?", [
+                questionId,
+            ]);
+
+            // Delete the question
+            const [result] = await pool.execute(
+                "DELETE FROM qu_questions WHERE qu_idx = ?",
+                [questionId]
+            );
+
+            // @ts-ignore
+            if (result.affectedRows === 0) {
+                await pool.rollback();
+                return new Error("Question not found or already deleted");
+            }
+
+            await pool.commit();
+        } catch (error) {
+            await pool.rollback();
+            console.error("Error deleting question and findings:", error);
+            return new Error("Database error occurred while deleting question");
+        } finally {
+            pool.release();
+        }
     }
-}
+
+    export async function GetQuestionByAuditAndLaw(auditId, lawId) {
+        const query = `
+            SELECT *
+            FROM qu_questions
+            WHERE qu_audit_idx = ?
+              AND qu_law_idx = ?
+        `;
+        const pool = await connectionPool.getConnection();
+        try {
+            const [rows] = await pool.execute(query, [auditId, lawId]);
+            return rows[0] || null;
+        } catch (error) {
+            return new Error(`Failed to check question existence: ${error.message}`);
+        } finally {
+            pool.release();
+        }
+    }
 
 
 // Rollen
@@ -1473,32 +1526,6 @@ export async function AddRoleForAudit(userId: number, auditId: number) {
   }
 }
 
-export async function GetRolesUser() {
-  const query = `SELECT * FROM ru_rolesuser`;
-  const pool = await connectionPool.getConnection();
-  try {
-    const [rows] = await pool.execute(query);
-    return rows;
-  } catch (error) {
-    return new Error(`Failed to retrieve audits: ${error.message}`);
-  } finally {
-    pool.release();
-  }
-}
-
-export async function GetAllUser(){
-    const query = 'SELECT * FROM u_user';
-    const pool = await connectionPool.getConnection();
-    try{
-        const [rows] = await pool.execute(query);
-        return rows;
-    }catch(error){
-        return new Error(`Failed to retrieve users: ${error.message}`);
-    }finally{
-        pool.release();
-    }
-}
-
 export async function GetUserNameById(userId) {
     const query = `SELECT u_firstname FROM u_user WHERE u_userId = ?`;
     const pool = await connectionPool.getConnection();
@@ -1512,27 +1539,54 @@ export async function GetUserNameById(userId) {
     }
 }
 
-
-export async function AssignRoleToUserForAudit(firstName: string, lastName: string, roleId: number, auditId: number) {
-    const userQuery = 'SELECT u_userId FROM u_user WHERE u_firstname = ? AND u_lastname = ?';
-    const insertQuery = 'INSERT INTO ru_rolesuser (ru_r_id, ru_u_userId, audit) VALUES (?, ?, ?)';
-    const pool = await connectionPool.getConnection();
-
-    try {
-        const [userRows]: any = await pool.execute(userQuery, [firstName, lastName]);
-        
-        if (userRows.length === 0) {
-            return new Error(`User mit Name ${firstName} ${lastName} nicht gefunden.`);
+    export async function GetRolesUser() {
+        const query = `SELECT *
+                       FROM ru_rolesuser`;
+        const pool = await connectionPool.getConnection();
+        try {
+            const [rows] = await pool.execute(query);
+            return rows;
+        } catch (error) {
+            return new Error(`Failed to retrieve audits: ${error.message}`);
+        } finally {
+            pool.release();
         }
-
-        const userId = userRows[0].u_userId;
-
-        const [result]: any = await pool.execute(insertQuery, [roleId, userId, auditId]);
-
-        return { message: "Role successfully assigned to user.", result };
-    } catch (error) {
-        return new Error(`Failed to assign role: ${error.message}`);
-    } finally {
-        pool.release();
     }
-}
+
+    export async function GetAllUser() {
+        const query = 'SELECT * FROM u_user';
+        const pool = await connectionPool.getConnection();
+        try {
+            const [rows] = await pool.execute(query);
+            return rows;
+        } catch (error) {
+            return new Error(`Failed to retrieve users: ${error.message}`);
+        } finally {
+            pool.release();
+        }
+    }
+
+
+    export async function AssignRoleToUserForAudit(firstName: string, lastName: string, roleId: number, auditId: number) {
+        const userQuery = 'SELECT u_userId FROM u_user WHERE u_firstname = ? AND u_lastname = ?';
+        const insertQuery = 'INSERT INTO ru_rolesuser (ru_r_id, ru_u_userId, audit) VALUES (?, ?, ?)';
+        const pool = await connectionPool.getConnection();
+
+        try {
+            const [userRows]: any = await pool.execute(userQuery, [firstName, lastName]);
+
+            if (userRows.length === 0) {
+                return new Error(`User mit Name ${firstName} ${lastName} nicht gefunden.`);
+            }
+
+            const userId = userRows[0].u_userId;
+
+            const [result]: any = await pool.execute(insertQuery, [roleId, userId, auditId]);
+
+            return {message: "Role successfully assigned to user.", result};
+        } catch (error) {
+            return new Error(`Failed to assign role: ${error.message}`);
+        } finally {
+            pool.release();
+        }
+    }

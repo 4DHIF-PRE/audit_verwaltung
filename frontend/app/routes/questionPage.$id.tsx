@@ -199,6 +199,7 @@ export default function AuditPage() {
           filteredLaws.map((law) => (
             <div
               key={law.la_idx}
+              onClick={() => handleCheckboxChange(law.la_idx.toString())}
               className="flex items-center justify-between border-b border-gray-300 p-2 dark:border-gray-600">
               <div className="font-bold text-gray-700 dark:text-white">
                 {law.la_text}
