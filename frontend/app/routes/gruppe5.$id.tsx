@@ -48,10 +48,10 @@ export default function Setup() {
     async function fetchAudit() {
       if (findings.length > 0) {
         const selectedFinding = findings[0];
-        
+
         const response = await getAudit(selectedFinding.f_au_audit_idx);
         const data = await response.json();
-        
+
         const auditData = Array(findings.length).fill(data);
         setAudits(auditData);
       }
@@ -180,7 +180,8 @@ export default function Setup() {
       {/* Main Container */}
       <div className="flex-grow flex overflow-hidden px-10 mt-10 pt-5">
         {/* Findings Section */}
-        <div className="w-full max-w-md mt-2 flex-shrink-0 overflow-hidden">
+        {/* Findings Section */}
+        <div className="w-full max-w-md mt-2 flex-shrink-0 h-full flex flex-col">
           <h1 className="text-2xl font-bold mb-4">Findings</h1>
 
           {/* Fehleranzeige */}
@@ -206,7 +207,7 @@ export default function Setup() {
           </div>
 
           {/* Findings List */}
-          <div className="h-full overflow-y-auto max-h-full">
+          <div className="flex-grow overflow-y-auto">
             <ul className="space-y-4">
               {filteredFindings.length > 0 ? (
                 filteredFindings.map((finding) => (
@@ -231,7 +232,9 @@ export default function Setup() {
               )}
             </ul>
           </div>
+          <br></br>
         </div>
+
 
         {/* - */}
         <div className="flex-1 ml-10 m-2 flex flex-col">
@@ -279,6 +282,7 @@ export default function Setup() {
                 {showMore ? "Weniger anzeigen" : "Mehr anzeigen"}
               </button>
             </Card>
+          
           )}
 
           {/* Work-on Comments */}
@@ -327,7 +331,9 @@ export default function Setup() {
                   Kommentar hinzufügen
                 </button>
               </form>
+
             </Card>
+            
           )}
         </div>
       </div>
