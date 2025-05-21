@@ -45,19 +45,18 @@ export default function Setup() {
   }, [id]);
 
   useEffect(() => {
-    async function fetchAudits() {
+    async function fetchAudit() {
       if (findings.length > 0) {
-        const auditPromises = findings.map(async (element) => {
-          const response = await getAudit(element.f_au_audit_idx);
-          const data = await response.json();
-          return data;
-        });
-
-        const auditData = await Promise.all(auditPromises);
+        const selectedFinding = findings[0];
+        
+        const response = await getAudit(selectedFinding.f_au_audit_idx);
+        const data = await response.json();
+        
+        const auditData = Array(findings.length).fill(data);
         setAudits(auditData);
       }
     }
-    fetchAudits();
+    fetchAudit();
   }, [findings]);
 
   const fetchWorkonComments = async () => {
@@ -222,7 +221,7 @@ export default function Setup() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p><strong>Erstelldatum:</strong> {finding.f_creation_date}</p>
+                      <p><strong>Erstelldatum:</strong> {getTimeFormatted(finding.f_creation_date)}</p>
                       <p><strong>Status:</strong> {getStatusDescription(finding.f_documented, finding.f_implemented)}</p>
                     </CardContent>
                   </Card>
@@ -253,7 +252,7 @@ export default function Setup() {
 
               {showMore && (
                 <div>
-                  <p className="text-lg mb-2"><strong>Erstelldatum:</strong> {selectedFinding.f_creation_date}</p>
+                  <p className="text-lg mb-2"><strong>Erstelldatum:</strong> {getTimeFormatted(selectedFinding.f_creation_date)}</p>
                   <p className="text-lg mb-2"><strong>Status:</strong> {getStatusDescription(selectedFinding.f_documented, selectedFinding.f_implemented)}</p>
                   <p className="text-lg mb-2"><strong>Level:</strong> {selectedFinding.f_level}</p>
                   <div className="text-lg mb-2">
@@ -262,7 +261,7 @@ export default function Setup() {
                       {selectedAudit ? (
                         <div className="mt-2">
                           <p className="text-sm"><strong>Thema: </strong> {selectedAudit.au_theme}</p>
-                          <p className="text-sm"><strong>Datum: </strong> {selectedAudit.au_audit_date}</p>
+                          <p className="text-sm"><strong>Datum: </strong> {getTimeFormatted(selectedAudit.au_audit_date)}</p>
                           <p className="text-sm"><strong>Status: </strong> {selectedAudit.au_auditstatus}</p>
                         </div>
                       ) : (
