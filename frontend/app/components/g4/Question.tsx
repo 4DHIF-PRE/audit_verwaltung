@@ -20,9 +20,10 @@ export interface FileInt {
 interface QuestionProps {
     question: QuestionInt;
     onChange: () => void;
+    onSaved: () => void;
 }
 
-export default function Question({question, onChange}: { question: QuestionInt }) {
+export default function Question({question, onSaved}: { question: QuestionInt }) {
     //const [selectedStatus, setSelectedStatus] = useState("");
     const [auditorComment, setAuditorComment] = useState("");
     const [findingComment, setFindingComment] = useState("");
@@ -111,12 +112,13 @@ export default function Question({question, onChange}: { question: QuestionInt }
             document.getElementById("saveQuestion")!.style.visibility = "hidden";
 
             const request = {method:"PUT", headers:{'Content-Type': 'application/json'}, body:JSON.stringify({documented:documented, implemented:implemented, level:selectedLevel})};
-            const result = await fetch("http://localhost:3000/api/findings/" + findingId, request);
+            const result = await fetch("http://localhost:3000/api/findings/" + findingId, request);//attribute von question object updaten 
             if (result.ok) {
                 alert("Finding erfolgreich gespeichert!");
             } else {
                 alert("Fehler beim Speichern des Findings!");
             }
+            onSaved();
         } catch (error) {
             console.error("Fehler beim Speichern:", error);
             alert("Fehler beim Speichern des Findings.");
@@ -423,7 +425,6 @@ export default function Question({question, onChange}: { question: QuestionInt }
                             value={auditorComment}
                             onChange={(e) => {
                                 setAuditorComment(e.target.value);
-                                onChange();
                             }}
                             className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                             placeholder="Write your thoughts here..."
