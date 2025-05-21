@@ -796,6 +796,16 @@ expressApp.delete('/questions/:id', async (req, res) => {
   
 });
 
+expressApp.get('/findings/workon/:id', async (req, res) => {
+    const findingWorkOnId = req.params.id;
+    const result = await GetFindingWorkOnById(+findingWorkOnId);
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    } else {
+        res.status(200).json(result);
+    }
+});
+
 expressApp.post('/findings/workon/:id', async (req, res) => {
     const sessionId = req.cookies[cookieName];
     const workon = req.body;
