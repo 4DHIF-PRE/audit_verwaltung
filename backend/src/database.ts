@@ -1289,9 +1289,9 @@ export async function UpdateAuditImplemented(auditId, newImplemented) {
             return result;
         } catch (error) {
             return new Error(`Failed to update audit documented: ${error.message}`);
-        } finally {
+        } /*finally {
             pool.release();
-        }
+        }*/
     }
 
 
@@ -1314,9 +1314,9 @@ export async function UpdateAuditImplemented(auditId, newImplemented) {
             return result;
         } catch (error) {
             return new Error(`Failed to create question: ${error.message}`);
-        } finally {
+        } /*finally {
             pool.release();
-        }
+        }*/
     }
 
     export async function GetAllQuestions() {
@@ -1328,9 +1328,9 @@ export async function UpdateAuditImplemented(auditId, newImplemented) {
             return rows;
         } catch (error) {
             return new Error(`Failed to retrieve questions: ${error.message}`);
-        } finally {
+        } /*finally {
             pool.release();
-        }
+        }*/
     }
 
     export async function GetQuestionById(questionId) {
@@ -1343,9 +1343,9 @@ export async function UpdateAuditImplemented(auditId, newImplemented) {
             return rows[0] || null;
         } catch (error) {
             return new Error(`Failed to retrieve question: ${error.message}`);
-        } finally {
+        } /*finally {
             pool.release();
-        }
+        }*/
     }
 
     export async function GetQuestionsByAuditId(auditId: number): Promise<any[] | Error> {
@@ -1437,9 +1437,9 @@ export async function CreateFindingWorkOn(id, comment, sessionId) {
             console.log(error);
             await connection.rollback();
             return error;
-        } finally {
+        } /*finally {
             connection.release();
-        }
+        }*/
     }
 
     export async function GetWorkOnById(id) {
@@ -1454,9 +1454,9 @@ export async function CreateFindingWorkOn(id, comment, sessionId) {
             return rows[0] || null;
         } catch (error) {
             return new Error(`Failed to check question existence: ${error.message}`);
-        } finally {
+        } /*finally {
             pool.release();
-        }
+        }*/
     }
 
     export async function AuditBeenden(id) {
@@ -1469,9 +1469,9 @@ export async function CreateFindingWorkOn(id, comment, sessionId) {
             return null;
         } catch (error) {
             return new Error(`Failed to check question existence: ${error.message}`);
-        } finally {
+        } /*finally {
             pool.release();
-        }
+        }*/
     }
 
 // End Of Finding Methods
@@ -1490,9 +1490,9 @@ export async function CreateFindingWorkOn(id, comment, sessionId) {
             return result;
         } catch (error) {
             return new Error(`Failed to update question: ${error.message}`);
-        } finally {
+        } /*finally {
             pool.release();
-        }
+        }*/
     }
 
     export async function DeleteQuestion(questionId) {
@@ -1522,9 +1522,9 @@ export async function CreateFindingWorkOn(id, comment, sessionId) {
             await pool.rollback();
             console.error("Error deleting question and findings:", error);
             return new Error("Database error occurred while deleting question");
-        } finally {
+        } /*finally {
             pool.release();
-        }
+        }*/
     }
 
     export async function GetQuestionByAuditAndLaw(auditId, lawId) {
@@ -1540,9 +1540,9 @@ export async function CreateFindingWorkOn(id, comment, sessionId) {
             return rows[0] || null;
         } catch (error) {
             return new Error(`Failed to check question existence: ${error.message}`);
-        } finally {
+        } /*finally {
             pool.release();
-        }
+        }*/
     }
 
 
@@ -1582,9 +1582,9 @@ export async function GetUserNameById(userId) {
             return rows;
         } catch (error) {
             return new Error(`Failed to retrieve audits: ${error.message}`);
-        } finally {
+        } /*finally {
             pool.release();
-        }
+        }*/
     }
 
     export async function GetAllUser() {
@@ -1595,9 +1595,9 @@ export async function GetUserNameById(userId) {
             return rows;
         } catch (error) {
             return new Error(`Failed to retrieve users: ${error.message}`);
-        } finally {
+        } /*finally {
             pool.release();
-        }
+        }*/
     }
 
 
@@ -1620,7 +1620,7 @@ export async function GetUserNameById(userId) {
             return {message: "Role successfully assigned to user.", result};
         } catch (error) {
             return new Error(`Failed to assign role: ${error.message}`);
-        } finally {
+        } /*finally {
             pool.release();
-        }
+        }*/
     }
