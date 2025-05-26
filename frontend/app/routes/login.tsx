@@ -49,30 +49,50 @@ export async function action({
 }
 
 export default function Login() {
-
-    return (
-        <div className="flex justify-center items-center w-full mt-52">
-            <Card className="w-[350px]">
-                <CardHeader className="justify-center items-center text-2xl">
-                    <CardTitle>Login</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid w-full items-center gap-4">
-                        <div className="flex flex-col space-y-1.5">
-                            <Form method="post">
-                                <Label htmlFor="email">Email</Label>
-                                <Input name="email" autoComplete="email" id="email" placeholder="Enter your email address" />
-                                <Label htmlFor="password">Password</Label>
-                                <Input name="password" autoComplete="current-password" id="password" placeholder="Enter your password" type="password"/>
-                                <div className="flex flex-col">
-                                    <Button className="mr-2" variant="link">Forgot password?</Button>
-                                    <Button type="submit">Login</Button>
-                                </div>
-                            </Form>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
-    )
+  return (
+    <div className="flex justify-center items-start w-screen h-screen bg-pink-500 overflow-scroll rotate-2 skew-y-3 p-1">
+      <Card className="w-[90vw] bg-yellow-200 text-red-800 border-8 border-dashed border-lime-400 shadow-2xl shadow-fuchsia-500 animate-pulse">
+        <CardHeader className="text-center items-stretch rotate-6">
+          <CardTitle className="text-6xl font-extrabold underline decoration-wavy decoration-pink-600 bg-gradient-to-r from-lime-500 via-yellow-300 to-fuchsia-500 animate-bounce p-4">
+            🔐 L O G I N 🔐
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-row-reverse gap-0 justify-around items-baseline text-sm tracking-widest font-mono">
+          <Form method="post" className="flex flex-wrap justify-between items-stretch gap-x-32 w-full rotate-3">
+            <div className="flex flex-col-reverse gap-y-0.5">
+              <Label htmlFor="email" className="text-lg text-blue-700 italic">Email</Label>
+              <Input
+                name="email"
+                id="email"
+                className="rounded-full border-4 border-dotted border-red-600 bg-purple-100 text-black text-center w-[400px]"
+                placeholder="🫥 Enter something I guess"
+              />
+            </div>
+            <div className="flex flex-col-reverse gap-y-0.5 mt-6">
+              <Label htmlFor="password" className="text-lg text-green-700 underline">Password</Label>
+              <Input
+                name="password"
+                type="password"
+                id="password"
+                className="rounded-full border-4 border-double border-indigo-600 bg-lime-200 text-black text-center w-[400px]"
+                placeholder="🔒 secrets pls"
+              />
+            </div>
+            <div className="flex flex-col gap-y-1 mt-12 w-full text-center">
+              <Button className="bg-red-600 text-yellow-400 w-full text-xl hover:scale-125 transition-all duration-75">
+                LOGIN NOW OR ELSE
+              </Button>
+              <Button className="text-xs text-cyan-700 underline hover:rotate-12" variant="link">
+                I forgot :(
+              </Button>
+            </div>
+          </Form>
+        </CardContent>
+        <CardFooter className="bg-black text-white w-full text-center text-[10px] tracking-tight font-bold italic rotate-2">
+          ©️ Probably not secure.
+        </CardFooter>
+      </Card>
+    </div>
+  );
 }
+

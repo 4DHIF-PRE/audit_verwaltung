@@ -13,7 +13,7 @@ const Searchbar: FC<SearchbarProps> = ({ value, onChange }) => {
                 placeholder="Name eines Audits"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="flex-1 p-2 border border-gray-300 dark:bg-gray-900 rounded-md"
+                className="p-5 border border-gray-300 dark:bg-gray-900 rounded-md"
             />
         </div>
     );
