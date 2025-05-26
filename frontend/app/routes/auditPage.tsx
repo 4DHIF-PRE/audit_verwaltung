@@ -235,7 +235,8 @@ const [users, setUsers] = useState<(UserDetails & { selectedRole?: number })[]>(
         navigate(`/auditbearbeiten/${auditId}`);
       })
       .catch((error) => {
-        console.error("Fehler beim Erstellen des Audits:", error);
+        console.error("Fehler beim Erstellen des Audits:", error.message);
+        alert("Fehler beim Erstellen des Audits: " + error.message);
       });
   };
 
