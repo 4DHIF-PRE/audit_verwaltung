@@ -682,7 +682,7 @@ const exportAllAuditsAndFindingsToPDF = async () => {
 />
 
                     {isLeadAuditor && selectedAudit && (
-                      <div className="my-4">
+                      <div className="my-4 flex justify-center">
                         <button
                           className="px-4 py-2 rounded-md bg-blue-500 hover:bg-blue-600 text-white"
                           onClick={() => setModalOpen(true)}
@@ -757,30 +757,35 @@ const exportAllAuditsAndFindingsToPDF = async () => {
            
                   {/* Zugewiesene User anzeigen */}
                   {auditZugewiesen.length > 0 && (
-                      <div className="my-4">
+                      <div className="my-4 text-center">
                         <h3 className="font-bold mb-2">Zugewiesene User:</h3>
+                        <div className="max-h-20 overflow-y-auto">
                         <ul className="list-disc list-inside">
                           {auditZugewiesen.map((assignedUser) => (
-                              <li key={assignedUser.u_userId}>
-                                {assignedUser.u_firstname} {assignedUser.u_lastname}{": "}
-                                {{
-                                  1: "Admin",
-                                  3: "Auditee",
-                                  2: "Auditor",
-                                  4: "Gast",
-                                  6: "Manual-Writer",
-                                  5: "Reporter",
-                                }[assignedUser.ru_r_id] || ""}
+                              <li key={assignedUser.u_userId} className="relative list-none">
+                                <div className="text-center w-full">
+                                  {assignedUser.u_firstname} {assignedUser.u_lastname}:{' '}
+                                  {{
+                                    1: 'Admin',
+                                    3: 'Auditee',
+                                    2: 'Auditor',
+                                    4: 'Gast',
+                                    6: 'Manual-Writer',
+                                    5: 'Reporter',
+                                  }[assignedUser.ru_r_id] || ''}
+                                </div>
                               </li>
+
                           ))}
                         </ul>
+                        </div>
                       </div>
                   )}
 
-                  {/* Buttons unter der Fragenliste */}
-                  <div className="flex justify-center space-x-4 mt-4">
-                    {isAuditor && (auditstatus === "geplant" || auditstatus === "bereit") && (
-                        <button
+                    {/* Buttons unter der Fragenliste */}
+                    <div className="flex justify-center space-x-4 mt-4">
+                      {isAuditor && (auditstatus === "geplant" || auditstatus === "bereit") && (
+                          <button
                             onClick={() =>
                                 selectedAudit &&
                                 (window.location.href = `/questionPage/${selectedAudit}`)
