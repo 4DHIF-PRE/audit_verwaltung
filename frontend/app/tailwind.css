@@ -4,7 +4,7 @@
 
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
+  @apply bg-white dark:bg-black;
 
   @media (prefers-color-scheme: light) {
     color-scheme: light;
@@ -13,58 +13,58 @@ body {
 
 @layer base {
   :root {
-    --background: 240 100% 98%; /* ersetzt durch: #fbfbfe */
-    --foreground: 240 12% 4%;   /* ersetzt durch: #040316 */
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 245 59% 49%;     /* ersetzt durch: #2f27ce */
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 100% 92%;  /* ersetzt durch: #dddbff */
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 245 100% 63%;     /* ersetzt durch: #443dff */
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 10% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --background: 50 100% 50%;        /* neon yellow */
+    --foreground: 300 100% 50%;       /* bright magenta */
+    --card: 120 100% 50%;             /* lime green */
+    --card-foreground: 0 100% 50%;    /* red */
+    --popover: 200 100% 50%;          /* cyan */
+    --popover-foreground: 340 100% 50%; /* hot pink */
+    --primary: 39 100% 50%;           /* blazing orange */
+    --primary-foreground: 180 100% 50%; /* turquoise */
+    --secondary: 290 100% 50%;        /* vivid violet */
+    --secondary-foreground: 60 100% 50%; /* glaring yellow */
+    --muted: 0 100% 94%;              /* very pale red */
+    --muted-foreground: 300 100% 30%; /* deep magenta */
+    --accent: 120 100% 40%;           /* toxic green */
+    --accent-foreground: 240 100% 50%; /* deep blue */
+    --destructive: 0 100% 50%;        /* stop-sign red */
+    --destructive-foreground: 60 100% 90%; /* nearly white yellow */
+    --border: 270 100% 50%;           /* electric purple */
+    --input: 60 100% 50%;             /* harsh yellow */
+    --ring: 0 100% 70%;               /* light red */
+    --chart-1: 300 100% 50%;
+    --chart-2: 120 100% 50%;
+    --chart-3: 0 100% 50%;
+    --chart-4: 240 100% 50%;
+    --chart-5: 39 100% 50%;
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 240 100% 2%;   /* ersetzt durch: #010104 */
-    --foreground: 240 63% 96%;   /* ersetzt durch: #eae9fc */
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 245 69% 51%;      /* ersetzt durch: #3a31d8 */
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 100% 8%;    /* ersetzt durch: #020024 */
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 100% 39%;      /* ersetzt durch: #0600c2 */
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --background: 0 100% 10%;          /* deep red */
+    --foreground: 60 100% 80%;         /* searing yellow */
+    --card: 270 100% 30%;              /* purple haze */
+    --card-foreground: 0 100% 98%;
+    --popover: 300 100% 25%;           /* electric fuchsia */
+    --popover-foreground: 0 0% 100%;
+    --primary: 0 100% 50%;             /* pure red */
+    --primary-foreground: 60 100% 50%; /* loud yellow */
+    --secondary: 180 100% 50%;         /* neon teal */
+    --secondary-foreground: 300 100% 90%;
+    --muted: 120 100% 15%;             /* dark lime */
+    --muted-foreground: 60 100% 60%;
+    --accent: 39 100% 60%;             /* blinding orange */
+    --accent-foreground: 300 100% 90%;
+    --destructive: 0 100% 30%;
+    --destructive-foreground: 60 100% 90%;
+    --border: 300 100% 50%;            /* purple neon */
+    --input: 180 100% 50%;
+    --ring: 60 100% 80%;               /* piercing yellow */
+    --chart-1: 0 100% 50%;
+    --chart-2: 120 100% 50%;
+    --chart-3: 39 100% 50%;
+    --chart-4: 240 100% 50%;
+    --chart-5: 300 100% 50%;
   }
 }
 
