@@ -79,10 +79,12 @@ export default function App() {
 
   const handleSave = async () => {
 
-    questionRefs.current.forEach((questionDiv, index) => {
-      const button = questionDiv.querySelector<HTMLSelectElement>("#saveQuestion");
-      button.click();
-    })
+    for (const question of questions) {
+      const button = document.getElementById(`save-button-${question.qu_idx}`) as HTMLButtonElement;
+      if (button) {
+        button.click();
+      }
+    }
 
   const response = await fetch(`http://localhost:3000/audit/${id}`, {
     method: "PUT",
@@ -91,42 +93,34 @@ export default function App() {
     },
     body: JSON.stringify({ au_auditstatus: "findings_offen" })
     });
-    window.location.href = `/gruppe5`;
-
-   
-
     
+    await new Promise((r) => setTimeout(r, 1000));
+    window.location.href = `/gruppe5/${id}`;
 
   };
 
 
  
   const checkCompletion = async ()=>{
-    let passt = true;
+    let passt = false;
+
+    console.log("wird das gemacht?")
+
+    questions.forEach((question,index)=>{
+
+        console.log(question)
+
+        if(question.qu_audited===0)
+        {
+          passt=true;
+        }
+
+    });
+
+    setIsSaveDisabled(passt); //hirntumor: isdisabled = true heisst ja es ist disabled, man kann ihn clicken wenn es false ist 
+
+  }
     
-    questionRefs.current.forEach((questionDiv, index) => {
-    if (questionDiv) {
-      const auditorComment = questionDiv.querySelector<HTMLInputElement>("#auditorComment")?.value;
-      const findingComment = questionDiv.querySelector<HTMLInputElement>("#findingComment")?.value;
-      const status = questionDiv.querySelector<HTMLSelectElement>("#status")?.value;
-      
-
-      if (!auditorComment || auditorComment.trim() === "") {
-        passt = false;
-      }
-
-      if ((status === "dokumentiert" || status === "kritisch") && (!findingComment || findingComment.trim() === "")) {
-        passt = false;
-      }
-
-    }
-  });
-
-
-
-  setIsSaveDisabled(!passt); 
-
-}
 
 
   
@@ -155,7 +149,7 @@ export default function App() {
             {questions.length > 0 ? (
               questions.map((question, index) => (
                 <div key={question.qu_idx} ref={(el) => (questionRefs.current[index] = el)}>
-                  <Question question={question} onChange={checkCompletion} />
+                  <Question question={question} onSaved={checkCompletion}/>
                 </div>
               ))
               
