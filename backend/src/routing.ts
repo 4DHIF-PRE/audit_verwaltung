@@ -2,7 +2,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import { validateEmail, validateName, validatePassword } from './util/validation.util.js';
 //Mein Lieblings-Import
-import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings, getFindingByQuestionID, getAuditQuestions, createFinding, updateFinding, deleteFinding, getFindingsByID, uploadAttachment, getFileNameByFindingId, getFilesByFindingId, deleteFileByFindingAttachmentId, getFileByFindingAttachmentId, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion, GetQuestionByAuditAndLaw, UpdateAuditStatus, GetFindingWorkOnById, CreateFindingWorkOn, GetWorkOnById, GetRolesUser, AddRoleForAudit, GetAllUser, getFindingsByAudit, AssignRoleToUserForAudit, GetUserNameById, GetQuestionsByAuditId } from './database.js';
+import { CreateRegistrationToken, DeleteRegistrationTokens, DeleteOrRestoreUser, GetAllRegistrationTokens, GetAllUsersAdminView, login, SessionToUser, Register, Logout, IsFirstRegistration, RegisterFirstAdmin, GetAllFindings, getFindingByQuestionID, getAuditQuestions, createFinding, updateFinding, deleteFinding, getFindingsByID, uploadAttachment, getFileNameByFindingId, getFilesByFindingId, deleteFileByFindingAttachmentId, getFileByFindingAttachmentId, CreateLaw, GetAllLaws, GetLawById, UpdateLaw, DeleteLaw, CreateAudit, GetAllAudits, GetAuditById, UpdateAudit, DeleteAudit, CreateQuestion, GetAllQuestions, GetQuestionById, UpdateQuestion, DeleteQuestion, GetQuestionByAuditAndLaw, UpdateAuditStatus, GetFindingWorkOnById, CreateFindingWorkOn, GetWorkOnById, GetRolesUser, AddRoleForAudit, GetAllUser, getFindingsByAudit, AssignRoleToUserForAudit, GetUserNameById, GetQuestionsByAuditId, AuditBeenden } from './database.js';
 
 import { sendMailDefault, sendMailInvite } from './mailService.js';
 import cors from 'cors'
@@ -346,7 +346,6 @@ expressApp.get('/audit/questions/:id', async (req, res) => {
 });
 
 expressApp.post('/audit/finding', async (req, res) => {
-
     const findingData = req.body;
     try {
         const result = await createFinding(findingData);
@@ -374,7 +373,18 @@ expressApp.put('/audit/finding', async (req, res) => {
     }
 });
 
-
+expressApp.get('/audit/beenden/:id', async (req, res) => {
+    const auditId = req.params.id;
+    try {
+        const result = await AuditBeenden(auditId);
+        if (result instanceof Error) {
+            return res.status(500).json({ error: result.message });
+        }
+        res.json({ message: 'Finding updated successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 
 expressApp.delete('/audit/finding/:id', async (req, res) => {
     // const findingId:number = parseInt(req.params.id);
@@ -811,6 +821,16 @@ expressApp.delete('/questions/:id', async (req, res) => {
     // 5) Erfolg zurückmelden
     return res.json({ message: "Frage erfolgreich gelöscht" });
   
+});
+
+expressApp.get('/findings/workon/:id', async (req, res) => {
+    const findingWorkOnId = req.params.id;
+    const result = await GetFindingWorkOnById(+findingWorkOnId);
+    if (result instanceof Error) {
+        res.status(400).json({ message: result.message });
+    } else {
+        res.status(200).json(result);
+    }
 });
 
 expressApp.post('/findings/workon/:id', async (req, res) => {
