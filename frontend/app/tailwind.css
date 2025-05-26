@@ -4,67 +4,70 @@
 
 html,
 body {
-  @apply bg-white dark:bg-black;
+  @apply bg-black dark:bg-yellow-400;
 
   @media (prefers-color-scheme: light) {
     color-scheme: light;
   }
 }
 
+
 @layer base {
   :root {
-    --background: 50 100% 50%;        /* neon yellow */
-    --foreground: 300 100% 50%;       /* bright magenta */
-    --card: 120 100% 50%;             /* lime green */
-    --card-foreground: 0 100% 50%;    /* red */
-    --popover: 200 100% 50%;          /* cyan */
-    --popover-foreground: 340 100% 50%; /* hot pink */
-    --primary: 39 100% 50%;           /* blazing orange */
-    --primary-foreground: 180 100% 50%; /* turquoise */
-    --secondary: 290 100% 50%;        /* vivid violet */
-    --secondary-foreground: 60 100% 50%; /* glaring yellow */
-    --muted: 0 100% 94%;              /* very pale red */
-    --muted-foreground: 300 100% 30%; /* deep magenta */
-    --accent: 120 100% 40%;           /* toxic green */
-    --accent-foreground: 240 100% 50%; /* deep blue */
-    --destructive: 0 100% 50%;        /* stop-sign red */
-    --destructive-foreground: 60 100% 90%; /* nearly white yellow */
-    --border: 270 100% 50%;           /* electric purple */
-    --input: 60 100% 50%;             /* harsh yellow */
-    --ring: 0 100% 70%;               /* light red */
-    --chart-1: 300 100% 50%;
-    --chart-2: 120 100% 50%;
-    --chart-3: 0 100% 50%;
-    --chart-4: 240 100% 50%;
-    --chart-5: 39 100% 50%;
+    /* “Light mode” = Extremely dark theme */
+    --background: 0 0% 0%;              /* pure black */
+    --foreground: 240 100% 90%;         /* icy electric blue */
+    --card: 0 0% 5%;                    /* almost black */
+    --card-foreground: 120 100% 90%;    /* mint neon */
+    --popover: 240 100% 10%;            /* dark navy */
+    --popover-foreground: 50 100% 90%;  /* sickly yellow */
+    --primary: 300 100% 50%;            /* hot magenta */
+    --primary-foreground: 0 0% 100%;    /* pure white */
+    --secondary: 330 100% 30%;          /* deep pink-red */
+    --secondary-foreground: 60 100% 80%;/* creamy yellow */
+    --muted: 0 0% 20%;                  /* dull dark gray */
+    --muted-foreground: 0 100% 90%;     /* bright red */
+    --accent: 200 100% 60%;             /* teal neon */
+    --accent-foreground: 0 0% 100%;     /* white */
+    --destructive: 0 100% 40%;          /* angry red */
+    --destructive-foreground: 60 100% 90%; /* glaring yellow */
+    --border: 300 100% 20%;             /* deep purple */
+    --input: 270 100% 15%;              /* dark purple */
+    --ring: 0 100% 70%;                 /* neon red */
+    --chart-1: 330 100% 60%;
+    --chart-2: 180 100% 60%;
+    --chart-3: 30 100% 50%;
+    --chart-4: 270 100% 60%;
+    --chart-5: 90 100% 60%;
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 0 100% 10%;          /* deep red */
-    --foreground: 60 100% 80%;         /* searing yellow */
-    --card: 270 100% 30%;              /* purple haze */
-    --card-foreground: 0 100% 98%;
-    --popover: 300 100% 25%;           /* electric fuchsia */
-    --popover-foreground: 0 0% 100%;
-    --primary: 0 100% 50%;             /* pure red */
-    --primary-foreground: 60 100% 50%; /* loud yellow */
-    --secondary: 180 100% 50%;         /* neon teal */
-    --secondary-foreground: 300 100% 90%;
-    --muted: 120 100% 15%;             /* dark lime */
-    --muted-foreground: 60 100% 60%;
-    --accent: 39 100% 60%;             /* blinding orange */
-    --accent-foreground: 300 100% 90%;
-    --destructive: 0 100% 30%;
-    --destructive-foreground: 60 100% 90%;
-    --border: 300 100% 50%;            /* purple neon */
-    --input: 180 100% 50%;
-    --ring: 60 100% 80%;               /* piercing yellow */
-    --chart-1: 0 100% 50%;
-    --chart-2: 120 100% 50%;
-    --chart-3: 39 100% 50%;
-    --chart-4: 240 100% 50%;
-    --chart-5: 300 100% 50%;
+    /* “Dark mode” = Bright & painful */
+    --background: 60 100% 80%;           /* highlighter yellow */
+    --foreground: 0 100% 20%;            /* blood red */
+    --card: 120 100% 75%;                /* radioactive green */
+    --card-foreground: 0 100% 10%;       /* dark red */
+    --popover: 300 100% 75%;             /* bubblegum pink */
+    --popover-foreground: 240 100% 10%;  /* deep blue */
+    --primary: 200 100% 70%;             /* sky cyan */
+    --primary-foreground: 0 0% 0%;       /* black */
+    --secondary: 39 100% 70%;            /* neon orange */
+    --secondary-foreground: 0 0% 0%;     /* black */
+    --muted: 60 100% 90%;                /* almost white yellow */
+    --muted-foreground: 0 100% 50%;      /* red */
+    --accent: 330 100% 70%;              /* bright pink */
+    --accent-foreground: 0 0% 0%;        /* black */
+    --destructive: 0 100% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 100% 90%;              /* pale blue */
+    --input: 300 100% 80%;               /* pastel pink */
+    --ring: 60 100% 90%;                 /* banana yellow */
+    --chart-1: 0 100% 60%;
+    --chart-2: 120 100% 60%;
+    --chart-3: 240 100% 60%;
+    --chart-4: 60 100% 60%;
+    --chart-5: 300 100% 60%;
   }
 }
 
