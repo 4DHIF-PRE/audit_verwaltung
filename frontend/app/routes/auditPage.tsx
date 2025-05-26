@@ -387,11 +387,10 @@ const filteredUnassignedUsers = users
 
     if (audit.au_auditstatus === "bereit") {
       try {
-        // Alle Fragen zu diesem Audit holen
-        const getQuestionsfromAudit = await fetch(
-          `http://localhost:3000/audit/questions/${auditId}`,
+        const getQuestionsfromAudit = await fetch(`http://localhost:3000/audit/questions/${auditId}`,
           { method: "GET" }
         );
+        
         const questionAudit: QuestionInt[] = await getQuestionsfromAudit.json();
 
         for (const element of questionAudit) {
@@ -406,9 +405,10 @@ const filteredUnassignedUsers = users
             f_au_audit_idx: auditId,
             f_qu_question_idx: element.qu_idx,
             f_u_auditor_id: user?.u_userId,
-            f_status: "offen",
             f_comment: "",
             f_finding_comment: "",
+            f_implemented: 0,
+            f_documented: 0,
           };
 
           const addfinding = await fetch("http://localhost:3000/audit/finding", {
@@ -433,7 +433,8 @@ const filteredUnassignedUsers = users
             );
           }
         }
- const response = await fetch(`http://localhost:3000/audit/${auditId}`, {
+
+        const response = await fetch(`http://localhost:3000/audit/${auditId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -451,7 +452,6 @@ const filteredUnassignedUsers = users
           )
         );
 
-        // Weiterleiten zum Durchführen
         window.location.href = `/doAudit/${auditId}`;
       } catch (error) {
         console.error("Error changing audit status:", error);

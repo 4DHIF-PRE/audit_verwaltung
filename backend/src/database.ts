@@ -1348,6 +1348,26 @@ export async function UpdateAuditImplemented(auditId, newImplemented) {
         }
     }
 
+    export async function GetQuestionsByAuditId(auditId: number): Promise<any[] | Error> {
+    const query = `
+        SELECT q.*, l.la_law, l.la_description
+        FROM qu_questions q
+        LEFT JOIN la_laws l ON q.qu_law_law = l.la_law
+        WHERE q.qu_audit_idx = ?
+    `;
+    const pool = await connectionPool.getConnection();
+
+    try {
+        const [rows] = await pool.execute(query, [auditId]);
+        return rows as any[];
+    } catch (error) {
+        return new Error(`Failed to retrieve questions: ${error.message}`);
+    } finally {
+        pool.release();
+    }
+}
+
+
 // Finding Functions
     export async function GetFindingWorkOnById(findingWorkOnId) {
         const query = `SELECT *
