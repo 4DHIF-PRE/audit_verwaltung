@@ -109,8 +109,7 @@ export default function Question({question, onSaved}: { question: QuestionInt })
 
     const handleSave = async () => {
         try {
-            document.getElementById("saveQuestion")!.style.visibility = "hidden";
-
+            document.getElementById(`save-button-${question.qu_idx}`)!.style.visibility = "hidden";
             const request = {method:"PUT", headers:{'Content-Type': 'application/json'}, body:JSON.stringify({documented:documented, implemented:implemented, level:selectedLevel})};
             const result = await fetch("http://localhost:3000/api/findings/" + findingId, request);//attribute von question object updaten 
             if (result.ok) {
@@ -123,7 +122,7 @@ export default function Question({question, onSaved}: { question: QuestionInt })
             console.error("Fehler beim Speichern:", error);
             alert("Fehler beim Speichern des Findings.");
         } finally {
-            document.getElementById("saveQuestion")!.style.visibility = "visible";
+            document.getElementById(`save-button-${question.qu_idx}`)!.style.visibility = "visible";
         }
     };
 
@@ -525,7 +524,6 @@ export default function Question({question, onSaved}: { question: QuestionInt })
                     </div>
 
                     <button
-                        id="saveQuestion"
                         type="button"
                         id={`save-button-${question.qu_idx}`}
                         onClick={() => {
