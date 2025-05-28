@@ -395,7 +395,7 @@ const filteredUnassignedUsers = users
 
         for (const element of questionAudit) {
           const newFinding = {
-            f_level: 0,
+            f_level: 1,
             f_creation_date: new Date()
               .toISOString()
               .replace("T", " ")
@@ -408,8 +408,10 @@ const filteredUnassignedUsers = users
             f_comment: "",
             f_finding_comment: "",
             f_implemented: 0,
-            f_documented: 0,
+            f_documented: 0
           };
+
+          console.log(newFinding);
 
           const addfinding = await fetch("http://localhost:3000/audit/finding", {
             method: "POST",
@@ -428,7 +430,9 @@ const filteredUnassignedUsers = users
             } catch (e) {
               console.error("Error parsing error response:", e);
             }
+
             throw new Error(
+
               `Failed to create finding for question: ${errorMessage}`
             );
           }
@@ -455,7 +459,7 @@ const filteredUnassignedUsers = users
         window.location.href = `/doAudit/${auditId}`;
       } catch (error) {
         console.error("Error changing audit status:", error);
-        alert("Fehler beim Ändern des Audit-Status.");
+        alert(error);
       }
     } else if (audit.au_auditstatus === "begonnen") {
       // Direkt weiterleiten
@@ -537,6 +541,7 @@ const exportAllAuditsAndFindingsToPDF = async () => {
         doc.setFillColor(245, 245, 245);
         doc.rect(15, y - 2, pageWidth - 30, 16, "F");
 
+        doc.setFont("helvetica", "normal");
         doc.setFont("helvetica", "normal");
         doc.setFontSize(11);
         const indent = 17;

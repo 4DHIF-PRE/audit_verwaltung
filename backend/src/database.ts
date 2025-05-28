@@ -764,7 +764,7 @@ export async function createFinding(findingData: {
   try {
     const [result]: any = await connection.execute(
       `INSERT INTO f_findings (f_level, f_creation_date, f_timeInDays, f_au_audit_idx, f_qu_question_idx, f_u_auditor_id, f_implemented, f_documented, f_comment, f_finding_comment)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         findingData.f_level,
         findingData.f_creation_date,
@@ -781,7 +781,7 @@ export async function createFinding(findingData: {
     return result.insertId;
   } 
   catch (error) {
-    return new Error("Error inserting finding");
+    return new Error("Error inserting finding"+error.message);
   }
 
   finally {
@@ -1298,15 +1298,14 @@ export async function UpdateAuditImplemented(auditId, newImplemented) {
 // Question functions
     export async function CreateQuestion(questionData) {
         const query = `
-            INSERT INTO qu_questions (qu_audit_idx, qu_law_idx, qu_audited, qu_applicable, qu_finding_level)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO qu_questions (qu_audit_idx, qu_law_idx, qu_audited, qu_applicable)
+            VALUES (?, ?, ?, ?)
         `;
         const values = [
             questionData.qu_audit_idx,
             questionData.qu_law_idx,
             questionData.qu_audited,
             questionData.qu_applicable,
-            questionData.qu_finding_level || null,
         ];
         const pool = await connectionPool.getConnection();
         try {
