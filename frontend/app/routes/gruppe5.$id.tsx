@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from "@remix-run/react";
+import { useParams, useNavigate } from "@remix-run/react";
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Navbar } from '~/components/Navbar';
 import { Footer } from '~/components/Footer';
@@ -17,8 +17,11 @@ export default function Setup() {
     richtig: true,
     kritisch: true
   });
-  const [error, setError] = useState(null);  // Fehlerzustand hinzufügen
+  const [error, setError] = useState(null);
   let own_user_name = "Loading";
+  const navigate = useNavigate();
+
+  let index_success = 0;
 
   useEffect(() => {
     async function getownuser() {
@@ -29,14 +32,14 @@ export default function Setup() {
       const response = await showAllFindings(id);
       if (response.status === 404) {
         setError("Finding nicht gefunden");
-        setFindings([]);  // Leere Array setzen, falls kein Finding gefunden wird
+        setFindings([]);
       } else if (!response.ok) {
         setError("Fehler beim Laden der Findings");
         setFindings([]);
       } else {
         const data = await response.json();
         setFindings(data);
-        setError(null);  // Fehler zurücksetzen, wenn die Daten erfolgreich geladen wurden
+        setError(null);
       }
     }
     fetchFindings();
@@ -45,19 +48,18 @@ export default function Setup() {
   }, [id]);
 
   useEffect(() => {
-    async function fetchAudits() {
+    async function fetchAudit() {
       if (findings.length > 0) {
-        const auditPromises = findings.map(async (element) => {
-          const response = await getAudit(element.f_au_audit_idx);
-          const data = await response.json();
-          return data;
-        });
+        const selectedFinding = findings[0];
 
-        const auditData = await Promise.all(auditPromises);
+        const response = await getAudit(selectedFinding.f_au_audit_idx);
+        const data = await response.json();
+
+        const auditData = Array(findings.length).fill(data);
         setAudits(auditData);
       }
     }
-    fetchAudits();
+    fetchAudit();
   }, [findings]);
 
   const fetchWorkonComments = async () => {
@@ -94,6 +96,7 @@ export default function Setup() {
       case 'offen':
         return 'bg-gray-200';
       case 'richtig':
+        index_success++;
         return 'bg-green-200';
       case 'kritisch':
         return 'bg-red-200';
@@ -126,6 +129,11 @@ export default function Setup() {
         if (implemented == 0) {
           return 'offen';
         }
+        console.log(index_success);
+        if (index_success == findings.length) {
+          // Abschliessen
+          document.getElementById("findings_beenden").classList.remove("hidden");
+        }
         return 'richtig';
     }
   }
@@ -137,6 +145,16 @@ export default function Setup() {
 
   const handleCommentChange = (e) => {
     setComment(e.target.value, own_user_name);
+  };
+
+  const handleAbschliessen = async () => {
+    try {
+      await endAudit(audits[0].au_idx);
+      navigate("/auditPage");
+    } catch (error) {
+      console.error("Fehler beim Abschließen:", error);
+      setError("Abschließen fehlgeschlagen");
+    }
   };
 
   const handleCommentSubmit = async (e) => {
@@ -169,7 +187,6 @@ export default function Setup() {
     }));
   };
 
-  // Überprüfen, ob findings ein Array ist, bevor der Filter angewendet wird
   const filteredFindings = Array.isArray(findings)
     ? findings.filter((finding) => statusFilter[getStatusDescription(finding.f_documented, finding.f_implemented)])
     : [];
@@ -178,16 +195,21 @@ export default function Setup() {
     <div className="flex flex-col h-screen dark:bg-black">
       <Navbar />
 
-      {/* Main Container */}
       <div className="flex-grow flex overflow-hidden px-10 mt-10 pt-5">
-        {/* Findings Section */}
-        <div className="w-full max-w-md mt-2 flex-shrink-0 overflow-hidden">
+        <div className="w-full max-w-md mt-2 flex-shrink-0 h-full flex flex-col">
           <h1 className="text-2xl font-bold mb-4">Findings</h1>
 
-          {/* Fehleranzeige */}
+          <button
+            type="button"
+            className="mt-2 mb-3 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 hidden"
+            id="findings_beenden"
+            onClick={handleAbschliessen}
+          >
+            Abschließen
+          </button>
+
           {error && <div className="text-red-500 mb-4">{error}</div>}
 
-          {/* Filter Section */}
           <div className="mb-4 p-4 border rounded bg-gray-50 dark:bg-gray-800">
             <h2 className="text-lg font-semibold mb-2 text-black dark:text-white">Status filtern:</h2>
             <div className="flex space-x-4">
@@ -206,8 +228,7 @@ export default function Setup() {
             </div>
           </div>
 
-          {/* Findings List */}
-          <div className="h-full overflow-y-auto max-h-full">
+          <div className="flex-grow overflow-y-auto">
             <ul className="space-y-4">
               {filteredFindings.length > 0 ? (
                 filteredFindings.map((finding) => (
@@ -222,7 +243,7 @@ export default function Setup() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p><strong>Erstelldatum:</strong> {finding.f_creation_date}</p>
+                      <p><strong>Erstelldatum:</strong> {getTimeFormatted(finding.f_creation_date)}</p>
                       <p><strong>Status:</strong> {getStatusDescription(finding.f_documented, finding.f_implemented)}</p>
                     </CardContent>
                   </Card>
@@ -232,11 +253,11 @@ export default function Setup() {
               )}
             </ul>
           </div>
+          <br></br>
         </div>
 
-        {/* - */}
-        <div className="flex-1 ml-10 m-2 flex flex-col">
-          {/* Finding Details */}
+
+        <div className="w-[70%] ml-10 m-2 flex flex-col overflow-y-auto max-h-[80vh] pr-2">
           {selectedFinding && (
             <Card
               className={`p-6 rounded-lg shadow-md w-full h-auto border-4 mb-4 ${getBorderColor(getStatusDescription(selectedFinding.f_documented, selectedFinding.f_implemented))}`}
@@ -253,7 +274,7 @@ export default function Setup() {
 
               {showMore && (
                 <div>
-                  <p className="text-lg mb-2"><strong>Erstelldatum:</strong> {selectedFinding.f_creation_date}</p>
+                  <p className="text-lg mb-2"><strong>Erstelldatum:</strong> {getTimeFormatted(selectedFinding.f_creation_date)}</p>
                   <p className="text-lg mb-2"><strong>Status:</strong> {getStatusDescription(selectedFinding.f_documented, selectedFinding.f_implemented)}</p>
                   <p className="text-lg mb-2"><strong>Level:</strong> {selectedFinding.f_level}</p>
                   <div className="text-lg mb-2">
@@ -262,7 +283,7 @@ export default function Setup() {
                       {selectedAudit ? (
                         <div className="mt-2">
                           <p className="text-sm"><strong>Thema: </strong> {selectedAudit.au_theme}</p>
-                          <p className="text-sm"><strong>Datum: </strong> {selectedAudit.au_audit_date}</p>
+                          <p className="text-sm"><strong>Datum: </strong> {getTimeFormatted(selectedAudit.au_audit_date)}</p>
                           <p className="text-sm"><strong>Status: </strong> {selectedAudit.au_auditstatus}</p>
                         </div>
                       ) : (
@@ -280,9 +301,9 @@ export default function Setup() {
                 {showMore ? "Weniger anzeigen" : "Mehr anzeigen"}
               </button>
             </Card>
+
           )}
 
-          {/* Work-on Comments */}
           {selectedFinding && (
             <Card className="p-6 w-full h-auto rounded-lg shadow-md border-2 mb-4 flex-1 flex flex-col">
               <div className="flex justify-between mb-4">
@@ -295,7 +316,6 @@ export default function Setup() {
                 </button>
               </div>
 
-              {/* Scrollable comment section */}
               <div className="h-40 overflow-y-auto border p-2 rounded">
                 {workonComments.length > 0 ? (
                   workonComments.map((comment, index) => (
@@ -328,7 +348,9 @@ export default function Setup() {
                   Kommentar hinzufügen
                 </button>
               </form>
+
             </Card>
+
           )}
         </div>
       </div>
@@ -338,7 +360,7 @@ export default function Setup() {
   );
 }
 
-//funktioniert jetzt einwandfrei
+// funktioniert jetzt einwandfrei
 export async function postWorkonComment(id, commentData) {
   // console.log(document.cookie);
   const response = await fetch(`http://localhost:3000/findings/workon/${id}`, {
@@ -400,4 +422,13 @@ export async function getUserName(id) {
     },
   });
   return response.json();
+}
+
+export async function endAudit(id) {
+  const response = await fetch(`http://localhost:3000/audit/beenden/${id}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 }

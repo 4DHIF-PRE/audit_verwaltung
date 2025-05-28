@@ -1130,15 +1130,14 @@ export async function DeleteLaw(lawId) {
 export async function CreateAudit(auditData) {
     const pool = await connectionPool.getConnection();
     const query = `
-        INSERT INTO au_audit (au_audit_date, au_number_of_days, au_leadauditor_idx, au_implemented, au_documented, au_place, au_theme, au_typ)
+        INSERT INTO au_audit (au_audit_date, au_number_of_days, au_leadauditor_idx, au_auditstatus, au_place, au_theme, au_typ)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
   const values = [
     auditData.au_audit_date,
     auditData.au_number_of_days,
     auditData.au_leadauditor_idx,
-    auditData.au_implemented,
-    auditData.au_documented,
+    auditData.au_auditstatus,
     auditData.au_place,
     auditData.au_theme,
     auditData.au_typ,
@@ -1349,6 +1348,26 @@ export async function UpdateAuditImplemented(auditId, newImplemented) {
         }
     }
 
+    export async function GetQuestionsByAuditId(auditId: number): Promise<any[] | Error> {
+    const query = `
+        SELECT q.*, l.la_law, l.la_description
+        FROM qu_questions q
+        LEFT JOIN la_laws l ON q.qu_law_law = l.la_law
+        WHERE q.qu_audit_idx = ?
+    `;
+    const pool = await connectionPool.getConnection();
+
+    try {
+        const [rows] = await pool.execute(query, [auditId]);
+        return rows as any[];
+    } catch (error) {
+        return new Error(`Failed to retrieve questions: ${error.message}`);
+    } finally {
+        pool.release();
+    }
+}
+
+
 // Finding Functions
     export async function GetFindingWorkOnById(findingWorkOnId) {
         const query = `SELECT *
@@ -1433,6 +1452,21 @@ export async function CreateFindingWorkOn(id, comment, sessionId) {
         try {
             const [rows] = await pool.execute(query, [id]);
             return rows[0] || null;
+        } catch (error) {
+            return new Error(`Failed to check question existence: ${error.message}`);
+        } finally {
+            pool.release();
+        }
+    }
+
+    export async function AuditBeenden(id) {
+        const query = `
+            UPDATE au_audit SET au_auditstatus = 'fertig' WHERE au_idx = ?;
+        `;
+        const pool = await connectionPool.getConnection();
+        try {
+            await pool.execute(query, [id]);
+            return null;
         } catch (error) {
             return new Error(`Failed to check question existence: ${error.message}`);
         } finally {

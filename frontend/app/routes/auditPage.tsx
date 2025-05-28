@@ -235,7 +235,8 @@ const [users, setUsers] = useState<(UserDetails & { selectedRole?: number })[]>(
         navigate(`/auditbearbeiten/${auditId}`);
       })
       .catch((error) => {
-        console.error("Fehler beim Erstellen des Audits:", error);
+        console.error("Fehler beim Erstellen des Audits:", error.message);
+        alert("Fehler beim Erstellen des Audits: " + error.message);
       });
   };
 
@@ -386,11 +387,10 @@ const filteredUnassignedUsers = users
 
     if (audit.au_auditstatus === "bereit") {
       try {
-        // Alle Fragen zu diesem Audit holen
-        const getQuestionsfromAudit = await fetch(
-          `http://localhost:3000/audit/questions/${auditId}`,
+        const getQuestionsfromAudit = await fetch(`http://localhost:3000/audit/questions/${auditId}`,
           { method: "GET" }
         );
+        
         const questionAudit: QuestionInt[] = await getQuestionsfromAudit.json();
 
         for (const element of questionAudit) {
@@ -405,9 +405,10 @@ const filteredUnassignedUsers = users
             f_au_audit_idx: auditId,
             f_qu_question_idx: element.qu_idx,
             f_u_auditor_id: user?.u_userId,
-            f_status: "offen",
             f_comment: "",
             f_finding_comment: "",
+            f_implemented: 0,
+            f_documented: 0,
           };
 
           const addfinding = await fetch("http://localhost:3000/audit/finding", {
@@ -432,7 +433,8 @@ const filteredUnassignedUsers = users
             );
           }
         }
- const response = await fetch(`http://localhost:3000/audit/${auditId}`, {
+
+        const response = await fetch(`http://localhost:3000/audit/${auditId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -450,7 +452,6 @@ const filteredUnassignedUsers = users
           )
         );
 
-        // Weiterleiten zum Durchführen
         window.location.href = `/doAudit/${auditId}`;
       } catch (error) {
         console.error("Error changing audit status:", error);
@@ -681,7 +682,7 @@ const exportAllAuditsAndFindingsToPDF = async () => {
 />
 
                     {isLeadAuditor && selectedAudit && (
-                      <div className="my-4">
+                      <div className="my-4 flex justify-center">
                         <button
                           className="px-4 py-2 rounded-md bg-blue-500 hover:bg-blue-600 text-white"
                           onClick={() => setModalOpen(true)}
@@ -756,30 +757,35 @@ const exportAllAuditsAndFindingsToPDF = async () => {
            
                   {/* Zugewiesene User anzeigen */}
                   {auditZugewiesen.length > 0 && (
-                      <div className="my-4">
+                      <div className="my-4 text-center">
                         <h3 className="font-bold mb-2">Zugewiesene User:</h3>
+                        <div className="max-h-20 overflow-y-auto">
                         <ul className="list-disc list-inside">
                           {auditZugewiesen.map((assignedUser) => (
-                              <li key={assignedUser.u_userId}>
-                                {assignedUser.u_firstname} {assignedUser.u_lastname}{": "}
-                                {{
-                                  1: "Admin",
-                                  3: "Auditee",
-                                  2: "Auditor",
-                                  4: "Gast",
-                                  6: "Manual-Writer",
-                                  5: "Reporter",
-                                }[assignedUser.ru_r_id] || ""}
+                              <li key={assignedUser.u_userId} className="relative list-none">
+                                <div className="text-center w-full">
+                                  {assignedUser.u_firstname} {assignedUser.u_lastname}:{' '}
+                                  {{
+                                    1: 'Admin',
+                                    3: 'Auditee',
+                                    2: 'Auditor',
+                                    4: 'Gast',
+                                    6: 'Manual-Writer',
+                                    5: 'Reporter',
+                                  }[assignedUser.ru_r_id] || ''}
+                                </div>
                               </li>
+
                           ))}
                         </ul>
+                        </div>
                       </div>
                   )}
 
-                  {/* Buttons unter der Fragenliste */}
-                  <div className="flex justify-center space-x-4 mt-4">
-                    {isAuditor && (auditstatus === "geplant" || auditstatus === "bereit") && (
-                        <button
+                    {/* Buttons unter der Fragenliste */}
+                    <div className="flex justify-center space-x-4 mt-4">
+                      {isAuditor && (auditstatus === "geplant" || auditstatus === "bereit") && (
+                          <button
                             onClick={() =>
                                 selectedAudit &&
                                 (window.location.href = `/questionPage/${selectedAudit}`)

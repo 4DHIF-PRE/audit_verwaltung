@@ -112,9 +112,8 @@ export default function AuditPage() {
       const newQuestions = newLaws.map((lawId) => ({
         qu_audit_idx: auditId,
         qu_law_idx: lawId,
-        qu_audited: fields.audited,
+        qu_audited: 0,
         qu_applicable: fields.applicable,
-        qu_finding_level: 0,
       }));
 
       const saveResponse = await fetch("http://localhost:3000/questions/bulk", {
